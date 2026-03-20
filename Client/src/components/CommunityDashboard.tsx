@@ -1,184 +1,212 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Github, 
+  Trophy, 
   Users, 
-  Star, 
-  GitBranch, 
-  MessageSquare, 
   Calendar,
   TrendingUp,
   Award,
-  Code,
-  BookOpen,
-  HelpCircle,
-  Bell,
+  Target,
+  Clock,
+  Star,
   Search,
   Filter,
-  ChevronRight
+  ChevronRight,
+  Zap,
+  Medal,
+  Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { api } from '@/lib/api-client';
 
-interface Activity {
+interface LeaderboardEntry {
   id: string;
-  type: 'contribution' | 'issue' | 'pull_request' | 'discussion';
+  rank: number;
+  name: string;
+  team: string;
+  score: number;
+  events: number;
+  badges: string[];
+  avatar: string;
+  trend: 'up' | 'down' | 'same';
+}
+
+interface HackathonActivity {
+  id: string;
+  type: 'event' | 'achievement' | 'milestone' | 'announcement';
   title: string;
   description: string;
   timestamp: string;
-  author: string;
-  avatar: string;
-  project: string;
-  tags: string[];
+  event: string;
+  points?: number;
+  participants?: number;
 }
 
-interface Opportunity {
+interface UpcomingEvent {
   id: string;
-  title: string;
-  description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  tags: string[];
-  project: string;
-  postedBy: string;
-  postedAt: string;
-  applicants: number;
+  name: string;
+  date: string;
+  location: string;
+  participants: number;
+  maxParticipants: number;
+  prize: string;
+  status: 'upcoming' | 'registration_open' | 'ongoing';
 }
 
 const CommunityDashboard = () => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'contributions' | 'opportunities' | 'discussions'>('all');
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'events' | 'achievements'>('leaderboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [activities, setActivities] = useState<HackathonActivity[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [stats, setStats] = useState([
+    { label: 'Active Hackers', value: '0', change: '+0', icon: Users, color: 'text-blue-500' },
+    { label: 'Total Events', value: '0', change: '+0', icon: Calendar, color: 'text-green-500' },
+    { label: 'Prize Pool', value: '₹0', change: '+0', icon: Award, color: 'text-yellow-500' },
+    { label: 'Teams Formed', value: '0', change: '+0', icon: Target, color: 'text-purple-500' }
+  ]);
 
-  // Mock data - replace with real data from backend
-  const activities: Activity[] = [
-    {
-      id: '1',
-      type: 'contribution',
-      title: 'Fixed responsive navigation on mobile',
-      description: 'Resolved CSS issues causing navigation overlap on mobile devices',
-      timestamp: '2 hours ago',
-      author: 'Sarah Chen',
-      avatar: 'https://avatars.githubusercontent.com/u/87654321?v=4',
-      project: 'TechAssassin Platform',
-      tags: ['bug-fix', 'css', 'mobile']
-    },
-    {
-      id: '2',
-      type: 'pull_request',
-      title: 'Add dark mode support',
-      description: 'Implemented comprehensive dark mode with theme persistence',
-      timestamp: '5 hours ago',
-      author: 'Mike Johnson',
-      avatar: 'https://avatars.githubusercontent.com/u/11223344?v=4',
-      project: 'TechAssassin Platform',
-      tags: ['feature', 'ui', 'dark-mode']
-    },
-    {
-      id: '3',
-      type: 'issue',
-      title: 'Improve team formation algorithm',
-      description: 'Looking for help optimizing the team matching logic for better compatibility',
-      timestamp: '1 day ago',
-      author: 'Alex Kumar',
-      avatar: 'https://avatars.githubusercontent.com/u/99887766?v=4',
-      project: 'Team Formation API',
-      tags: ['enhancement', 'algorithm', 'python']
-    },
-    {
-      id: '4',
-      type: 'discussion',
-      title: 'Best practices for hackathon organization',
-      description: 'Community discussion on organizing successful hackathons',
-      timestamp: '2 days ago',
-      author: 'Emily Davis',
-      avatar: 'https://avatars.githubusercontent.com/u/55667788?v=4',
-      project: 'Community',
-      tags: ['discussion', 'best-practices', 'organization']
+  // Load data from database
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load all data in parallel
+      const [leaderboardData, activitiesData, eventsData, statsData] = await Promise.all([
+        fetchLeaderboard(),
+        fetchActivities(),
+        fetchUpcomingEvents(),
+        fetchStats()
+      ]);
+
+      setLeaderboard(leaderboardData);
+      setActivities(activitiesData);
+      setUpcomingEvents(eventsData);
+      setStats(statsData);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const opportunities: Opportunity[] = [
-    {
-      id: '1',
-      title: 'Add real-time notifications',
-      description: 'Implement WebSocket-based real-time notifications for hackathon updates',
-      difficulty: 'intermediate',
-      tags: ['websocket', 'notifications', 'real-time'],
-      project: 'TechAssassin Platform',
-      postedBy: 'Aryan Sondharva',
-      postedAt: '3 hours ago',
-      applicants: 3
-    },
-    {
-      id: '2',
-      title: 'Improve mobile app performance',
-      description: 'Optimize React Native app for better performance on lower-end devices',
-      difficulty: 'advanced',
-      tags: ['performance', 'react-native', 'optimization'],
-      project: 'Hackathon Mobile App',
-      postedBy: 'Sarah Chen',
-      postedAt: '1 day ago',
-      applicants: 5
-    },
-    {
-      id: '3',
-      title: 'Write API documentation',
-      description: 'Create comprehensive API documentation for the team formation service',
-      difficulty: 'beginner',
-      tags: ['documentation', 'api', 'writing'],
-      project: 'Team Formation API',
-      postedBy: 'Mike Johnson',
-      postedAt: '2 days ago',
-      applicants: 8
-    },
-    {
-      id: '4',
-      title: 'Add unit tests for frontend',
-      description: 'Write comprehensive unit tests for React components using Jest and Testing Library',
-      difficulty: 'intermediate',
-      tags: ['testing', 'jest', 'react'],
-      project: 'TechAssassin Platform',
-      postedBy: 'Emily Davis',
-      postedAt: '3 days ago',
-      applicants: 12
+  const fetchLeaderboard = async (): Promise<LeaderboardEntry[]> => {
+    try {
+      const response = await api.get('/community/leaderboard');
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch leaderboard:', error);
+      return [];
     }
-  ];
+  };
 
-  const stats = [
-    { label: 'Your Contributions', value: '23', change: '+3', icon: Code, color: 'text-blue-500' },
-    { label: 'Issues Resolved', value: '15', change: '+2', icon: GitBranch, color: 'text-green-500' },
-    { label: 'Discussions', value: '8', change: '+1', icon: MessageSquare, color: 'text-purple-500' },
-    { label: 'Community Points', value: '156', change: '+25', icon: Award, color: 'text-yellow-500' }
-  ];
+  const fetchActivities = async (): Promise<HackathonActivity[]> => {
+    try {
+      const response = await api.get('/community/activities');
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
+      return [];
+    }
+  };
 
-  const getDifficultyColor = (difficulty: string) => {
+  const fetchUpcomingEvents = async (): Promise<UpcomingEvent[]> => {
+    try {
+      const response = await api.get('/events/upcoming');
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch upcoming events:', error);
+      return [];
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/community/stats');
+      const data = response.data || {};
+      
+      return [
+        { 
+          label: 'Active Hackers', 
+          value: `${data.activeHackers || 0}+`, 
+          change: `+${data.newHackers || 0}`, 
+          icon: Users, 
+          color: 'text-blue-500' 
+        },
+        { 
+          label: 'Total Events', 
+          value: `${data.totalEvents || 0}`, 
+          change: `+${data.newEvents || 0}`, 
+          icon: Calendar, 
+          color: 'text-green-500' 
+        },
+        { 
+          label: 'Prize Pool', 
+          value: `₹${data.totalPrizePool || 0}L+`, 
+          change: `+${data.newPrizePool || 0}K`, 
+          icon: Award, 
+          color: 'text-yellow-500' 
+        },
+        { 
+          label: 'Teams Formed', 
+          value: `${data.teamsFormed || 0}`, 
+          change: `+${data.newTeams || 0}`, 
+          icon: Target, 
+          color: 'text-purple-500' 
+        }
+      ];
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+      return [
+        { label: 'Active Hackers', value: '0', change: '+0', icon: Users, color: 'text-blue-500' },
+        { label: 'Total Events', value: '0', change: '+0', icon: Calendar, color: 'text-green-500' },
+        { label: 'Prize Pool', value: '₹0', change: '+0', icon: Award, color: 'text-yellow-500' },
+        { label: 'Teams Formed', value: '0', change: '+0', icon: Target, color: 'text-purple-500' }
+      ];
+    }
+  };
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return '📈';
+      case 'down': return '📉';
+      default: return '➡️';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
     const colors = {
-      'beginner': 'bg-green-500',
-      'intermediate': 'bg-yellow-500',
-      'advanced': 'bg-red-500'
+      'upcoming': 'bg-blue-500',
+      'registration_open': 'bg-green-500',
+      'ongoing': 'bg-yellow-500'
     };
-    return colors[difficulty as keyof typeof colors] || 'bg-gray-500';
+    return colors[status as keyof typeof colors] || 'bg-gray-500';
   };
 
   const getActivityIcon = (type: string) => {
     const icons = {
-      'contribution': Code,
-      'issue': HelpCircle,
-      'pull_request': GitBranch,
-      'discussion': MessageSquare
+      'event': Calendar,
+      'achievement': Trophy,
+      'milestone': Target,
+      'announcement': Star
     };
-    return icons[type as keyof typeof icons] || Code;
+    return icons[type as keyof typeof icons] || Calendar;
   };
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesFilter = activeFilter === 'all' || 
-      (activeFilter === 'contributions' && activity.type === 'contribution') ||
-      (activeFilter === 'opportunities' && activity.type === 'issue') ||
-      (activeFilter === 'discussions' && activity.type === 'discussion');
-    
-    const matchesSearch = searchTerm === '' || 
-      activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      activity.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesFilter && matchesSearch;
-  });
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading community data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,20 +215,23 @@ const CommunityDashboard = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Community Dashboard</h1>
-              <p className="text-muted-foreground">Connect, contribute, and collaborate with the TechAssassin community</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Hackathon Community</h1>
+              <p className="text-muted-foreground">Live data from PostgreSQL database</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+              <button
+                onClick={loadDashboardData}
+                className="inline-flex items-center gap-2 border border-border bg-background px-4 py-2 rounded-lg hover:bg-accent transition-colors"
+              >
+                <Loader2 className="w-4 h-4" />
+                Refresh
               </button>
               <Link
-                to="/profile"
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                to="/events"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
               >
-                <Github className="w-4 h-4" />
-                Your Profile
+                <Calendar className="w-4 h-4" />
+                View Events
               </Link>
             </div>
           </div>
@@ -222,182 +253,255 @@ const CommunityDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Search and Filter */}
-            <div className="bg-card rounded-lg p-4 border border-border">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search activities..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+        {/* Tabs */}
+        <div className="bg-card rounded-xl border border-border mb-6">
+          <div className="flex border-b border-border">
+            {['leaderboard', 'activities', 'events', 'achievements'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                  activeTab === tab
+                    ? 'text-primary bg-primary/5 border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {tab === 'leaderboard' && <Trophy className="w-4 h-4 inline mr-2" />}
+                {tab === 'activities' && <TrendingUp className="w-4 h-4 inline mr-2" />}
+                {tab === 'events' && <Calendar className="w-4 h-4 inline mr-2" />}
+                {tab === 'achievements' && <Award className="w-4 h-4 inline mr-2" />}
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === 'leaderboard' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-foreground">Live Leaderboard</h3>
+                  <div className="flex items-center gap-2">
+                    <Search className="w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search hackers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {['all', 'contributions', 'opportunities', 'discussions'].map((filter) => (
-                    <button
-                      key={filter}
-                      onClick={() => setActiveFilter(filter as any)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        activeFilter === filter
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-background border border-border hover:bg-accent'
-                      }`}
+
+                <div className="space-y-3">
+                  {leaderboard
+                    .filter(entry => 
+                      searchTerm === '' || 
+                      entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      entry.team.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
                     >
-                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                    </button>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                            entry.rank === 1 ? 'bg-yellow-500' :
+                            entry.rank === 2 ? 'bg-gray-400' :
+                            entry.rank === 3 ? 'bg-orange-600' : 'bg-gray-600'
+                          }`}>
+                            {entry.rank}
+                          </div>
+                        </div>
+                        <img
+                          src={entry.avatar}
+                          alt={entry.name}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <div className="font-semibold text-foreground">{entry.name}</div>
+                          <div className="text-sm text-muted-foreground">{entry.team}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <div className="font-bold text-foreground">{entry.score}</div>
+                          <div className="text-xs text-muted-foreground">points</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-semibold text-foreground">{entry.events}</div>
+                          <div className="text-xs text-muted-foreground">events</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg">{getTrendIcon(entry.trend)}</div>
+                        </div>
+                        <div className="flex gap-1">
+                          {entry.badges.slice(0, 2).map((badge, index) => (
+                            <span key={index} className="text-lg" title={badge}>{badge}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Activities Feed */}
-            <div className="space-y-4">
-              {filteredActivities.map((activity) => {
-                const Icon = getActivityIcon(activity.type);
-                return (
-                  <div key={activity.id} className="bg-card rounded-lg p-4 border border-border hover:bg-accent transition-colors">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={activity.avatar}
-                          alt={activity.author}
-                          className="w-10 h-10 rounded-full"
+            {activeTab === 'activities' && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-foreground mb-6">Recent Activities</h3>
+                <div className="space-y-4">
+                  {activities.map((activity) => {
+                    const Icon = getActivityIcon(activity.type);
+                    return (
+                      <div
+                        key={activity.id}
+                        className="flex items-start gap-4 p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
+                      >
+                        <div className={`p-3 rounded-lg bg-primary/10 text-primary`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-foreground">{activity.title}</h4>
+                            {activity.points && (
+                              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                +{activity.points} pts
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mb-2">{activity.description}</p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{activity.timestamp}</span>
+                            <span>•</span>
+                            <span>{activity.event}</span>
+                            {activity.participants && (
+                              <>
+                                <span>•</span>
+                                <span>{activity.participants} participants</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'events' && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-foreground mb-6">Upcoming Hackathons</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {upcomingEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      className="p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-1">{event.name}</h4>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <Calendar className="w-4 h-4" />
+                            <span>{event.date}</span>
+                            <span>•</span>
+                            <span>{event.location}</span>
+                          </div>
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${getStatusColor(event.status)}`} />
+                      </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm">{event.participants}/{event.maxParticipants}</span>
+                        </div>
+                        <div className="font-semibold text-primary">{event.prize}</div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div 
+                          className="bg-primary h-2 rounded-full" 
+                          style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
                         />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icon className="w-4 h-4 text-primary" />
-                          <span className="font-semibold text-foreground">{activity.title}</span>
-                          <span className="text-xs text-muted-foreground">• {activity.timestamp}</span>
-                        </div>
-                        <p className="text-muted-foreground mb-3">{activity.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span>{activity.author}</span>
-                            <span>•</span>
-                            <span>{activity.project}</span>
-                          </div>
-                          <div className="flex gap-2">
-                            {activity.tags.map((tag, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <div className="bg-card rounded-lg p-4 border border-border">
-              <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <a
-                  href="https://github.com/aryansondharva/TechAssassin/issues/new"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                >
-                  <span className="text-sm font-medium">Report an Issue</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </a>
-                <a
-                  href="https://github.com/aryansondharva/TechAssassin/pulls"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                >
-                  <span className="text-sm font-medium">View Pull Requests</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </a>
-                <Link
-                  to="/community/discussions"
-                  className="flex items-center justify-between p-3 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                >
-                  <span className="text-sm font-medium">Start Discussion</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Opportunities */}
-            <div className="bg-card rounded-lg p-4 border border-border">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground">Contribution Opportunities</h3>
-                <Link to="/community/opportunities" className="text-primary text-sm hover:underline">
-                  View All
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {opportunities.slice(0, 3).map((opportunity) => (
-                  <div key={opportunity.id} className="p-3 rounded-lg bg-background border border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-2 h-2 rounded-full ${getDifficultyColor(opportunity.difficulty)}`} />
-                      <span className="text-xs font-medium text-muted-foreground uppercase">{opportunity.difficulty}</span>
-                    </div>
-                    <h4 className="font-medium text-foreground mb-1">{opportunity.title}</h4>
-                    <p className="text-xs text-muted-foreground mb-2">{opportunity.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{opportunity.applicants} applicants</span>
                       <Link
-                        to={`/community/opportunities/${opportunity.id}`}
-                        className="text-xs text-primary hover:underline"
+                        to={`/events/${event.id}`}
+                        className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-sm"
                       >
-                        Apply →
+                        View Details
+                        <ChevronRight className="w-4 h-4" />
                       </Link>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Resources */}
-            <div className="bg-card rounded-lg p-4 border border-border">
-              <h3 className="font-semibold text-foreground mb-4">Resources</h3>
-              <div className="space-y-2">
-                <a
-                  href="https://github.com/aryansondharva/TechAssassin/blob/main/CONTRIBUTING.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Contribution Guide</span>
-                </a>
-                <a
-                  href="https://github.com/aryansondharva/TechAssassin/wiki"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <Code className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Documentation</span>
-                </a>
-                <Link
-                  to="/community/support"
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <HelpCircle className="w-4 h-4 text-primary" />
-                  <span className="text-sm">Get Help</span>
-                </Link>
+            {activeTab === 'achievements' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-foreground mb-6">Community Achievements</h3>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Trophy className="w-6 h-6 text-yellow-500" />
+                      <h4 className="font-semibold text-foreground">Hackathon Champion</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Win first place in any hackathon event
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Medal className="w-4 h-4 text-yellow-500" />
+                      <span className="text-sm font-medium">Awarded to top performers</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Zap className="w-6 h-6 text-blue-500" />
+                      <h4 className="font-semibold text-foreground">Speed Coder</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Complete a project in record time
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-medium">For fast developers</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Users className="w-6 h-6 text-green-500" />
+                      <h4 className="font-semibold text-foreground">Team Player</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Participate in 5+ team events
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium">Team collaboration experts</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Star className="w-6 h-6 text-purple-500" />
+                      <h4 className="font-semibold text-foreground">Rising Star</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Top 10 in first hackathon
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-purple-500" />
+                      <span className="text-sm font-medium">New talent recognition</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

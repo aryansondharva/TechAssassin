@@ -6,9 +6,6 @@ import { authService } from "@/services";
 const navLinks = [
   { label: "Events", href: "/events", isRoute: true },
   { label: "Community", href: "/community", isRoute: true },
-  { label: "Prizes", href: "#prizes" },
-  { label: "Tracks", href: "#tracks" },
-  { label: "Why Us", href: "#why" },
   { label: "FAQ", href: "#faq" },
 ];
 
