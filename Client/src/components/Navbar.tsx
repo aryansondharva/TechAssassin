@@ -5,6 +5,7 @@ import { authService } from "@/services";
 
 const navLinks = [
   { label: "Events", href: "/events", isRoute: true },
+  { label: "Community", href: "/community", isRoute: true },
   { label: "Prizes", href: "#prizes" },
   { label: "Tracks", href: "#tracks" },
   { label: "Why Us", href: "#why" },
@@ -19,7 +20,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="text-hero-foreground font-heading font-bold text-xl tracking-tight">
-          Tech<span className="text-primary">Assasin</span>
+          Tech<span className="text-primary">Assassin</span>
         </Link>
 
         {/* Desktop - Centered Navigation */}

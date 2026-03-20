@@ -28,7 +28,7 @@ const HeroSection = () => {
         </div>
 
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold text-hero-foreground mb-4 tracking-tight leading-tight">
-          Tech<span className="text-primary">Assasin</span>
+          Tech<span className="text-primary">Assassin</span>
         </h1>
 
         <div className="flex items-center justify-center gap-2 mb-6">
