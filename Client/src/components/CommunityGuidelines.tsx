@@ -209,8 +209,8 @@ const CommunityGuidelines = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/5 blur-[100px] rounded-full pointer-events-none" />
 
           <div className="text-center mb-12 relative z-10">
-            <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-white mb-3">Activation Sequence</h2>
-            <p className="text-white/40 text-sm font-bold uppercase tracking-widest">Follow the clockwise protocol to achieve operational readiness.</p>
+            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-3">Activation Sequence</h2>
+            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Follow the clockwise protocol to achieve operational readiness.</p>
           </div>
 
           {/* 3-col layout: left cards | SVG | right cards */}
@@ -228,11 +228,11 @@ const CommunityGuidelines = () => {
                   className="group text-right space-y-2"
                 >
                   <div className="flex items-center justify-end gap-2 mb-1">
-                    <span className="text-xs font-black uppercase tracking-widest text-red-600">0{i === 0 ? 4 : 3}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600">0{i === 0 ? 4 : 3}</span>
                   </div>
-                  <h4 className="text-lg font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
-                  <p className="text-white/40 text-sm leading-relaxed">{step.description}</p>
-                  <div className="inline-block text-[10px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-3 py-1.5 rounded">{step.action}</div>
+                  <h4 className="text-base font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
+                  <p className="text-white/35 text-xs leading-relaxed">{step.description}</p>
+                  <div className="inline-block text-[9px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-2 py-1 rounded">{step.action}</div>
                 </motion.div>
               ))}
             </div>
@@ -254,7 +254,7 @@ const CommunityGuidelines = () => {
                 {/* Arrow tip 1 – points bottom-right at 312° */}
                 <polygon points="433,167 404,145 420,192" fill="#ef4444" />
                 {/* Label 01 */}
-                <text x="300" y="125" textAnchor="middle" fill="white" fontSize="32" fontWeight="900" style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>01</text>
+                <text x="300" y="108" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">01</text>
 
                 {/* ── Segment 2 (right, 317°→43°, orange-red) ── */}
                 <path d="M 457.2 153.4 A 215 215 0 0 1 457.2 446.6 L 402.4 395.5 A 140 140 0 0 0 402.4 204.5 Z"
@@ -262,7 +262,7 @@ const CommunityGuidelines = () => {
                 {/* Arrow tip 2 – points bottom-left at 43° */}
                 <polygon points="430,437 458,408 412,410" fill="#dc2626" />
                 {/* Label 02 */}
-                <text x="478" y="312" textAnchor="middle" fill="white" fontSize="32" fontWeight="900" style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>02</text>
+                <text x="508" y="310" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">02</text>
 
                 {/* ── Segment 3 (bottom, 48°→132°, crimson) ── */}
                 <path d="M 443.9 459.8 A 215 215 0 0 1 156.1 459.8 L 206.3 404 A 140 140 0 0 0 393.7 404 Z"
@@ -270,7 +270,7 @@ const CommunityGuidelines = () => {
                 {/* Arrow tip 3 – points top-left at 132° */}
                 <polygon points="167,433 196,455 180,408" fill="#b91c1c" />
                 {/* Label 03 */}
-                <text x="300" y="490" textAnchor="middle" fill="white" fontSize="32" fontWeight="900" style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>03</text>
+                <text x="300" y="508" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">03</text>
 
                 {/* ── Segment 4 (left, 137°→222°, dark red) ── */}
                 <path d="M 142.8 446.6 A 215 215 0 0 1 142.8 153.4 L 197.6 204.5 A 140 140 0 0 0 197.6 395.5 Z"
@@ -278,13 +278,14 @@ const CommunityGuidelines = () => {
                 {/* Arrow tip 4 – points top-right at 222° */}
                 <polygon points="168,162 140,192 187,190" fill="#991b1b" />
                 {/* Label 04 */}
-                <text x="122" y="312" textAnchor="middle" fill="white" fontSize="32" fontWeight="900" style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>04</text>
+                <text x="92" y="310" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">04</text>
 
                 {/* ── Center Hub ── */}
-                <line x1="262" y1="337" x2="338" y2="337" stroke="#dc2626" strokeWidth="2" />
-                <text x="300" y="283" textAnchor="middle" fill="#dc2626" fontSize="11" fontWeight="900" letterSpacing="4"></text>
-                <text x="300" y="306" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontStyle="italic">TECH</text>
-                <text x="300" y="328" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontStyle="italic">ASSASSIN</text>
+                <circle cx="300" cy="300" r="105" fill="#0a0a0b" stroke="rgba(255,255,255,0.06)" strokeWidth="2" />
+                <circle cx="300" cy="300" r="88" fill="none" stroke="rgba(220,38,38,0.15)" strokeWidth="1" strokeDasharray="4 5" />
+                <text x="300" y="283" textAnchor="middle" fill="#dc2626" fontSize="9" fontWeight="900" letterSpacing="4" fontFamily="sans-serif">PROTOCOL HUB</text>
+                <text x="300" y="306" textAnchor="middle" fill="white" fontSize="18" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">TECH</text>
+                <text x="300" y="328" textAnchor="middle" fill="white" fontSize="18" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">ASSASSIN</text>
                 <line x1="262" y1="337" x2="338" y2="337" stroke="#dc2626" strokeWidth="2" />
               </svg>
             </div>
@@ -301,11 +302,11 @@ const CommunityGuidelines = () => {
                   className="group text-left space-y-2"
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-black uppercase tracking-widest text-red-600">0{i + 1}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600">0{i + 1}</span>
                   </div>
-                  <h4 className="text-lg font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
-                  <p className="text-white/40 text-sm leading-relaxed">{step.description}</p>
-                  <div className="inline-block text-[10px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-3 py-1.5 rounded">{step.action}</div>
+                  <h4 className="text-base font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
+                  <p className="text-white/35 text-xs leading-relaxed">{step.description}</p>
+                  <div className="inline-block text-[9px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-2 py-1 rounded">{step.action}</div>
                 </motion.div>
               ))}
             </div>
