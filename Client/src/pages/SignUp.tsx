@@ -79,6 +79,8 @@ export default function SignUp() {
 
     try {
       await authService.signUp({
+        username: formData.name.toLowerCase().replace(/\s+/g, '_'),
+        full_name: formData.name,
         email: formData.email,
         password: formData.password,
       });

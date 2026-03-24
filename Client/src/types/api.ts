@@ -129,8 +129,10 @@ export interface HealthResponse {
 // ============================================================================
 
 export interface SignUpRequest {
+  username: string;
   email: string;
   password: string;
+  full_name?: string;
 }
 
 export interface SignInRequest {
@@ -139,15 +141,8 @@ export interface SignInRequest {
 }
 
 export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-  };
-  session: {
-    access_token: string;
-    refresh_token: string;
-    expires_at: number;
-  };
+  user: Profile;
+  token: string;
 }
 
 export interface ResetPasswordRequest {

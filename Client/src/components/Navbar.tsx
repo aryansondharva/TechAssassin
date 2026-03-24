@@ -80,12 +80,84 @@ const Navbar = () => {
           {/* Right Side - Actions */}
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:translate-y-[-2px]"
-              >
-                Dashboard <ChevronRight className="w-3 h-3" />
-              </Link>
+              <div className="relative group">
+                <button
+                  className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-white/20 overflow-hidden">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${authService.getUser()?.username || 'operative'}`} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">
+                    {authService.getUser()?.username || 'Operative'}
+                  </span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                </button>
+
+                {/* Tactical Dropdown Menu */}
+                <div className="absolute top-full right-0 mt-3 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-[110]">
+                  <div className="bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    <div className="p-4 border-b border-white/5 bg-white/5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-1">Authenticated Operative</p>
+                      <p className="text-sm font-bold text-white truncate">{authService.getUser()?.full_name || authService.getUser()?.username}</p>
+                    </div>
+                    
+                    <div className="p-2">
+                       <Link to="/profile" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">My Profile</span>
+                      </Link>
+
+                      <Link to="/profile/edit" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">Edit Profile</span>
+                      </Link>
+
+                      <div className="h-[1px] bg-white/5 my-1 mx-2" />
+
+                      <Link to="/community/hackathons" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
+                          <Menu className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">My Hackathons</span>
+                      </Link>
+
+                      <Link to="/community/projects" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">My Projects</span>
+                      </Link>
+
+                      <div className="h-[1px] bg-white/5 my-1 mx-2" />
+
+                      <Link to="/settings" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">Account Settings</span>
+                      </Link>
+
+                      <button 
+                        onClick={() => { authService.logout(); window.location.href = '/'; }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-500 transition-all group/item"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                          <X className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest">Log Out</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center gap-6">
                 <Link

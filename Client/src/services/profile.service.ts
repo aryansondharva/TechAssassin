@@ -37,6 +37,6 @@ export const profileService = {
    * Upload avatar image
    */
   uploadAvatar: async (file: File): Promise<AvatarUploadResponse> => {
-    return api.upload<AvatarUploadResponse>('/profile/avatar', file, 'avatar');
+    return api.upload<AvatarUploadResponse>('/profile/avatar', file, 'file');
   },
 };

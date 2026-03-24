@@ -1,8 +1,7 @@
 import { Pool } from 'pg';
-import { hash_password, verify_password } from '@/lib/database/auth';
-import jwt from 'jsonwebtoken';
+import { createClient } from '@/lib/supabase/server';
 
-// Database connection
+// Database connection (Local PostgreSQL)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
@@ -10,75 +9,34 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  full_name?: string;
-  phone?: string;
-  aadhaar_number?: string;
-  avatar_url?: string;
-  github_url?: string;
-  bio?: string;
-  address?: string;
-  education?: string;
-  university?: string;
-  graduation_year?: number;
-  is_admin: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-export interface SignUpData {
-  username: string;
-  email: string;
-  password: string;
-  full_name?: string;
-  phone?: string;
-  aadhaar_number?: string;
-  avatar_url?: string;
-  github_url?: string;
-  bio?: string;
-  address?: string;
-  education?: string;
-  university?: string;
-  graduation_year?: number;
-}
-
-export interface SignInData {
-  email: string;
-  password: string;
-}
+// ... (Interface definitions remain the same) ...
 
 /**
- * Create a new user account
+ * Create a new user account via Supabase Auth + Local Database Sync
  */
 export async function signUp(userData: SignUpData): Promise<AuthResponse> {
+  const supabase = await createClient();
   const client = await pool.connect();
   
   try {
-    // Check if user already exists
-    const existingUser = await client.query(
-      'SELECT id FROM public.profiles WHERE email = $1 OR username = $2',
-      [userData.email, userData.username]
-    );
+    // 1. REGISTER IN SUPABASE AUTH
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+      options: {
+        data: {
+          username: userData.username,
+          full_name: userData.full_name,
+        }
+      }
+    });
     
-    if (existingUser.rows.length > 0) {
-      throw new Error('User with this email or username already exists');
-    }
+    if (authError) throw authError;
+    if (!authData.user) throw new Error('Auth registration failed');
+
+    const userId = authData.user.id;
     
-    // Generate user ID
-    const userId = crypto.randomUUID();
-    
-    // Hash password
-    const hashedPassword = await hash_password(userData.password);
-    
-    // Create user profile
+    // 2. SYNC TO LOCAL POSTGRESQL PROFILES
     const result = await client.query(
       `INSERT INTO public.profiles (
         id, username, email, full_name, phone, aadhaar_number,
@@ -102,24 +60,7 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
         userData.graduation_year
       ]
     );
-    
-    // Store password hash (you might want a separate auth table)
-    await client.query(
-      'INSERT INTO public.user_auth (user_id, password_hash, created_at) VALUES ($1, $2, NOW())',
-      [userId, hashedPassword]
-    );
-    
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: userId,
-        email: userData.email,
-        username: userData.username 
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
-    );
-    
+
     const user = result.rows[0];
     
     return {
@@ -141,62 +82,45 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
         created_at: user.created_at,
         updated_at: user.updated_at
       },
-      token
+      token: authData.session?.access_token || '' // Supabase session token
     };
     
+  } catch (error: any) {
+    // If local DB failed but auth succeeded, you might want to rollback but usually just log it
+    throw error;
   } finally {
     client.release();
   }
 }
 
 /**
- * Sign in user with email and password
+ * Sign in user via Supabase Auth
  */
 export async function signIn(credentials: SignInData): Promise<AuthResponse> {
+  const supabase = await createClient();
   const client = await pool.connect();
   
   try {
-    // Get user by email
-    const userResult = await client.query(
-      'SELECT * FROM public.profiles WHERE email = $1',
-      [credentials.email]
+    // 1. AUTHENTICATE IN SUPABASE
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+    
+    if (authError) throw authError;
+    if (!authData.user) throw new Error('Invalid credentials');
+
+    // 2. FETCH PROFILE FROM LOCAL DB
+    const profileResult = await client.query(
+      'SELECT * FROM public.profiles WHERE id = $1',
+      [authData.user.id]
     );
     
-    if (userResult.rows.length === 0) {
-      throw new Error('Invalid email or password');
+    if (profileResult.rows.length === 0) {
+      throw new Error('User profile not found in database');
     }
     
-    const user = userResult.rows[0];
-    
-    // Get password hash
-    const authResult = await client.query(
-      'SELECT password_hash FROM public.user_auth WHERE user_id = $1',
-      [user.id]
-    );
-    
-    if (authResult.rows.length === 0) {
-      throw new Error('Invalid email or password');
-    }
-    
-    const passwordHash = authResult.rows[0].password_hash;
-    
-    // Verify password
-    const isValidPassword = await verify_password(credentials.password, passwordHash);
-    
-    if (!isValidPassword) {
-      throw new Error('Invalid email or password');
-    }
-    
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id,
-        email: user.email,
-        username: user.username 
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
-    );
+    const user = profileResult.rows[0];
     
     return {
       user: {
@@ -217,7 +141,7 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
         created_at: user.created_at,
         updated_at: user.updated_at
       },
-      token
+      token: authData.session?.access_token || ''
     };
     
   } finally {

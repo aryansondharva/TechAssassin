@@ -66,17 +66,18 @@ export async function POST(request: Request) {
       .getPublicUrl(fileName)
     
     // Update profile with avatar URL
-    const { data: updatedProfile, error: updateError } = await supabase
+    const { data: profiles, error: updateError } = await supabase
       .from('profiles')
       .update({ avatar_url: publicUrl })
       .eq('id', user.id)
       .select()
-      .single()
     
     if (updateError) {
       throw new Error(`Failed to update profile with avatar URL: ${updateError.message}`)
     }
-    
+
+    const updatedProfile = profiles && profiles.length > 0 ? profiles[0] : null;
+
     return NextResponse.json({
       message: 'Avatar uploaded successfully',
       avatar_url: publicUrl,
