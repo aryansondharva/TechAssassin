@@ -15,7 +15,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  full_name: string;
+  full_name?: string;
   phone?: string;
   aadhaar_number?: string;
   avatar_url?: string;
@@ -24,7 +24,7 @@ export interface User {
   address?: string;
   education?: string;
   university?: string;
-  graduation_year?: string;
+  graduation_year?: number;
   is_admin: boolean;
   created_at: Date;
   updated_at: Date;
@@ -53,7 +53,7 @@ export interface SignUpData {
   address?: string;
   education?: string;
   university?: string;
-  graduation_year?: string;
+  graduation_year?: number;
 }
 
 /**

@@ -12,15 +12,20 @@
 export interface Profile {
   id: string;
   username: string;
+  email: string;
   full_name: string | null;
-  bio: string | null;
+  phone: string | null;
+  aadhaar_number: string | null;
   avatar_url: string | null;
   github_url: string | null;
-  linkedin_url: string | null;
-  portfolio_url: string | null;
-  skills: string[];
+  bio: string | null;
+  address: string | null;
+  education: string | null;
+  university: string | null;
+  graduation_year: number | null;
   is_admin: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Event {
@@ -133,6 +138,15 @@ export interface SignUpRequest {
   email: string;
   password: string;
   full_name?: string;
+  phone?: string;
+  aadhaar_number?: string;
+  avatar_url?: string;
+  github_url?: string;
+  bio?: string;
+  address?: string;
+  education?: string;
+  university?: string;
+  graduation_year?: number;
 }
 
 export interface SignInRequest {
