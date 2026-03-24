@@ -44,11 +44,9 @@ const Navbar = () => {
         `}>
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.4)] group-hover:scale-110 transition-transform">
-              <Shield className="w-5 h-5 text-white fill-current" />
-            </div>
+          
             <span className="text-white font-black italic tracking-tighter text-lg md:text-xl uppercase">
-              TECH<span className="text-red-600">ASSASSIN</span>
+              TECH<span className="text-red-600"> ASSASSIN</span>
             </span>
           </Link>
 
