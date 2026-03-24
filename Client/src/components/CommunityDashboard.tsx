@@ -216,9 +216,10 @@ const CommunityDashboard = () => {
             <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
-            COMMUNITY <span className="text-red-600">HUB</span>
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-red-800 text-animate-gradient drop-shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+            COMMUNITY HUB
           </h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-8 blur-[1px] animate-pulse" />
           
           <p className="text-white/50 text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-12">
             The elite network of TechAssassins. Dismantling monoliths, mastering frameworks, 
