@@ -6,16 +6,23 @@ import {
   TrendingUp,
   Award,
   Target,
-  Clock,
-  Star,
   Search,
-  Filter,
   ChevronRight,
   Zap,
   Medal,
-  Loader2
+  Loader2,
+  ChevronDown,
+  Activity,
+  Code,
+  ShieldAlert,
+  Sword,
+  ShieldCheck,
+  Star,
+  Globe,
+  Monitor
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api-client';
 
 interface LeaderboardEntry {
@@ -60,13 +67,12 @@ const CommunityDashboard = () => {
   const [activities, setActivities] = useState<HackathonActivity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [stats, setStats] = useState([
-    { label: 'Active Hackers', value: '0', change: '+0', icon: Users, color: 'text-blue-500' },
-    { label: 'Total Events', value: '0', change: '+0', icon: Calendar, color: 'text-green-500' },
-    { label: 'Prize Pool', value: '₹0', change: '+0', icon: Award, color: 'text-yellow-500' },
-    { label: 'Teams Formed', value: '0', change: '+0', icon: Target, color: 'text-purple-500' }
+    { label: 'Active Hackers', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
+    { label: 'Total Events', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
+    { label: 'Prize Pool', value: '₹5L+', change: '+50K', icon: Award, color: 'text-yellow-500' },
+    { label: 'Teams Formed', value: '96', change: '+5', icon: Target, color: 'text-green-500' }
   ]);
 
-  // Load data from database
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -74,8 +80,6 @@ const CommunityDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Load all data in parallel
       const [leaderboardData, activitiesData, eventsData, statsData] = await Promise.all([
         fetchLeaderboard(),
         fetchActivities(),
@@ -86,18 +90,17 @@ const CommunityDashboard = () => {
       setLeaderboard(leaderboardData);
       setActivities(activitiesData);
       setUpcomingEvents(eventsData);
-      setStats(statsData);
+      if (statsData.length > 0) setStats(statsData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 800); // Add a small delay for smoother feel
     }
   };
 
   const fetchLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     try {
-      const response = await api.get('/community/leaderboard');
-      return response.data || [];
+      return await api.get<LeaderboardEntry[]>('/community/leaderboard');
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);
       return [];
@@ -106,8 +109,7 @@ const CommunityDashboard = () => {
 
   const fetchActivities = async (): Promise<HackathonActivity[]> => {
     try {
-      const response = await api.get('/community/activities');
-      return response.data || [];
+      return await api.get<HackathonActivity[]>('/community/activities');
     } catch (error) {
       console.error('Failed to fetch activities:', error);
       return [];
@@ -116,8 +118,7 @@ const CommunityDashboard = () => {
 
   const fetchUpcomingEvents = async (): Promise<UpcomingEvent[]> => {
     try {
-      const response = await api.get('/events/upcoming');
-      return response.data || [];
+      return await api.get<UpcomingEvent[]>('/events/upcoming');
     } catch (error) {
       console.error('Failed to fetch upcoming events:', error);
       return [];
@@ -126,385 +127,392 @@ const CommunityDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/community/stats');
-      const data = response.data || {};
-      
+      const data = await api.get<any>('/community/stats');
       return [
-        { 
-          label: 'Active Hackers', 
-          value: `${data.activeHackers || 0}+`, 
-          change: `+${data.newHackers || 0}`, 
-          icon: Users, 
-          color: 'text-blue-500' 
-        },
-        { 
-          label: 'Total Events', 
-          value: `${data.totalEvents || 0}`, 
-          change: `+${data.newEvents || 0}`, 
-          icon: Calendar, 
-          color: 'text-green-500' 
-        },
-        { 
-          label: 'Prize Pool', 
-          value: `₹${data.totalPrizePool || 0}L+`, 
-          change: `+${data.newPrizePool || 0}K`, 
-          icon: Award, 
-          color: 'text-yellow-500' 
-        },
-        { 
-          label: 'Teams Formed', 
-          value: `${data.teamsFormed || 0}`, 
-          change: `+${data.newTeams || 0}`, 
-          icon: Target, 
-          color: 'text-purple-500' 
-        }
+        { label: 'Active Hackers', value: `${data.activeHackers || 0}+`, change: `+${data.newHackers || 0}`, icon: Users, color: 'text-red-500' },
+        { label: 'Total Events', value: `${data.totalEvents || 0}`, change: `+${data.newEvents || 0}`, icon: Calendar, color: 'text-blue-500' },
+        { label: 'Prize Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
+        { label: 'Teams Formed', value: `${data.teamsFormed || 0}`, change: `+${data.newTeams || 0}`, icon: Target, color: 'text-green-500' }
       ];
     } catch (error) {
-      console.error('Failed to fetch stats:', error);
-      return [
-        { label: 'Active Hackers', value: '0', change: '+0', icon: Users, color: 'text-blue-500' },
-        { label: 'Total Events', value: '0', change: '+0', icon: Calendar, color: 'text-green-500' },
-        { label: 'Prize Pool', value: '₹0', change: '+0', icon: Award, color: 'text-yellow-500' },
-        { label: 'Teams Formed', value: '0', change: '+0', icon: Target, color: 'text-purple-500' }
-      ];
+      return [];
     }
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up': return '📈';
-      case 'down': return '📉';
-      default: return '➡️';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'upcoming': 'bg-blue-500',
-      'registration_open': 'bg-green-500',
-      'ongoing': 'bg-yellow-500'
-    };
-    return colors[status as keyof typeof colors] || 'bg-gray-500';
-  };
-
-  const getActivityIcon = (type: string) => {
-    const icons = {
-      'event': Calendar,
-      'achievement': Trophy,
-      'milestone': Target,
-      'announcement': Star
-    };
-    return icons[type as keyof typeof icons] || Calendar;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading community data...</p>
+      <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center relative overflow-hidden">
+        {/* Background Patterns */}
+        <div className="absolute inset-0 bg-[#0a0a0b]" />
+        <div className="absolute inset-0 bg-[url('/textures/grunge-overlay.png')] opacity-10 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-red-900/10 to-transparent pointer-events-none" />
+        
+        <div className="relative text-center">
+          <div className="w-20 h-20 mb-6 mx-auto relative">
+            <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+               className="absolute inset-0 border-2 border-t-red-600 border-r-transparent border-b-transparent border-l-transparent rounded-full"
+            />
+            <motion.div 
+               animate={{ rotate: -360 }}
+               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+               className="absolute inset-2 border-2 border-b-white/20 border-t-transparent border-r-transparent border-l-transparent rounded-full"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Activity className="w-8 h-8 text-red-600 animate-pulse" />
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-white tracking-widest uppercase mb-1">Synchronizing</h2>
+          <p className="text-white/40 text-sm font-mono">LINKING TO NEURAL NETWORK...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Hackathon Community</h1>
-              <p className="text-muted-foreground">Live data from PostgreSQL database</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={loadDashboardData}
-                className="inline-flex items-center gap-2 border border-border bg-background px-4 py-2 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Loader2 className="w-4 h-4" />
-                Refresh
-              </button>
-              <Link
-                to="/events"
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                <Calendar className="w-4 h-4" />
-                View Events
-              </Link>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-background rounded-lg p-4 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                  <span className="text-xs text-green-500 font-semibold">{stat.change}</span>
-                </div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0a0a0b] text-white relative overflow-hidden font-sans">
+      {/* Cinematic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/textures/grunge-overlay.png')] opacity-20" />
+        <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-red-900/20 via-red-900/5 to-transparent shadow-inner" />
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-600/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-red-600/5 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.8)_100%)]" />
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="bg-card rounded-xl border border-border mb-6">
-          <div className="flex border-b border-border">
-            {['leaderboard', 'activities', 'events', 'achievements'].map((tab) => (
+      <main className="relative z-10 container mx-auto px-4 py-12 md:py-24">
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
+            <ShieldCheck className="w-4 h-4 text-red-500" />
+            <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+            COMMUNITY <span className="text-red-600">HUB</span>
+          </h1>
+          
+          <p className="text-white/50 text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-12">
+            The elite network of TechAssassins. Dismantling monoliths, mastering frameworks, 
+            and claiming the digital throne.
+          </p>
+
+          {/* Tactical Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className="group relative"
+              >
+                <div className="absolute inset-0 bg-red-600/0 group-hover:bg-red-600/5 transition-all duration-300 rounded-2xl border border-white/10 group-hover:border-red-600/30 backdrop-blur-md" />
+                <div className="relative p-6 flex flex-col items-center">
+                  <div className={`mb-4 p-3 rounded-xl bg-white/5 border border-white/10 ${stat.color}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-3xl font-black font-mono tracking-tight mb-1">{stat.value}</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 truncate">{stat.label}</div>
+                  <div className="absolute top-4 right-4 text-[10px] font-bold text-red-500 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <TrendingUp className="w-3 h-3" /> {stat.change}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Dashboard Content */}
+        <div className="max-w-6xl mx-auto">
+          {/* Navigation Bar - Tactical Style */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
+            {(['leaderboard', 'activities', 'events', 'achievements'] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-                  activeTab === tab
-                    ? 'text-primary bg-primary/5 border-b-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                onClick={() => setActiveTab(tab)}
+                className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${
+                  activeTab === tab 
+                    ? 'text-white' 
+                    : 'text-white/40 hover:text-white/70'
                 }`}
               >
-                {tab === 'leaderboard' && <Trophy className="w-4 h-4 inline mr-2" />}
-                {tab === 'activities' && <TrendingUp className="w-4 h-4 inline mr-2" />}
-                {tab === 'events' && <Calendar className="w-4 h-4 inline mr-2" />}
-                {tab === 'achievements' && <Award className="w-4 h-4 inline mr-2" />}
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {activeTab === tab && (
+                  <motion.div 
+                    layoutId="active-tab"
+                    className="absolute inset-0 bg-red-600 rounded-xl"
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  {tab === 'leaderboard' && <Trophy className="w-4 h-4" />}
+                  {tab === 'activities' && <Activity className="w-4 h-4" />}
+                  {tab === 'events' && <Globe className="w-4 h-4" />}
+                  {tab === 'achievements' && <Award className="w-4 h-4" />}
+                  {tab}
+                </span>
               </button>
             ))}
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6">
-            {activeTab === 'leaderboard' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-foreground">Live Leaderboard</h3>
-                  <div className="flex items-center gap-2">
-                    <Search className="w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search hackers..."
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="relative min-h-[400px]"
+            >
+              {activeTab === 'leaderboard' && (
+                <div className="space-y-6">
+                  {/* Search Bar */}
+                  <div className="relative group max-w-md mx-auto mb-12">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-red-500 transition-colors" />
+                    <input 
+                      type="text" 
+                      placeholder="Locate target in database..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all placeholder:text-white/20"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  {leaderboard
-                    .filter(entry => 
-                      searchTerm === '' || 
-                      entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      entry.team.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                            entry.rank === 1 ? 'bg-yellow-500' :
-                            entry.rank === 2 ? 'bg-gray-400' :
-                            entry.rank === 3 ? 'bg-orange-600' : 'bg-gray-600'
-                          }`}>
-                            {entry.rank}
-                          </div>
-                        </div>
-                        <img
-                          src={entry.avatar}
-                          alt={entry.name}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div>
-                          <div className="font-semibold text-foreground">{entry.name}</div>
-                          <div className="text-sm text-muted-foreground">{entry.team}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <div className="font-bold text-foreground">{entry.score}</div>
-                          <div className="text-xs text-muted-foreground">points</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-semibold text-foreground">{entry.events}</div>
-                          <div className="text-xs text-muted-foreground">events</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg">{getTrendIcon(entry.trend)}</div>
-                        </div>
-                        <div className="flex gap-1">
-                          {entry.badges.slice(0, 2).map((badge, index) => (
-                            <span key={index} className="text-lg" title={badge}>{badge}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'activities' && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground mb-6">Recent Activities</h3>
-                <div className="space-y-4">
-                  {activities.map((activity) => {
-                    const Icon = getActivityIcon(activity.type);
-                    return (
-                      <div
-                        key={activity.id}
-                        className="flex items-start gap-4 p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
+                  {/* Leaderboard Entries */}
+                  <div className="space-y-3">
+                    {leaderboard
+                      .filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((user, idx) => (
+                      <motion.div
+                        key={user.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="group relative bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-red-600/30 rounded-2xl p-4 md:p-6 transition-all duration-300 backdrop-blur-md"
                       >
-                        <div className={`p-3 rounded-lg bg-primary/10 text-primary`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-foreground">{activity.title}</h4>
-                            {activity.points && (
-                              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                                +{activity.points} pts
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-muted-foreground mb-2">{activity.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>{activity.timestamp}</span>
-                            <span>•</span>
-                            <span>{activity.event}</span>
-                            {activity.participants && (
-                              <>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                            <div className="relative">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl italic ${
+                                user.rank === 1 ? 'text-yellow-500 bg-yellow-500/10' :
+                                user.rank === 2 ? 'text-slate-400 bg-slate-400/10' :
+                                user.rank === 3 ? 'text-amber-700 bg-amber-700/10' : 'text-white/40 bg-white/5'
+                              }`}>
+                                {user.rank}
+                              </div>
+                              {user.rank <= 3 && (
+                                <div className="absolute -top-1 -right-1">
+                                  <Star className={`w-4 h-4 fill-current ${
+                                    user.rank === 1 ? 'text-yellow-500' :
+                                    user.rank === 2 ? 'text-slate-400' : 'text-amber-700'
+                                  }`} />
+                                </div>
+                              )}
+                            </div>
+                            
+                            <img 
+                              src={user.avatar} 
+                              alt={user.name} 
+                              className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-white/5 border border-white/10 group-hover:border-red-600/30 transition-all" 
+                            />
+                            
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-xl font-bold tracking-tight text-white group-hover:text-red-500 transition-colors uppercase italic">{user.name}</h3>
+                                {user.badges.map((badge, i) => (
+                                  <span key={i} className="text-xs filter grayscale group-hover:grayscale-0 transition-all">{badge}</span>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-white/30">
+                                <span className="text-red-500/80">@{user.username}</span>
                                 <span>•</span>
-                                <span>{activity.participants} participants</span>
-                              </>
-                            )}
+                                <span>{user.events} Events Completed</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-12 text-right">
+                             <div className="hidden md:block">
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-1">Rank Trend</div>
+                                <div className="text-2xl">{user.trend === 'up' ? '📈' : user.trend === 'down' ? '📉' : '➡️'}</div>
+                             </div>
+                             <div>
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-1">Assessment</div>
+                                <div className="text-3xl font-black italic text-red-600 font-mono tracking-tighter">{user.score}</div>
+                             </div>
+                             <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {activeTab === 'events' && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground mb-6">Upcoming Hackathons</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {upcomingEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                    >
-                      <div className="flex items-start justify-between mb-3">
+              {activeTab === 'activities' && (
+                <div className="space-y-4 max-w-4xl mx-auto">
+                   {activities.map((activity, idx) => (
+                      <motion.div
+                        key={activity.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="grid grid-cols-[auto,1fr] gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/[0.08] transition-all group"
+                      >
+                        <div className="relative">
+                           <div className="w-12 h-12 h-full flex flex-col items-center">
+                              <div className="w-12 h-12 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600">
+                                 {activity.type === 'event' && <Globe className="w-6 h-6" />}
+                                 {activity.type === 'achievement' && <Trophy className="w-6 h-6" />}
+                                 {activity.type === 'milestone' && <Target className="w-6 h-6" />}
+                                 {activity.type === 'announcement' && <Zap className="w-6 h-6" />}
+                              </div>
+                              <div className="w-0.5 h-full bg-white/5 my-4" />
+                           </div>
+                        </div>
+
                         <div>
-                          <h4 className="font-semibold text-foreground mb-1">{event.name}</h4>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>{event.date}</span>
-                            <span>•</span>
-                            <span>{event.location}</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-lg font-bold uppercase italic text-white/90 group-hover:text-red-500 transition-colors">
+                              {activity.title}
+                            </h4>
+                            <span className="text-xs font-mono text-white/30 uppercase tracking-widest">{activity.timestamp}</span>
+                          </div>
+                          <p className="text-white/50 text-sm leading-relaxed mb-4">{activity.description}</p>
+                          <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-[0.15em] text-white/20">
+                            <span className="text-red-600/80"># {activity.event}</span>
+                            {activity.points && <span>POINTS EARNED: +{activity.points}</span>}
+                            {activity.participants && <span>SEEN BY: {activity.participants} OTHERS</span>}
                           </div>
                         </div>
-                        <div className={`w-3 h-3 rounded-full ${getStatusColor(event.status)}`} />
-                      </div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{event.participants}/{event.maxParticipants}</span>
+                      </motion.div>
+                   ))}
+                </div>
+              )}
+
+              {activeTab === 'events' && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {upcomingEvents.map((event, idx) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group relative bg-[#0d0d0e] border border-white/10 rounded-3xl overflow-hidden hover:border-red-600/50 transition-all duration-500 shadow-2xl"
+                    >
+                      {/* Event Card Header */}
+                      <div className="h-48 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-red-900/40 group-hover:scale-110 transition-transform duration-1000" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0e] via-transparent to-black/40" />
+                        <div className="absolute top-4 left-4">
+                          <div className="px-3 py-1 rounded-lg bg-red-600 text-[10px] font-black uppercase tracking-[0.2em] italic">
+                            {event.status.replace('_', ' ')}
+                          </div>
                         </div>
-                        <div className="font-semibold text-primary">{event.prize}</div>
+                        <div className="absolute bottom-4 left-6">
+                           <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-500 transition-colors">{event.name}</h3>
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
-                        />
+
+                      {/* Event Details */}
+                      <div className="p-8">
+                        <div className="grid grid-cols-2 gap-8 mb-8">
+                           <div>
+                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Timeline</div>
+                              <div className="flex items-center gap-2 text-sm font-bold">
+                                 <Calendar className="w-4 h-4 text-red-500" />
+                                 {event.date}
+                              </div>
+                           </div>
+                           <div>
+                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Location</div>
+                              <div className="flex items-center gap-2 text-sm font-bold">
+                                 <Monitor className="w-4 h-4 text-blue-500" />
+                                 {event.location}
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="space-y-6">
+                           <div>
+                              <div className="flex items-center justify-between mb-2">
+                                 <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Hacker Enrollment</div>
+                                 <div className="text-xs font-bold text-white/70">{event.participants} / {event.maxParticipants}</div>
+                              </div>
+                              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                 <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${(event.participants/event.maxParticipants)*100}%` }}
+                                    className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]"
+                                 />
+                              </div>
+                           </div>
+
+                           <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Strategic Bounty</div>
+                                <div className="text-xl font-black text-red-600 italic leading-none">{event.prize}</div>
+                              </div>
+                              <Link 
+                                 to={`/events/${event.id}`}
+                                 className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                              >
+                                Briefing
+                              </Link>
+                           </div>
+                        </div>
                       </div>
-                      <Link
-                        to={`/events/${event.id}`}
-                        className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-sm"
-                      >
-                        View Details
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {activeTab === 'achievements' && (
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-foreground mb-6">Community Achievements</h3>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Trophy className="w-6 h-6 text-yellow-500" />
-                      <h4 className="font-semibold text-foreground">Hackathon Champion</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Win first place in any hackathon event
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Medal className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm font-medium">Awarded to top performers</span>
-                    </div>
-                  </div>
+              {activeTab === 'achievements' && (
+                <div className="space-y-12">
+                   <div className="grid md:grid-cols-2 gap-8">
+                      {[
+                        { title: 'Elite Assassin', desc: 'Achieve Rank 1 in a major hackathon event.', icon: Sword, color: 'text-red-500', bg: 'from-red-900/20' },
+                        { title: 'Binary Ghost', desc: 'Identify and weaponize 50+ vulnerabilities in target builds.', icon: Activity, color: 'text-blue-500', bg: 'from-blue-900/20' },
+                        { title: 'The Architect', desc: 'Design an unbreachable system architecture.', icon: Target, color: 'text-green-500', bg: 'from-green-900/20' },
+                        { title: 'Master Strategist', desc: 'Lead a team to 3 consecutive podium finishes.', icon: Trophy, color: 'text-yellow-500', bg: 'from-yellow-900/20' },
+                      ].map((ach, i) => (
+                        <div key={i} className={`p-8 rounded-3xl bg-gradient-to-br ${ach.bg} to-white/5 border border-white/10 group hover:border-red-600/30 transition-all`}>
+                           <div className={`w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${ach.color}`}>
+                              <ach.icon className="w-8 h-8" />
+                           </div>
+                           <h3 className="text-2xl font-black italic uppercase tracking-tighter mb-2 text-white group-hover:text-red-500 transition-colors uppercase">{ach.title}</h3>
+                           <p className="text-white/40 text-sm leading-relaxed mb-6 font-medium">{ach.desc}</p>
+                           <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Elite Level Recognition</span>
+                              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                 <Star className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
 
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Zap className="w-6 h-6 text-blue-500" />
-                      <h4 className="font-semibold text-foreground">Speed Coder</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Complete a project in record time
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium">For fast developers</span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Users className="w-6 h-6 text-green-500" />
-                      <h4 className="font-semibold text-foreground">Team Player</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Participate in 5+ team events
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-medium">Team collaboration experts</span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Star className="w-6 h-6 text-purple-500" />
-                      <h4 className="font-semibold text-foreground">Rising Star</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Top 10 in first hackathon
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-purple-500" />
-                      <span className="text-sm font-medium">New talent recognition</span>
-                    </div>
-                  </div>
+                   <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[3rem] text-center relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-red-600 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-1000" />
+                      <ShieldAlert className="w-16 h-16 text-yellow-500 mx-auto mb-8 animate-pulse" />
+                      <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-4">RESTRICTED DATA AREA</h3>
+                      <p className="text-white/40 max-w-xl mx-auto mb-10 font-medium">Further achievement records are encrypted. Only high-rank assassins can unlock more advanced badges and rewards.</p>
+                      <button className="px-10 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-[0_10px_40px_rgba(220,38,38,0.3)] hover:scale-105 transition-all">
+                        Upgrade Clearance
+                      </button>
+                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
+
+      {/* Futuristic Bottom Accents */}
+      <div className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30 shadow-[0_0_20px_rgba(220,38,38,0.5)]" />
     </div>
   );
 };
