@@ -44,7 +44,7 @@ export interface SignUpData {
   username: string;
   email: string;
   password: string;
-  full_name: string;
+  full_name?: string;
   phone?: string;
   aadhaar_number?: string;
   avatar_url?: string;
