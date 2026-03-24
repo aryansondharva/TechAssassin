@@ -231,7 +231,7 @@ const CommunityDashboard = () => {
               and claiming the digital throne.
             </p>
 
-            {/* Tactical Stats Grid */}
+            {/* Tactical Stats Grid /*/}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto w-full px-4">
               {stats.map((stat, index) => (
                 <motion.div
