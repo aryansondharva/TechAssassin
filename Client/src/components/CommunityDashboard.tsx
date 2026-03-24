@@ -205,51 +205,65 @@ const CommunityDashboard = () => {
       </div>
 
       <main className="relative z-10 container mx-auto px-4 py-12 md:py-24">
-        {/* Hero Section */}
+        {/* Hero Section - Full Screen Entry */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] text-center mb-32 relative"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
-            <ShieldCheck className="w-4 h-4 text-red-500" />
-            <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.05] select-none">
+             <h2 className="text-[25rem] md:text-[35rem] font-black italic tracking-tighter uppercase leading-none">AS</h2>
           </div>
-          
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-red-800 text-animate-gradient drop-shadow-[0_0_30px_rgba(220,38,38,0.3)]">
-            COMMUNITY HUB
-          </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-8 blur-[1px] animate-pulse" />
-          
-          <p className="text-white/50 text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-12">
-            The elite network of TechAssassins. Dismantling monoliths, mastering frameworks, 
-            and claiming the digital throne.
-          </p>
 
-          {/* Tactical Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="group relative"
-              >
-                <div className="absolute inset-0 bg-red-600/0 group-hover:bg-red-600/5 transition-all duration-300 rounded-2xl border border-white/10 group-hover:border-red-600/30 backdrop-blur-md" />
-                <div className="relative p-6 flex flex-col items-center">
-                  <div className={`mb-4 p-3 rounded-xl bg-white/5 border border-white/10 ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
+              <ShieldCheck className="w-4 h-4 text-red-500" />
+              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
+            </div>
+            
+            <h1 className="text-6xl md:text-9xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-red-800 text-animate-gradient drop-shadow-[0_0_30px_rgba(220,38,38,0.3)] pb-2 px-4 overflow-visible">
+              COMMUNITY HUB
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-8 blur-[1px] animate-pulse" />
+            
+            <p className="text-white/50 text-base md:text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-16 px-4">
+              The elite network of Tech Assassins. Dismantling monoliths, mastering frameworks, 
+              and claiming the digital throne.
+            </p>
+
+            {/* Tactical Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto w-full px-4">
+              {stats.map((stat, index) => (
+                <motion.div 
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group relative"
+                >
+                  <div className="absolute inset-0 bg-red-600/0 group-hover:bg-red-600/5 transition-all duration-300 rounded-2xl border border-white/10 group-hover:border-red-600/30 backdrop-blur-md" />
+                  <div className="relative p-6 flex flex-col items-center">
+                    <div className={`mb-4 p-3 rounded-xl bg-white/5 border border-white/10 ${stat.color}`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
+                    <div className="text-3xl font-black font-mono tracking-tight mb-1">{stat.value}</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 truncate">{stat.label}</div>
                   </div>
-                  <div className="text-3xl font-black font-mono tracking-tight mb-1">{stat.value}</div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 truncate">{stat.label}</div>
-                  <div className="absolute top-4 right-4 text-[10px] font-bold text-red-500 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <TrendingUp className="w-3 h-3" /> {stat.change}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
+
+          {/* Scroll Down Hint */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          >
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Briefing Below</span>
+            <div className="w-px h-12 bg-gradient-to-b from-red-600 to-transparent" />
+          </motion.div>
         </motion.div>
 
         {/* Dashboard Content */}
