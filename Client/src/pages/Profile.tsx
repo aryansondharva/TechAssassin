@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { authService } from "@/services";
+import { authService, profileService } from "@/services";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "@/hooks/use-toast";
 import { 
   Github, 
   Linkedin, 
@@ -14,17 +15,22 @@ import {
   Terminal,
   Shield,
   Zap,
-  Globe
+  Globe,
+  Camera,
+  Loader2
 } from "lucide-react";
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("home");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const user = authService.getUser();
   
   // Mock data matching the user image provided
   const profileData = {
     full_name: user?.full_name || "ARYAN SONDHARVA",
     username: user?.username || "aryansondharva",
+    avatar_url: user?.avatar_url || null,
     tagline: "SI VIS PACEM , PARA BELLUM",
     location: "Surat, India",
     joinedDate: "January 2024",
@@ -42,8 +48,64 @@ export default function Profile() {
     { id: "readme", label: "README.MD", icon: Globe },
   ];
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Transmission Failed",
+        description: "Only visual data (images) can be uploaded.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await profileService.uploadAvatar(file);
+      
+      // Update local storage so the UI refreshes
+      const currentUser = authService.getUser();
+      if (currentUser) {
+        currentUser.avatar_url = response.avatar_url;
+        localStorage.setItem('auth_user', JSON.stringify(currentUser));
+      }
+
+      toast({
+        title: "Neural Sync Complete",
+        description: "Operative identity updated on the global network.",
+      });
+
+      // Force a reload to show the new avatar (or use state better)
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Link Severed",
+        description: "Failed to upload avatar to the neural network.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] pt-32 pb-20 px-4">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleAvatarChange} 
+        className="hidden" 
+        accept="image/*"
+      />
+
       {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-600/5 rounded-full blur-[120px]" />
@@ -64,14 +126,26 @@ export default function Profile() {
 
           <div className="flex flex-col md:flex-row gap-8 items-start relative">
             {/* Avatar Orb */}
-            <div className="relative group">
+            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
               <div className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-red-600 to-red-900 p-1 relative z-10">
-                <div className="w-full h-full rounded-full bg-zinc-900 p-1 overflow-hidden">
+                <div className="w-full h-full rounded-full bg-zinc-900 p-1 overflow-hidden relative">
                    <img 
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.username}`} 
+                    src={profileData.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.username}`} 
                     alt="Operative" 
-                    className="w-full h-full object-cover rounded-full"
+                    className={`w-full h-full object-cover rounded-full transition-all duration-500 ${isUploading ? 'opacity-30 blur-sm' : 'group-hover:scale-110 group-hover:opacity-50'}`}
                   />
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-8 h-8 text-white mb-1" />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white">Upload New</span>
+                  </div>
+
+                  {/* Uploading Spinner */}
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="w-10 h-10 text-red-600 animate-spin" />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="absolute inset-0 bg-red-600 opacity-20 blur-2xl rounded-full scale-110 animate-pulse" />
