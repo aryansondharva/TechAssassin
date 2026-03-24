@@ -4,12 +4,20 @@
 export interface Profile {
   id: string
   username: string
+  email: string
   full_name: string | null
+  phone: string | null
+  aadhaar_number: string | null
   avatar_url: string | null
   github_url: string | null
-  skills: string[]
+  bio: string | null
+  address: string | null
+  education: string | null
+  university: string | null
+  graduation_year: number | null
   is_admin: boolean
   created_at: string
+  updated_at: string
 }
 
 export interface Event {
