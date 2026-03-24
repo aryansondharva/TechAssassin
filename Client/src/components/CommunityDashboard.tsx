@@ -507,58 +507,36 @@ const CommunityDashboard = () => {
                     />
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex overflow-x-auto scrollbar-hide snap-x gap-8 pb-8 -mx-4 px-4 items-center">
                     {contributors
                       .filter(c => c.username.toLowerCase().includes(searchTerm.toLowerCase()))
                       .map((contributor, idx) => (
                       <motion.div
                         key={contributor.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="group relative bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-red-600/30 rounded-[2.5rem] p-8 transition-all duration-500 overflow-hidden"
+                        className="group flex-none flex flex-col items-center gap-4 snap-center cursor-pointer"
                       >
-                         <div className="absolute top-0 right-0 p-8 text-6xl font-black italic text-white/[0.02] select-none pointer-events-none group-hover:text-red-600/5 transition-colors uppercase">
-                           #{idx + 1}
-                         </div>
-
-                         <div className="flex items-start gap-8 relative z-10">
-                            <div className="relative">
+                         <div className="relative">
+                            <div className="absolute inset-0 bg-red-600/20 rounded-full blur-xl group-hover:bg-red-600/40 transition-all duration-500 opacity-0 group-hover:opacity-100" />
+                            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-gradient-to-tr from-red-600/50 to-transparent border border-white/10 group-hover:border-red-600/50 transition-all duration-500 shadow-2xl">
                                <img 
                                  src={contributor.avatar} 
                                  alt={contributor.username} 
-                                 className="w-20 h-20 rounded-3xl border border-white/10 group-hover:border-red-600/50 transition-all duration-500 shadow-2xl" 
+                                 className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                />
-                               <div className="absolute -bottom-2 -right-2 bg-red-600 rounded-lg p-1.5 border-2 border-[#0a0a0b]">
+                               <div className="absolute bottom-1 right-1 bg-red-600 rounded-full p-2 border-2 border-[#0a0a0b] shadow-lg transform group-hover:scale-110 transition-transform">
                                   <Github className="w-3 h-3 text-white" />
                                </div>
                             </div>
+                         </div>
 
-                            <div className="flex-1">
-                               <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-600 transition-all mb-1">
-                                 {contributor.username}
-                               </h3>
-                               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600/80 mb-6">
-                                 System Role: {contributor.role}
-                               </div>
-
-                               <div className="grid grid-cols-2 gap-4">
-                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
-                                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Impact</div>
-                                     <div className="text-xl font-black italic text-white/90">{contributor.contributions}</div>
-                                  </div>
-                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors flex items-center justify-center">
-                                     <a 
-                                       href={contributor.githubUrl}
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="w-full h-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-red-600 transition-colors"
-                                     >
-                                        Profile <ChevronRight className="w-3 h-3" />
-                                     </a>
-                                  </div>
-                               </div>
-                            </div>
+                         <div className="flex flex-col items-center space-y-1">
+                            <h3 className="text-sm font-black italic uppercase tracking-widest text-white/50 group-hover:text-red-600 transition-all">
+                              {contributor.username}
+                            </h3>
+                            <div className="w-0 group-hover:w-full h-[1px] bg-red-600 transition-all duration-500" />
                          </div>
                       </motion.div>
                     ))}
