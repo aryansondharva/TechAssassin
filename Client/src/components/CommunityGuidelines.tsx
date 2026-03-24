@@ -328,10 +328,10 @@ const CommunityGuidelines = () => {
         {/* Operational Standard - Tactical Format */}
         <section className="mb-32 max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-red-600 flex items-center justify-center gap-6">
-              <div className="h-px w-10 bg-red-600/30 md:block hidden" />
+            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white-600 flex items-center justify-center gap-6">
+              <div className="h-px w-10 bg-white-600/30 md:block hidden" />
               Operational Standard
-              <div className="h-px w-10 bg-red-600/30 md:block hidden" />
+              <div className="h-px w-10 bg-white-600/30 md:block hidden" />
             </h2>
           </div>
 

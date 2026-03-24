@@ -6,6 +6,7 @@
 # =============================================================================
 *.md
 !README.md
+!code_of_conduct.md
 
 # Allow specific important documentation if needed
 # !CONTRIBUTING.md
