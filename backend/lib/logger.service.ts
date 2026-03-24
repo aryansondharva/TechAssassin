@@ -62,7 +62,7 @@ class Logger {
     
     // Console output with colors for development
     if (process.env.NODE_ENV === 'development') {
-      const colors = {
+      const colors: { [key: string]: string } = {
         ERROR: '\x1b[31m', // Red
         WARN: '\x1b[33m',  // Yellow
         INFO: '\x1b[36m',  // Cyan
