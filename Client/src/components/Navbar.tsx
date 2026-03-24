@@ -1,148 +1,173 @@
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Menu, X, Shield, ChevronRight, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { authService } from "@/services";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
+  { label: "Home", href: "/", isRoute: true },
   { label: "Events", href: "/events", isRoute: true },
   { label: "Community", href: "/community", isRoute: true },
-  { label: "FAQ", href: "#faq" },
+  { label: "Elite", href: "/leaderboard", isRoute: true },
 ];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
   const isAuthenticated = authService.isAuthenticated();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="text-hero-foreground font-heading font-bold text-xl tracking-tight">
-          Tech<span className="text-primary">Assassin</span>
-        </Link>
-
-        {/* Desktop - Centered Navigation */}
-        <div className="hidden md:flex items-center justify-center flex-1">
-          <div className="flex items-center gap-8">
-            {navLinks.map((link) => (
-              link.isRoute ? (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className="text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium"
-                >
-                  {link.label}
-                </Link>
-              ) : (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium"
-                >
-                  {link.label}
-                </a>
-              )
-            ))}
-          </div>
-        </div>
-
-        {/* Right side - Auth buttons */}
-        <div className="hidden md:flex items-center">
-          {/* Temporary dashboard link for testing */}
-          <Link
-            to="/dashboard"
-            className="text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium mr-3"
-          >
-            Dashboard (Test)
+    <nav className="fixed top-0 left-0 right-0 z-[100] px-4 py-6 pointer-events-none">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className={`container mx-auto max-w-7xl pointer-events-auto transition-all duration-500 ${
+          scrolled ? "max-w-5xl" : "max-w-7xl"
+        }`}
+      >
+        <div className={`
+          relative flex items-center justify-between h-16 px-6 md:px-8 rounded-full 
+          transition-all duration-700 ease-in-out
+          ${scrolled 
+            ? "bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" 
+            : "bg-transparent border-transparent"
+          }
+        `}>
+          {/* Logo Section */}
+          <Link to="/" className="flex items-center gap-2 group shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.4)] group-hover:scale-110 transition-transform">
+              <Shield className="w-5 h-5 text-white fill-current" />
+            </div>
+            <span className="text-white font-black italic tracking-tighter text-lg md:text-xl uppercase">
+              TECH<span className="text-red-600">ASSASSIN</span>
+            </span>
           </Link>
-          {isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              className="bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                to="/signin"
-                className="text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Sign Up
-              </Link>
+
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 bg-white/5 border border-white/5 px-2 py-1 rounded-full">
+            <div className="flex items-center gap-1">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.href;
+                return (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className={`
+                      px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 relative
+                      ${isActive ? "text-white" : "text-white/40 hover:text-white/70"}
+                    `}
+                  >
+                    {isActive && (
+                      <motion.div 
+                        layoutId="nav-active"
+                        className="absolute inset-0 bg-white/10 rounded-full"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">{link.label}</span>
+                  </Link>
+                );
+              })}
             </div>
-          )}
+          </div>
+
+          {/* Right Side - Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:translate-y-[-2px]"
+              >
+                Dashboard <ChevronRight className="w-3 h-3" />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-6">
+                <Link
+                  to="/signin"
+                  className="text-white/40 hover:text-white text-[11px] font-black uppercase tracking-widest transition-colors"
+                >
+                  Enter System
+                </Link>
+                <Link
+                  to="/signup"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-xl"
+                >
+                  Join Guild <Zap className="w-3 h-3 fill-current" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
+      </motion.div>
 
-        {/* Mobile toggle */}
-        <button
-          className="md:hidden text-hero-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden bg-hero/80 backdrop-blur-md px-4 pb-4">
-          <div className="flex flex-col items-center space-y-4">
-            {navLinks.map((link) => (
-              link.isRoute ? (
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-24 left-4 right-4 p-8 rounded-[2rem] bg-black/90 backdrop-blur-3xl border border-white/10 shadow-2xl lg:hidden pointer-events-auto"
+          >
+            <div className="flex flex-col gap-6">
+              {navLinks.map((link) => (
                 <Link
                   key={link.label}
                   to={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block py-3 text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium text-center"
+                  className="text-2xl font-black italic uppercase tracking-tighter text-white/50 hover:text-red-500 transition-colors"
                 >
                   {link.label}
                 </Link>
-              ) : (
-                <a
-                  key={link.label}
-                  href={link.href}
+              ))}
+              <div className="h-[1px] bg-white/10 my-2" />
+              {isAuthenticated ? (
+                <Link
+                  to="/dashboard"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-3 text-hero-muted hover:text-hero-foreground transition-colors text-sm font-medium text-center"
+                  className="w-full py-4 rounded-2xl bg-red-600 text-white text-center font-black uppercase tracking-widest"
                 >
-                  {link.label}
-                </a>
-              )
-            ))}
-          </div>
-          {isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              onClick={() => setMobileOpen(false)}
-              className="block mt-2 bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm font-semibold text-center hover:bg-primary/90 transition-colors"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <div className="space-y-2 mt-2">
-              <Link
-                to="/signin"
-                onClick={() => setMobileOpen(false)}
-                className="block bg-secondary text-secondary-foreground px-5 py-2 rounded-md text-sm font-semibold text-center hover:bg-secondary/90 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                onClick={() => setMobileOpen(false)}
-                className="block bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm font-semibold text-center hover:bg-primary/90 transition-colors"
-              >
-                Sign Up
-              </Link>
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <Link
+                    to="/signin"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white text-center font-black uppercase tracking-widest"
+                  >
+                    Enter System
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full py-4 rounded-2xl bg-white text-black text-center font-black uppercase tracking-widest"
+                  >
+                    Join Guild
+                  </Link>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

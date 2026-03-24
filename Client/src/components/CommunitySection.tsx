@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Github, Users, Star, GitBranch, MessageSquare, Heart, ExternalLink, Trophy, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Github, Users, Star, GitBranch, MessageSquare, Heart, ExternalLink, Trophy, Zap, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { api } from '@/lib/api-client';
 
 interface Contributor {
   id: string;
@@ -27,64 +28,23 @@ interface Project {
 
 const CommunitySection = () => {
   const [activeTab, setActiveTab] = useState<'contributors' | 'projects' | 'stats'>('contributors');
+  const [contributors, setContributors] = useState<Contributor[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with real data from your backend
-  const contributors: Contributor[] = [
-    {
-      id: '1',
-      name: 'Aryan Sondharva',
-      username: 'aryansondharva',
-      avatar: 'https://avatars.githubusercontent.com/u/12345678?v=4',
-      contributions: 245,
-      role: 'Lead Developer',
-      githubUrl: 'https://github.com/aryansondharva'
-    },
-    {
-      id: '2',
-      name: 'Sarah Chen',
-      username: 'sarahchen',
-      avatar: 'https://avatars.githubusercontent.com/u/87654321?v=4',
-      contributions: 189,
-      role: 'Frontend Developer',
-      githubUrl: 'https://github.com/sarahchen'
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      username: 'mikejohnson',
-      avatar: 'https://avatars.githubusercontent.com/u/11223344?v=4',
-      contributions: 156,
-      role: 'Backend Developer',
-      githubUrl: 'https://github.com/mikejohnson'
-    },
-    {
-      id: '4',
-      name: 'Emily Davis',
-      username: 'emilydavis',
-      avatar: 'https://avatars.githubusercontent.com/u/55667788?v=4',
-      contributions: 134,
-      role: 'UI/UX Designer',
-      githubUrl: 'https://github.com/emilydavis'
-    },
-    {
-      id: '5',
-      name: 'Alex Kumar',
-      username: 'alexkumar',
-      avatar: 'https://avatars.githubusercontent.com/u/99887766?v=4',
-      contributions: 98,
-      role: 'DevOps Engineer',
-      githubUrl: 'https://github.com/alexkumar'
-    },
-    {
-      id: '6',
-      name: 'Lisa Wang',
-      username: 'lisawang',
-      avatar: 'https://avatars.githubusercontent.com/u/44556677?v=4',
-      contributions: 87,
-      role: 'Community Manager',
-      githubUrl: 'https://github.com/lisawang'
-    }
-  ];
+  useEffect(() => {
+    const fetchContributors = async () => {
+      try {
+        const data = await api.get<Contributor[]>('/community/contributors');
+        setContributors(data);
+      } catch (error) {
+        console.error('Failed to fetch contributors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributors();
+  }, []);
 
   const projects: Project[] = [
     {
@@ -245,42 +205,49 @@ const CommunitySection = () => {
           <div className="p-6">
             {activeTab === 'contributors' && (
               <div className="space-y-4">
-                <div className="grid gap-4">
-                  {contributors.map((contributor) => (
-                    <div
-                      key={contributor.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={contributor.avatar}
-                          alt={contributor.name}
-                          className="w-12 h-12 rounded-full"
-                        />
-                        <div>
-                          <div className="font-semibold text-foreground">{contributor.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            @{contributor.username} • {contributor.role}
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                      <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                      <p className="text-white/40 font-black italic tracking-widest uppercase">Syncing Operatives...</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {contributors.map((contributor) => (
+                        <div
+                          key={contributor.id}
+                          className="flex items-center justify-between p-4 rounded-lg bg-background border border-border hover:bg-accent transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={contributor.avatar}
+                              alt={contributor.name}
+                              className="w-12 h-12 rounded-full border border-primary/20"
+                            />
+                            <div>
+                              <div className="font-semibold text-foreground">{contributor.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                @{contributor.username} • {contributor.role}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="font-semibold text-foreground">{contributor.contributions}</div>
+                              <div className="text-xs text-muted-foreground">contributions</div>
+                            </div>
+                            <a
+                              href={contributor.githubUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Github className="w-5 h-5" />
+                            </a>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="font-semibold text-foreground">{contributor.contributions}</div>
-                          <div className="text-xs text-muted-foreground">contributions</div>
-                        </div>
-                        <a
-                          href={contributor.githubUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Github className="w-5 h-5" />
-                        </a>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
                 <div className="text-center pt-4">
                   <a
                     href="https://github.com/aryansondharva/TechAssassin/graphs/contributors"

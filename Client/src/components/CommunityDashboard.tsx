@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   Star,
   Globe,
-  Monitor
+  Monitor,
+  Github
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,13 +60,24 @@ interface UpcomingEvent {
   status: 'upcoming' | 'registration_open' | 'ongoing';
 }
 
+interface Contributor {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  contributions: number;
+  role: string;
+  githubUrl: string;
+}
+
 const CommunityDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'events' | 'achievements'>('leaderboard');
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'events' | 'contributors'>('leaderboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [activities, setActivities] = useState<HackathonActivity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [contributors, setContributors] = useState<Contributor[]>([]);
   const [stats, setStats] = useState([
     { label: 'Active Hackers', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
     { label: 'Total Events', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
@@ -80,21 +92,32 @@ const CommunityDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [leaderboardData, activitiesData, eventsData, statsData] = await Promise.all([
+      const [leaderboardData, activitiesData, eventsData, statsData, contributorsData] = await Promise.all([
         fetchLeaderboard(),
         fetchActivities(),
         fetchUpcomingEvents(),
-        fetchStats()
+        fetchStats(),
+        fetchContributors()
       ]);
 
       setLeaderboard(leaderboardData);
       setActivities(activitiesData);
       setUpcomingEvents(eventsData);
+      setContributors(contributorsData);
       if (statsData.length > 0) setStats(statsData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
-      setTimeout(() => setLoading(false), 800); // Add a small delay for smoother feel
+      setTimeout(() => setLoading(false), 800);
+    }
+  };
+
+  const fetchContributors = async (): Promise<Contributor[]> => {
+    try {
+      return await api.get<Contributor[]>('/community/contributors');
+    } catch (error) {
+       console.error('Failed to fetch contributors:', error);
+       return [];
     }
   };
 
@@ -131,8 +154,8 @@ const CommunityDashboard = () => {
       return [
         { label: 'Active Hackers', value: `${data.activeHackers || 0}+`, change: `+${data.newHackers || 0}`, icon: Users, color: 'text-red-500' },
         { label: 'Total Events', value: `${data.totalEvents || 0}`, change: `+${data.newEvents || 0}`, icon: Calendar, color: 'text-blue-500' },
-        { label: 'Prize Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
-        { label: 'Teams Formed', value: `${data.teamsFormed || 0}`, change: `+${data.newTeams || 0}`, icon: Target, color: 'text-green-500' }
+        { label: 'Total Prize Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
+        { label: 'Total Contributors', value: `${data.totalContributors || 0}`, change: `+${data.newContributors || 0}`, icon: Github, color: 'text-green-500' }
       ];
     } catch (error) {
       return [];
@@ -232,7 +255,7 @@ const CommunityDashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Navigation Bar - Tactical Style */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-10 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
-            {(['leaderboard', 'activities', 'events', 'achievements'] as const).map((tab) => (
+            {(['leaderboard', 'activities', 'events', 'contributors'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -252,7 +275,7 @@ const CommunityDashboard = () => {
                   {tab === 'leaderboard' && <Trophy className="w-4 h-4" />}
                   {tab === 'activities' && <Activity className="w-4 h-4" />}
                   {tab === 'events' && <Globe className="w-4 h-4" />}
-                  {tab === 'achievements' && <Award className="w-4 h-4" />}
+                  {tab === 'contributors' && <Github className="w-4 h-4" />}
                   {tab}
                 </span>
               </button>
@@ -470,40 +493,76 @@ const CommunityDashboard = () => {
                 </div>
               )}
 
-              {activeTab === 'achievements' && (
-                <div className="space-y-12">
-                   <div className="grid md:grid-cols-2 gap-8">
-                      {[
-                        { title: 'Elite Assassin', desc: 'Achieve Rank 1 in a major hackathon event.', icon: Sword, color: 'text-red-500', bg: 'from-red-900/20' },
-                        { title: 'Binary Ghost', desc: 'Identify and weaponize 50+ vulnerabilities in target builds.', icon: Activity, color: 'text-blue-500', bg: 'from-blue-900/20' },
-                        { title: 'The Architect', desc: 'Design an unbreachable system architecture.', icon: Target, color: 'text-green-500', bg: 'from-green-900/20' },
-                        { title: 'Master Strategist', desc: 'Lead a team to 3 consecutive podium finishes.', icon: Trophy, color: 'text-yellow-500', bg: 'from-yellow-900/20' },
-                      ].map((ach, i) => (
-                        <div key={i} className={`p-8 rounded-3xl bg-gradient-to-br ${ach.bg} to-white/5 border border-white/10 group hover:border-red-600/30 transition-all`}>
-                           <div className={`w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${ach.color}`}>
-                              <ach.icon className="w-8 h-8" />
-                           </div>
-                           <h3 className="text-2xl font-black italic uppercase tracking-tighter mb-2 text-white group-hover:text-red-500 transition-colors uppercase">{ach.title}</h3>
-                           <p className="text-white/40 text-sm leading-relaxed mb-6 font-medium">{ach.desc}</p>
-                           <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Elite Level Recognition</span>
-                              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                 <Star className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
-                              </div>
-                           </div>
-                        </div>
-                      ))}
-                   </div>
+              {activeTab === 'contributors' && (
+                <div className="space-y-6">
+                  {/* Search Bar for Contributors */}
+                  <div className="relative group max-w-md mx-auto mb-12">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-red-500 transition-colors" />
+                    <input 
+                      type="text" 
+                      placeholder="Identify operative by username..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all placeholder:text-white/20"
+                    />
+                  </div>
 
-                   <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[3rem] text-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-red-600 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-1000" />
-                      <ShieldAlert className="w-16 h-16 text-yellow-500 mx-auto mb-8 animate-pulse" />
-                      <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-4">RESTRICTED DATA AREA</h3>
-                      <p className="text-white/40 max-w-xl mx-auto mb-10 font-medium">Further achievement records are encrypted. Only high-rank assassins can unlock more advanced badges and rewards.</p>
-                      <button className="px-10 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-[0_10px_40px_rgba(220,38,38,0.3)] hover:scale-105 transition-all">
-                        Upgrade Clearance
-                      </button>
-                   </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {contributors
+                      .filter(c => c.username.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((contributor, idx) => (
+                      <motion.div
+                        key={contributor.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="group relative bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-red-600/30 rounded-[2.5rem] p-8 transition-all duration-500 overflow-hidden"
+                      >
+                         <div className="absolute top-0 right-0 p-8 text-6xl font-black italic text-white/[0.02] select-none pointer-events-none group-hover:text-red-600/5 transition-colors uppercase">
+                           #{idx + 1}
+                         </div>
+
+                         <div className="flex items-start gap-8 relative z-10">
+                            <div className="relative">
+                               <img 
+                                 src={contributor.avatar} 
+                                 alt={contributor.username} 
+                                 className="w-20 h-20 rounded-3xl border border-white/10 group-hover:border-red-600/50 transition-all duration-500 shadow-2xl" 
+                               />
+                               <div className="absolute -bottom-2 -right-2 bg-red-600 rounded-lg p-1.5 border-2 border-[#0a0a0b]">
+                                  <Github className="w-3 h-3 text-white" />
+                               </div>
+                            </div>
+
+                            <div className="flex-1">
+                               <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-600 transition-all mb-1">
+                                 {contributor.username}
+                               </h3>
+                               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600/80 mb-6">
+                                 System Role: {contributor.role}
+                               </div>
+
+                               <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
+                                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Impact</div>
+                                     <div className="text-xl font-black italic text-white/90">{contributor.contributions}</div>
+                                  </div>
+                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors flex items-center justify-center">
+                                     <a 
+                                       href={contributor.githubUrl}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className="w-full h-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-red-600 transition-colors"
+                                     >
+                                        Profile <ChevronRight className="w-3 h-3" />
+                                     </a>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               )}
             </motion.div>
