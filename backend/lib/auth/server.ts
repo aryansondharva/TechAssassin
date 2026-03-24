@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { createClient } from '@/lib/supabase/server';
+import jwt from 'jsonwebtoken';
 
 // Database connection (Local PostgreSQL)
 const pool = new Pool({
@@ -9,7 +10,51 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// ... (Interface definitions remain the same) ...
+// Interface definitions
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  aadhaar_number?: string;
+  avatar_url?: string;
+  github_url?: string;
+  bio?: string;
+  address?: string;
+  education?: string;
+  university?: string;
+  graduation_year?: string;
+  is_admin: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface SignInData {
+  email: string;
+  password: string;
+}
+
+export interface SignUpData {
+  username: string;
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string;
+  aadhaar_number?: string;
+  avatar_url?: string;
+  github_url?: string;
+  bio?: string;
+  address?: string;
+  education?: string;
+  university?: string;
+  graduation_year?: string;
+}
 
 /**
  * Create a new user account via Supabase Auth + Local Database Sync
@@ -154,18 +199,22 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
  */
 export async function verifyToken(token: string): Promise<User | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const supabase = await createClient();
     
-    if (!decoded || !decoded.userId) {
+    // 1. Verify token with Supabase
+    const { data: { user: authUser }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !authUser) {
       return null;
     }
     
+    // 2. Fetch profile from local database
     const client = await pool.connect();
     
     try {
       const result = await client.query(
         'SELECT * FROM public.profiles WHERE id = $1',
-        [decoded.userId]
+        [authUser.id]
       );
       
       if (result.rows.length === 0) {
