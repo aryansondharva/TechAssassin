@@ -261,10 +261,13 @@ const CommunityDashboard = () => {
             transition={{ delay: 1, duration: 1 }}
             className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           >
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Briefing Below</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-white/20">Briefing Below</span>
             <div className="w-px h-12 bg-gradient-to-b from-red-600 to-transparent" />
           </motion.div>
         </motion.div>
+
+
+
 
         {/* Dashboard Content */}
         <div className="max-w-6xl mx-auto">
@@ -275,8 +278,8 @@ const CommunityDashboard = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${activeTab === tab
-                    ? 'text-white'
-                    : 'text-white/40 hover:text-white/70'
+                  ? 'text-white'
+                  : 'text-white/40 hover:text-white/70'
                   }`}
               >
                 {activeTab === tab && (
@@ -334,15 +337,15 @@ const CommunityDashboard = () => {
                             <div className="flex items-center gap-6">
                               <div className="relative">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl italic ${user.rank === 1 ? 'text-yellow-500 bg-yellow-500/10' :
-                                    user.rank === 2 ? 'text-slate-400 bg-slate-400/10' :
-                                      user.rank === 3 ? 'text-amber-700 bg-amber-700/10' : 'text-white/40 bg-white/5'
+                                  user.rank === 2 ? 'text-slate-400 bg-slate-400/10' :
+                                    user.rank === 3 ? 'text-amber-700 bg-amber-700/10' : 'text-white/40 bg-white/5'
                                   }`}>
                                   {user.rank}
                                 </div>
                                 {user.rank <= 3 && (
                                   <div className="absolute -top-1 -right-1">
                                     <Star className={`w-4 h-4 fill-current ${user.rank === 1 ? 'text-yellow-500' :
-                                        user.rank === 2 ? 'text-slate-400' : 'text-amber-700'
+                                      user.rank === 2 ? 'text-slate-400' : 'text-amber-700'
                                       }`} />
                                   </div>
                                 )}

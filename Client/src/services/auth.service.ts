@@ -24,28 +24,30 @@ interface VerifyOTPRequest {
 
 export const authService = {
   /**
-   * Sign up a new user
+   * Sign up a new user via Supabase
    */
   signUp: async (data: SignUpRequest): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/signup', data);
     
-    // Store auth token
-    if (response.session?.access_token) {
-      setAuthToken(response.session.access_token);
+    // Store auth token and user
+    if (response.token) {
+      setAuthToken(response.token);
+      localStorage.setItem('auth_user', JSON.stringify(response.user));
     }
     
     return response;
   },
 
   /**
-   * Sign in an existing user
+   * Sign in via Supabase
    */
   signIn: async (data: SignInRequest): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/signin', data);
     
-    // Store auth token
-    if (response.session?.access_token) {
-      setAuthToken(response.session.access_token);
+    // Store auth token and user
+    if (response.token) {
+      setAuthToken(response.token);
+      localStorage.setItem('auth_user', JSON.stringify(response.user));
     }
     
     return response;
@@ -55,10 +57,34 @@ export const authService = {
    * Sign out the current user
    */
   signOut: async (): Promise<void> => {
-    await api.post('/auth/signout');
+    try {
+      await api.post('/auth/signout');
+    } catch (e) { /* ignore if already invalid */ }
     
-    // Clear auth token
+    // Clear everything
     clearAuthToken();
+    localStorage.removeItem('auth_user');
+  },
+
+  /**
+   * Alias for signOut (used in Navbar)
+   */
+  logout: function() {
+    this.signOut();
+  },
+
+  /**
+   * Get the current authenticated user's profile
+   */
+  getUser: (): any | null => {
+    try {
+      const user = localStorage.getItem('auth_user');
+      return user ? JSON.parse(user) : null;
+    } catch (e) {
+      console.error('Identity corrupted, resetting link...');
+      localStorage.removeItem('auth_user');
+      return null;
+    }
   },
 
   /**
