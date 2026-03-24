@@ -29,7 +29,7 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h4 className="font-heading font-bold text-xl mb-3">
-                Tech<span className="text-primary">Assasin</span>
+                Tech<span className="text-primary"> Assassin</span>
               </h4>
               <p className="text-hero-muted text-sm leading-relaxed max-w-xs">
                 A hackathon community bringing together the brightest minds to
@@ -83,9 +83,9 @@ const Footer = () => {
       {/* Bottom bar */}
       <div className="border-t border-hero-foreground/10">
         <div className="container mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-hero-muted text-xs">
-          <p>© 2026 TechAssasin. All rights reserved.</p>
+          <p>© 2026 Tech Assassin. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Made with <Heart size={12} className="text-primary" /> by TechAssasin
+            Made with <Heart size={12} className="text-primary" /> by Tech Assassin
           </p>
         </div>
       </div>
