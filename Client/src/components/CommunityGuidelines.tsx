@@ -158,7 +158,6 @@ const CommunityGuidelines = () => {
           <div className="flex items-center gap-6 mb-16">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
             <div className="text-center shrink-0">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-red-500 mb-1">Field Manual</p>
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Core Directives</h2>
             </div>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/10" />
@@ -205,97 +204,123 @@ const CommunityGuidelines = () => {
 
 
 
-        {/* Tactical Circular Process - Activation Sequence */}
-        <section className="mb-48 relative py-20 overflow-visible">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/5 blur-[150px] opacity-20 pointer-events-none rounded-full" />
-          
-          <div className="text-center mb-16 relative z-10">
-            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-4">Activation Sequence</h2>
-            <p className="text-white/30 text-sm font-bold uppercase tracking-widest">The clockwise path to operational readiness.</p>
+        {/* Activation Sequence — Circular Flow */}
+        <section className="mb-32 relative py-8">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/5 blur-[100px] rounded-full pointer-events-none" />
+
+          <div className="text-center mb-12 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-3">Activation Sequence</h2>
+            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Follow the clockwise protocol to achieve operational readiness.</p>
           </div>
 
-          <div className="relative max-w-5xl mx-auto h-[600px] md:h-[800px] flex items-center justify-center">
-            
-            {/* ─── The Central Core Hub ─── */}
-            <div className="absolute z-20 w-48 h-48 md:w-64 md:h-64 rounded-full bg-[#0a0a0b] border-4 border-white/5 flex flex-col items-center justify-center text-center shadow-[0_0_80px_rgba(220,38,38,0.1)] p-4 group">
-              {/* Inner animated ring */}
-              <div className="absolute inset-2 border border-dashed border-red-600/20 rounded-full animate-[spin_20s_linear_infinite]" />
-              
-              <div className="relative">
-                <span className="block text-[10px] md:text-xs font-black text-red-600 uppercase tracking-[0.4em] mb-2 group-hover:animate-pulse">Protocol Hub</span>
-                <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter text-white">TECH<br/>ASSASSIN</h3>
-                <div className="w-12 h-1 bg-red-600 mx-auto mt-4" />
-              </div>
+          {/* 3-col layout: left cards | SVG | right cards */}
+          <div className="flex items-center justify-center gap-4 xl:gap-8 max-w-6xl mx-auto px-4">
+
+            {/* Left column: step 04 top, step 03 bottom */}
+            <div className="hidden lg:flex flex-col justify-between shrink-0 w-48 xl:w-56 self-stretch py-12">
+              {[gettingStarted[3], gettingStarted[2]].map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.2 }}
+                  viewport={{ once: true }}
+                  className="group text-right space-y-2"
+                >
+                  <div className="flex items-center justify-end gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600">0{i === 0 ? 4 : 3}</span>
+                  </div>
+                  <h4 className="text-base font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
+                  <p className="text-white/35 text-xs leading-relaxed">{step.description}</p>
+                  <div className="inline-block text-[9px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-2 py-1 rounded">{step.action}</div>
+                </motion.div>
+              ))}
             </div>
 
-            {/* ─── Circular Quadrant Layout ─── */}
-            <div className="relative w-full h-full">
-              
-              {/* SVG Connectors - Curved Arrows */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 800 800">
-                {/* Connector 1 to 2 */}
-                <path d="M 280 150 Q 400 50 520 150" fill="none" stroke="red" strokeWidth="2" strokeDasharray="8 4" className="animate-[dash_20s_linear_infinite]" />
-                <path d="M 520 150 L 510 140 M 520 150 L 510 160" fill="none" stroke="red" strokeWidth="2" />
-                
-                {/* Connector 2 to 3 */}
-                <path d="M 650 280 Q 750 400 650 520" fill="none" stroke="red" strokeWidth="2" strokeDasharray="8 4" />
-                <path d="M 650 520 L 660 510 M 650 520 L 640 510" fill="none" stroke="red" strokeWidth="2" />
+            {/* Center SVG Circular Flow */}
+            <div className="shrink-0 w-[340px] h-[340px] md:w-[460px] md:h-[460px]">
+              <svg viewBox="0 0 600 600" className="w-full h-full" style={{ overflow: 'visible' }}>
+                <defs>
+                  {/* Glow filter */}
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="4" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
 
-                {/* Connector 3 to 4 */}
-                <path d="M 520 650 Q 400 750 280 650" fill="none" stroke="red" strokeWidth="2" strokeDasharray="8 4" />
-                <path d="M 280 650 L 290 660 M 280 650 L 290 640" fill="none" stroke="red" strokeWidth="2" />
+                {/* ── Segment 1 (top, 228°→312°, bright red) ── */}
+                <path d="M 156.1 140.2 A 215 215 0 0 1 443.9 140.2 L 393.7 196 A 140 140 0 0 0 206.3 196 Z"
+                  fill="#ef4444" opacity="0.92" filter="url(#glow)" />
+                {/* Arrow tip 1 – points bottom-right at 312° */}
+                <polygon points="433,167 404,145 420,192" fill="#ef4444" />
+                {/* Label 01 */}
+                <text x="300" y="108" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">01</text>
 
-                {/* Connector 4 to 1 */}
-                <path d="M 150 520 Q 50 400 150 280" fill="none" stroke="red" strokeWidth="2" strokeDasharray="8 4" />
-                <path d="M 150 280 L 140 290 M 150 280 L 160 290" fill="none" stroke="red" strokeWidth="2" />
+                {/* ── Segment 2 (right, 317°→43°, orange-red) ── */}
+                <path d="M 457.2 153.4 A 215 215 0 0 1 457.2 446.6 L 402.4 395.5 A 140 140 0 0 0 402.4 204.5 Z"
+                  fill="#dc2626" opacity="0.90" filter="url(#glow)" />
+                {/* Arrow tip 2 – points bottom-left at 43° */}
+                <polygon points="430,437 458,408 412,410" fill="#dc2626" />
+                {/* Label 02 */}
+                <text x="508" y="310" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">02</text>
+
+                {/* ── Segment 3 (bottom, 48°→132°, crimson) ── */}
+                <path d="M 443.9 459.8 A 215 215 0 0 1 156.1 459.8 L 206.3 404 A 140 140 0 0 0 393.7 404 Z"
+                  fill="#b91c1c" opacity="0.90" filter="url(#glow)" />
+                {/* Arrow tip 3 – points top-left at 132° */}
+                <polygon points="167,433 196,455 180,408" fill="#b91c1c" />
+                {/* Label 03 */}
+                <text x="300" y="508" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">03</text>
+
+                {/* ── Segment 4 (left, 137°→222°, dark red) ── */}
+                <path d="M 142.8 446.6 A 215 215 0 0 1 142.8 153.4 L 197.6 204.5 A 140 140 0 0 0 197.6 395.5 Z"
+                  fill="#991b1b" opacity="0.90" filter="url(#glow)" />
+                {/* Arrow tip 4 – points top-right at 222° */}
+                <polygon points="168,162 140,192 187,190" fill="#991b1b" />
+                {/* Label 04 */}
+                <text x="92" y="310" textAnchor="middle" fill="white" fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">04</text>
+
+                {/* ── Center Hub ── */}
+                <circle cx="300" cy="300" r="105" fill="#0a0a0b" stroke="rgba(255,255,255,0.06)" strokeWidth="2" />
+                <circle cx="300" cy="300" r="88" fill="none" stroke="rgba(220,38,38,0.15)" strokeWidth="1" strokeDasharray="4 5" />
+                <text x="300" y="283" textAnchor="middle" fill="#dc2626" fontSize="9" fontWeight="900" letterSpacing="4" fontFamily="sans-serif">PROTOCOL HUB</text>
+                <text x="300" y="306" textAnchor="middle" fill="white" fontSize="18" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">TECH</text>
+                <text x="300" y="328" textAnchor="middle" fill="white" fontSize="18" fontWeight="900" fontStyle="italic" fontFamily="sans-serif">ASSASSIN</text>
+                <line x1="262" y1="337" x2="338" y2="337" stroke="#dc2626" strokeWidth="2" />
               </svg>
-
-              {gettingStarted.map((step, index) => {
-                // Quadrant Positioning Logic
-                const positions = [
-                  "top-0 left-0",           // 01: Top-Left
-                  "top-0 right-0",          // 02: Top-Right
-                  "bottom-0 right-0",       // 03: Bottom-Right
-                  "bottom-0 left-0"         // 04: Bottom-Left
-                ];
-                
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: index * 0.15 }}
-                    viewport={{ once: true }}
-                    className={`absolute ${positions[index]} w-full md:w-[45%] h-[40%] flex flex-col items-center justify-center p-6 md:p-10 z-10 group`}
-                  >
-                    <div className={`flex flex-col items-center gap-6 ${index % 2 === 0 ? "md:items-start md:text-left" : "md:items-end md:text-right"}`}>
-                      
-                      {/* Step Number Circle */}
-                      <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white/5 border-2 border-white/10 group-hover:border-red-600/50 flex items-center justify-center transition-all duration-500 relative">
-                        <span className="text-4xl md:text-5xl font-black italic text-white group-hover:text-red-500 transition-colors">0{index + 1}</span>
-                        {/* Orbiting Icon */}
-                        <div className="absolute -top-4 -right-4 md:-top-6 md:-right-6 w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 shadow-2xl backdrop-blur-md">
-                          <step.icon className="w-6 h-6 md:w-8 h-8 group-hover:text-red-600 transition-colors" />
-                        </div>
-                      </div>
-
-                      <div className="max-w-[200px] md:max-w-xs space-y-3">
-                         <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-500 transition-colors">
-                           {step.title}
-                         </h3>
-                         <p className="text-white/40 text-[10px] md:text-xs font-medium leading-relaxed uppercase tracking-wider">
-                           {step.description}
-                         </p>
-                         <div className="inline-block p-1 bg-red-600/10 border border-red-600/20 text-red-600 text-[9px] font-black uppercase tracking-widest px-3 rounded">
-                            {step.action}
-                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
             </div>
 
+            {/* Right column: step 01 top, step 02 bottom */}
+            <div className="hidden lg:flex flex-col justify-between shrink-0 w-48 xl:w-56 self-stretch py-12">
+              {[gettingStarted[0], gettingStarted[1]].map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.2 }}
+                  viewport={{ once: true }}
+                  className="group text-left space-y-2"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600">0{i + 1}</span>
+                  </div>
+                  <h4 className="text-base font-black italic uppercase tracking-tight text-white group-hover:text-red-500 transition-colors">{step.title}</h4>
+                  <p className="text-white/35 text-xs leading-relaxed">{step.description}</p>
+                  <div className="inline-block text-[9px] font-black uppercase tracking-widest text-red-600/70 border border-red-600/20 px-2 py-1 rounded">{step.action}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile 2x2 fallback grid */}
+          <div className="lg:hidden grid grid-cols-2 gap-4 max-w-xl mx-auto mt-10 px-4">
+            {gettingStarted.map((step, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">0{i + 1}</span>
+                <h4 className="text-sm font-black italic uppercase tracking-tight text-white">{step.title}</h4>
+                <p className="text-white/35 text-[10px] leading-relaxed">{step.description}</p>
+              </div>
+            ))}
           </div>
         </section>
 
