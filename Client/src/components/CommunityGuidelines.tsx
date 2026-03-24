@@ -326,53 +326,66 @@ const CommunityGuidelines = () => {
 
 
 
-        {/* Professional Ethics */}
-        <section className="mb-32">
-          <div className="relative group p-12 md:p-20 rounded-[3.5rem] bg-gradient-to-br from-red-900/10 via-white/[0.01] to-transparent border border-white/5 overflow-hidden transition-all duration-1000">
-            <div className="absolute inset-0 bg-red-600 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-1000" />
+        {/* Operational Standard - Tactical Format */}
+        <section className="mb-32 max-w-5xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white-600 flex items-center justify-center gap-6">
+              <div className="h-px w-10 bg-white-600/30 md:block hidden" />
+              Operational Standard
+              <div className="h-px w-10 bg-white-600/30 md:block hidden" />
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
             
-            <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
-              <div className="w-32 h-32 rounded-full border-2 border-red-600/30 flex items-center justify-center relative">
-                 <ShieldAlert className="w-12 h-12 text-red-600" />
-                 <div className="absolute inset-0 border-2 border-red-600 rounded-full animate-ping opacity-20" />
+            {/* Sector 01: Authorized Behavior */}
+            <div className="p-10 md:p-14 bg-[#0d0d0e]/80 hover:bg-white/[0.01] transition-colors group">
+              <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
+                <div className="space-y-1">
+                  <h4 className="text-2xl font-black italic uppercase tracking-tight text-white">Authorized Behavior</h4>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Protocol Compliant</span>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500">
+                  <CheckCircle className="w-6 h-6" />
+                </div>
               </div>
-              <div className="flex-1 text-center md:text-left">
-                 <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-4">The Ethical Protocol</h2>
-                 <p className="text-white/40 text-lg font-medium leading-relaxed uppercase tracking-wider">
-                   Zero tolerance for harassment. No discrimination. No exceptions. 
-                   Our strength lies in our diversity. Any breach of this protocol results in immediate network exclusion.
-                 </p>
+
+              <ul className="space-y-6">
+                {['Welcoming Operatives', 'Constructive Debugging', 'Community Mentorship', 'High-Trust Collaboration'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500/40 shadow-[0_0_8px_rgba(34,197,94,0.3)]" />
+                    <span className="text-sm font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors duration-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Sector 02: Forbidden Vector */}
+            <div className="p-10 md:p-14 bg-red-600/[0.02] hover:bg-red-600/[0.04] transition-colors group border-t md:border-t-0 md:border-l border-white/5">
+              <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5 text-right md:text-left">
+                <div className="space-y-1">
+                  <h4 className="text-2xl font-black italic uppercase tracking-tight text-white">Forbidden Vector</h4>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600">Immediate Violation</span>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
               </div>
+
+              <ul className="space-y-6">
+                {['Trolling & Harassment', 'Personal Hostility', 'Intel Theft', 'Grid Disruptions'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-600/40 shadow-[0_0_8px_rgba(220,38,38,0.3)]" />
+                    <span className="text-sm font-black uppercase tracking-widest text-white/30 group-hover:text-white transition-colors duration-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            
-            <div className="grid md:grid-cols-2 gap-12 mt-20 relative z-10 p-1 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-md">
-               <div className="p-8">
-                  <h4 className="text-xl font-black italic uppercase tracking-tighter text-green-500 mb-6 flex items-center gap-3 leading-none">
-                    <CheckCircle className="w-5 h-5" /> Authorized Behavior
-                  </h4>
-                  <ul className="space-y-4">
-                    {['Welcoming Operatives', 'Constructive Debugging', 'Community Mentorship', 'High-Trust Collaboration'].map((item, i) => (
-                      <li key={i} className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-white/30">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-               </div>
-               <div className="p-8 bg-red-600/5 rounded-2xl">
-                  <h4 className="text-xl font-black italic uppercase tracking-tighter text-red-600 mb-6 flex items-center gap-3 leading-none">
-                    <AlertCircle className="w-5 h-5" /> Forbidden Vector
-                  </h4>
-                  <ul className="space-y-4">
-                    {['Trolling & Harassment', 'Personal Hostility', 'Intel Theft', 'Grid Disruptions'].map((item, i) => (
-                      <li key={i} className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-white/30">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-600/50" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-               </div>
-            </div>
+
           </div>
         </section>
+
+
 
         {/* Final Intel Hub */}
         <section className="text-center relative py-20">
