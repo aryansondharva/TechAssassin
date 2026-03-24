@@ -205,50 +205,65 @@ const CommunityDashboard = () => {
       </div>
 
       <main className="relative z-10 container mx-auto px-4 py-12 md:py-24">
-        {/* Hero Section */}
+        {/* Hero Section - Full Screen Entry */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] text-center mb-32 relative"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
-            <ShieldCheck className="w-4 h-4 text-red-500" />
-            <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.05] select-none">
+             <h2 className="text-[25rem] md:text-[35rem] font-black italic tracking-tighter uppercase leading-none">AS</h2>
           </div>
-          
-          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
-            COMMUNITY <span className="text-red-600">HUB</span>
-          </h1>
-          
-          <p className="text-white/50 text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-12">
-            The elite network of TechAssassins. Dismantling monoliths, mastering frameworks, 
-            and claiming the digital throne.
-          </p>
 
-          {/* Tactical Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="group relative"
-              >
-                <div className="absolute inset-0 bg-red-600/0 group-hover:bg-red-600/5 transition-all duration-300 rounded-2xl border border-white/10 group-hover:border-red-600/30 backdrop-blur-md" />
-                <div className="relative p-6 flex flex-col items-center">
-                  <div className={`mb-4 p-3 rounded-xl bg-white/5 border border-white/10 ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
+              <ShieldCheck className="w-4 h-4 text-red-500" />
+              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Secure Community Access</span>
+            </div>
+            
+            <h1 className="text-6xl md:text-9xl font-black italic tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-red-800 text-animate-gradient drop-shadow-[0_0_30px_rgba(220,38,38,0.3)] pb-2 px-4 overflow-visible">
+              COMMUNITY HUB
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-8 blur-[1px] animate-pulse" />
+            
+            <p className="text-white/50 text-base md:text-lg max-w-2xl mx-auto font-medium leading-relaxed mb-16 px-4">
+              The elite network of Tech Assassins. Dismantling monoliths, mastering frameworks, 
+              and claiming the digital throne.
+            </p>
+
+            {/* Tactical Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto w-full px-4">
+              {stats.map((stat, index) => (
+                <motion.div 
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group relative"
+                >
+                  <div className="absolute inset-0 bg-red-600/0 group-hover:bg-red-600/5 transition-all duration-300 rounded-2xl border border-white/10 group-hover:border-red-600/30 backdrop-blur-md" />
+                  <div className="relative p-6 flex flex-col items-center">
+                    <div className={`mb-4 p-3 rounded-xl bg-white/5 border border-white/10 ${stat.color}`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
+                    <div className="text-3xl font-black font-mono tracking-tight mb-1">{stat.value}</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 truncate">{stat.label}</div>
                   </div>
-                  <div className="text-3xl font-black font-mono tracking-tight mb-1">{stat.value}</div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 truncate">{stat.label}</div>
-                  <div className="absolute top-4 right-4 text-[10px] font-bold text-red-500 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <TrendingUp className="w-3 h-3" /> {stat.change}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
+
+          {/* Scroll Down Hint */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          >
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Briefing Below</span>
+            <div className="w-px h-12 bg-gradient-to-b from-red-600 to-transparent" />
+          </motion.div>
         </motion.div>
 
         {/* Dashboard Content */}
@@ -507,58 +522,36 @@ const CommunityDashboard = () => {
                     />
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex overflow-x-auto scrollbar-hide snap-x gap-8 pb-8 -mx-4 px-4 items-center">
                     {contributors
                       .filter(c => c.username.toLowerCase().includes(searchTerm.toLowerCase()))
                       .map((contributor, idx) => (
                       <motion.div
                         key={contributor.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="group relative bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-red-600/30 rounded-[2.5rem] p-8 transition-all duration-500 overflow-hidden"
+                        className="group flex-none flex flex-col items-center gap-4 snap-center cursor-pointer"
                       >
-                         <div className="absolute top-0 right-0 p-8 text-6xl font-black italic text-white/[0.02] select-none pointer-events-none group-hover:text-red-600/5 transition-colors uppercase">
-                           #{idx + 1}
-                         </div>
-
-                         <div className="flex items-start gap-8 relative z-10">
-                            <div className="relative">
+                         <div className="relative">
+                            <div className="absolute inset-0 bg-red-600/20 rounded-full blur-xl group-hover:bg-red-600/40 transition-all duration-500 opacity-0 group-hover:opacity-100" />
+                            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-gradient-to-tr from-red-600/50 to-transparent border border-white/10 group-hover:border-red-600/50 transition-all duration-500 shadow-2xl">
                                <img 
                                  src={contributor.avatar} 
                                  alt={contributor.username} 
-                                 className="w-20 h-20 rounded-3xl border border-white/10 group-hover:border-red-600/50 transition-all duration-500 shadow-2xl" 
+                                 className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                />
-                               <div className="absolute -bottom-2 -right-2 bg-red-600 rounded-lg p-1.5 border-2 border-[#0a0a0b]">
+                               <div className="absolute bottom-1 right-1 bg-red-600 rounded-full p-2 border-2 border-[#0a0a0b] shadow-lg transform group-hover:scale-110 transition-transform">
                                   <Github className="w-3 h-3 text-white" />
                                </div>
                             </div>
+                         </div>
 
-                            <div className="flex-1">
-                               <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-600 transition-all mb-1">
-                                 {contributor.username}
-                               </h3>
-                               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600/80 mb-6">
-                                 System Role: {contributor.role}
-                               </div>
-
-                               <div className="grid grid-cols-2 gap-4">
-                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
-                                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Impact</div>
-                                     <div className="text-xl font-black italic text-white/90">{contributor.contributions}</div>
-                                  </div>
-                                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors flex items-center justify-center">
-                                     <a 
-                                       href={contributor.githubUrl}
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="w-full h-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-red-600 transition-colors"
-                                     >
-                                        Profile <ChevronRight className="w-3 h-3" />
-                                     </a>
-                                  </div>
-                               </div>
-                            </div>
+                         <div className="flex flex-col items-center space-y-1">
+                            <h3 className="text-sm font-black italic uppercase tracking-widest text-white/50 group-hover:text-red-600 transition-all">
+                              {contributor.username}
+                            </h3>
+                            <div className="w-0 group-hover:w-full h-[1px] bg-red-600 transition-all duration-500" />
                          </div>
                       </motion.div>
                     ))}
