@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import type { Database } from '@/types/database'
 
 /**
@@ -7,7 +7,7 @@ import type { Database } from '@/types/database'
  * Automatically handles authentication state
  */
 export const createClient = () => {
-  return createClientComponentClient<Database>(
+  return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )

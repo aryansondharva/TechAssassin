@@ -151,13 +151,27 @@ const CommunitySection = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-card rounded-xl p-6 text-center border border-border">
+            <div key={index} className="bg-card rounded-xl p-6 text-center border border-border group hover:border-primary/50 transition-all duration-300">
               <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-3`} />
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <div className="flex flex-col items-center">
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-sm text-muted-foreground mb-3">{stat.label}</div>
+                {stat.label === 'Total Contributors' && (
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="w-8 h-8 rounded-full border-2 border-background overflow-hidden bg-primary/10">
+                        <img 
+                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=contributor${i}`} 
+                          alt="Contributor" 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

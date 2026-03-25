@@ -104,3 +104,55 @@ export interface ApiError {
   error: string
   details?: any
 }
+
+// Supabase Database Type
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Profile
+        Insert: Omit<Profile, 'created_at' | 'updated_at'>
+        Update: Partial<Profile>
+      }
+      events: {
+        Row: Event
+        Insert: Omit<Event, 'created_at'>
+        Update: Partial<Event>
+      }
+      registrations: {
+        Row: Registration
+        Insert: Omit<Registration, 'created_at'>
+        Update: Partial<Registration>
+      }
+      announcements: {
+        Row: Announcement
+        Insert: Omit<Announcement, 'created_at' | 'updated_at'>
+        Update: Partial<Announcement>
+      }
+      resources: {
+        Row: Resource
+        Insert: Omit<Resource, 'created_at'>
+        Update: Partial<Resource>
+      }
+      sponsors: {
+        Row: Sponsor
+        Insert: Omit<Sponsor, 'created_at'>
+        Update: Partial<Sponsor>
+      }
+      leaderboard: {
+        Row: LeaderboardEntry
+        Insert: Omit<LeaderboardEntry, 'updated_at'>
+        Update: Partial<LeaderboardEntry>
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+}
