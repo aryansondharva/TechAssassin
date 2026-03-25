@@ -1,17 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd Client && npm install && npm run build",
-  "outputDirectory": "Client/dist",
-  "installCommand": "cd Client && npm install",
-  "framework": null,
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "cd backend && npm install && npm run build",
+  "outputDirectory": "backend/.next",
+  "installCommand": "cd backend && npm install",
+  "framework": "nextjs"
 }
