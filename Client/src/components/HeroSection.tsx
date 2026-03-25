@@ -28,27 +28,27 @@ const HeroSection = () => {
         </div>
 
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold text-hero-foreground mb-4 tracking-tight leading-tight">
-          Tech<span className="text-primary">Assassin</span>
+          Tech<span className="text-primary"> Assassin</span>
         </h1>
 
         <div className="flex items-center justify-center gap-2 mb-6">
           <span className="text-primary font-heading font-semibold text-lg md:text-2xl">
-            Feb 21, 2025
+            Active Hackathon Community
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 mb-10 text-hero-muted text-sm">
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-primary" />
-            <span>Hybrid Event</span>
+            <span>Global Community</span>
           </div>
           <div className="flex items-center gap-2">
             <CalendarDays size={16} className="text-primary" />
-            <span>7 Hours</span>
+            <span>Continuous Missions</span>
           </div>
           <div className="flex items-center gap-2">
             <Users size={16} className="text-primary" />
-            <span>200+ Participants</span>
+            <span>1.8k+ Operatives</span>
           </div>
         </div>
 
@@ -57,13 +57,13 @@ const HeroSection = () => {
             to="/signup"
             className="bg-primary text-primary-foreground px-8 py-3.5 rounded-md font-semibold text-base hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
           >
-            Register Now
+            Join the Squad
           </Link>
           <a
-            href="#tracks"
+            href="#community"
             className="border border-hero-muted/30 text-hero-foreground px-8 py-3.5 rounded-md font-semibold text-base hover:bg-hero-foreground/5 transition-colors"
           >
-            View Tracks
+            Explore Missions
           </a>
         </div>
       </div>

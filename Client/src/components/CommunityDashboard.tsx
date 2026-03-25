@@ -83,10 +83,10 @@ const CommunityDashboard = () => {
     { id: '3', name: 'Ghost Hacker', username: 'ghost_hacker', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ghost', contributions: 67, role: 'Security Analyst', githubUrl: '#' }
   ]);
   const [stats, setStats] = useState([
-    { label: 'Active Hackers', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
-    { label: 'Total Events', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
-    { label: 'Prize Pool', value: '₹5L+', change: '+50K', icon: Award, color: 'text-yellow-500' },
-    { label: 'Teams Formed', value: '96', change: '+5', icon: Target, color: 'text-green-500' }
+    { label: 'Active Operatives', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
+    { label: 'Total Missions', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
+    { label: 'Bounty Pool', value: '₹5L+', change: '+50K', icon: Award, color: 'text-yellow-500' },
+    { label: 'Squads Formed', value: '96', change: '+5', icon: Target, color: 'text-green-500' }
   ]);
 
   useEffect(() => {
@@ -158,10 +158,10 @@ const CommunityDashboard = () => {
     try {
       const data = await api.get<any>('/community/stats');
       return [
-        { label: 'Active Hackers', value: `${data.activeHackers || 0}+`, change: `+${data.newHackers || 0}`, icon: Users, color: 'text-red-500' },
-        { label: 'Total Events', value: `${data.totalEvents || 0}`, change: `+${data.newEvents || 0}`, icon: Calendar, color: 'text-blue-500' },
-        { label: 'Total Prize Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
-        { label: 'Total Contributors', value: `${data.totalContributors || 0}`, change: `+${data.newContributors || 0}`, icon: Github, color: 'text-green-500' }
+        { label: 'Active Operatives', value: `${data.activeHackers || 0}+`, change: `+${data.newHackers || 0}`, icon: Users, color: 'text-red-500' },
+        { label: 'Total Missions', value: `${data.totalEvents || 0}`, change: `+${data.newEvents || 0}`, icon: Calendar, color: 'text-blue-500' },
+        { label: 'Total Bounty Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
+        { label: 'Total Operatives', value: `${data.totalContributors || 0}`, change: `+${data.newContributors || 0}`, icon: Github, color: 'text-green-500' }
       ];
     } catch (error) {
       return [];
@@ -279,16 +279,16 @@ const CommunityDashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Navigation Bar - Tactical Style */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-10 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
-            {(['leaderboard', 'activities', 'events', 'contributors'] as const).map((tab) => (
+            {(['leaderboard', 'activities', 'missions', 'contributors'] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${activeTab === tab
+                onClick={() => setActiveTab(tab as any)}
+                className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${activeTab === (tab === 'missions' ? 'events' : tab)
                   ? 'text-white'
                   : 'text-white/40 hover:text-white/70'
                   }`}
               >
-                {activeTab === tab && (
+                {activeTab === (tab === 'missions' ? 'events' : tab) && (
                   <motion.div
                     layoutId="active-tab"
                     className="absolute inset-0 bg-red-600 rounded-xl"
@@ -297,7 +297,7 @@ const CommunityDashboard = () => {
                 <span className="relative z-10 flex items-center gap-2">
                   {tab === 'leaderboard' && <Trophy className="w-4 h-4" />}
                   {tab === 'activities' && <Activity className="w-4 h-4" />}
-                  {tab === 'events' && <Globe className="w-4 h-4" />}
+                  {tab === 'missions' && <Globe className="w-4 h-4" />}
                   {tab === 'contributors' && (
                     <div className="flex -space-x-2 mr-2">
                       {contributors.slice(0, 3).map((c, i) => (
@@ -382,7 +382,7 @@ const CommunityDashboard = () => {
                                 <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-white/30">
                                   <span className="text-red-500/80">@{user.username}</span>
                                   <span>•</span>
-                                  <span>{user.events} Events Completed</span>
+                                  <span>{user.events} Missions Completed</span>
                                 </div>
                               </div>
                             </div>
@@ -492,7 +492,7 @@ const CommunityDashboard = () => {
                         <div className="space-y-6">
                           <div>
                             <div className="flex items-center justify-between mb-2">
-                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Hacker Enrollment</div>
+                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Operative Deployment</div>
                               <div className="text-xs font-bold text-white/70">{event.participants} / {event.maxParticipants}</div>
                             </div>
                             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">

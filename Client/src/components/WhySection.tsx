@@ -3,27 +3,27 @@ import { Lightbulb, Users, GraduationCap, Rocket } from "lucide-react";
 const reasons = [
   {
     icon: Lightbulb,
-    title: "Learn & Innovate",
+    title: "Innovate & Evolve",
     description:
-      "Workshops and mentorship sessions to help you grow as a developer and maker.",
+      "Exclusive tactical workshops and mentorship to sharpen your skills as an elite operative.",
   },
   {
     icon: Users,
-    title: "Network & Collaborate",
+    title: "Global Collaboration",
     description:
-      "Connect with like-minded peers, industry professionals, and potential co-founders.",
+      "Connect with high-caliber peers and industry mentors in our secure digital network.",
   },
   {
     icon: GraduationCap,
-    title: "Win Prizes & Recognition",
+    title: "Gain Elite Status",
     description:
-      "Compete for cash prizes, swag, and certificates from top sponsors.",
+      "Progress through ranks and earn recognition from top tech firms and community leaders.",
   },
   {
     icon: Rocket,
-    title: "Build Real Projects",
+    title: "Launch Real Assets",
     description:
-      "Ship functional prototypes that you can showcase in your portfolio.",
+      "Go from mission brief to functional asset, building a high-impact portfolio.",
   },
 ];
 
@@ -36,10 +36,10 @@ const WhySection = () => {
             Why Us
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Why This Hackathon
+            Why Our Community
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            More than just a competition — it's an experience.
+            Beyond code — it's an elite network for digital assassins.
           </p>
         </div>
 

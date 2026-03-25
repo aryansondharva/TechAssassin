@@ -223,7 +223,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h4 className="font-heading font-bold text-xl mb-3">
-                  Tech<span className="text-primary">Assasin</span>
+                  Tech<span className="text-primary">Assassin</span>
                 </h4>
                 <p className="text-hero-muted text-sm leading-relaxed max-w-xs">
                   A hackathon community bringing together the brightest minds to
