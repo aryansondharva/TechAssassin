@@ -26,12 +26,6 @@ export interface Profile {
   is_admin: boolean;
   created_at: string;
   updated_at: string;
-  skills?: Array<{
-    skill_id: string;
-    skill_name: string;
-    category: string;
-    proficiency_level: number;
-  }>;
 }
 
 export interface Event {
