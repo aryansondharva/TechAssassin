@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    startCommand: npm run dev
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
