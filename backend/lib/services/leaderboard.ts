@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
-import type { LeaderboardEntry } from '@/types/database'
+import { createClient } from '../supabase/server'
+import type { LeaderboardEntry } from '../../types/database'
 
 /**
  * Recalculate ranks for all entries in an event's leaderboard

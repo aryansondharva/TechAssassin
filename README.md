@@ -4,8 +4,8 @@
 
 <img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="120" height="120" />
 
-<h3>🚀 A comprehensive, full-stack hackathon management platform</h3>
-<p><em>Empowering organizers and participants to create amazing hackathon experiences</em></p>
+<h3> The elite digital stronghold for Tech Assassins</h3>
+<p><em>Dismantling monoliths, mastering frameworks, and claiming the digital throne</em></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
@@ -19,7 +19,7 @@
 
 ---
 
-## 📋 Table of Contents
+##   Table of Contents
 
 - [Overview](#-overview)
 - [Features](#-features)
@@ -40,80 +40,64 @@
 
 ## 🎯 Overview
 
-**TechAssassin** is a modern, full-stack web application designed to streamline hackathon management. It provides a comprehensive platform for organizers to create and manage events, and for participants to discover, register, and compete in hackathons.
+**Tech Assassin** is an elite community platform designed for developers, hackers, and digital operatives. It goes beyond simple event management, providing a centralized **Community Hub** where members can track their performance, discover mission-critical events, and collaborate on dismantling the most complex technical challenges.
 
 ### Key Highlights
 
-- 🚀 **Full-Stack Solution**: Complete backend API and responsive frontend
-- 🔐 **Secure Authentication**: Supabase Auth with JWT tokens
-- 📊 **Real-time Updates**: Live participant counts and leaderboards
-- 💾 **Robust Database**: PostgreSQL with Row Level Security (RLS)
-- 📁 **File Management**: Integrated storage for avatars, images, and logos
-- 📧 **Email Notifications**: Automated emails via Resend
-- 🎨 **Modern UI**: Built with React, TypeScript, and Tailwind CSS
-- 🧪 **Well-Tested**: Comprehensive test coverage with Vitest
+-  **Community Hub**: Real-time dashboard with tactical synchronization
+-  **Live Leaderboard**: Dynamic ranking system with performance trends and badges
+-  **Contributor Ecosystem**: Showcase the lead architects and operatives
+-  **Tactical Stats**: Real-time monitoring of active hackers, events, and bounties
+-  **Secure Access**: Integrated Supabase Auth with JWT security
+-  **Cinematic UI**: Modern, dark-mode aesthetic with fluid animations
+-  **Mission-Ready**: High test coverage and robust type safety
 
 ---
 
 ## ✨ Features
 
-### For Participants
+### Community Intelligence
+-  **Community Hub (Dashboard)**
+  - Real-time synchronization with the operative network
+  - Tactical stats monitoring (Active Hackers, Total Events, Bounties)
+  - Activity feed of milestones and achievements
+  
+-  **Global Leaderboard**
+  - Dynamic ranking with "up/down" trend tracking
+  - Honor badges and assessment scores
+  - Secure profile links for top operatives
 
-- ✅ **User Registration & Authentication**
-  - Email/password authentication
-  - Profile management with avatar uploads
-  - Skills and social links (GitHub, LinkedIn, Portfolio)
+-  **Contributor Showcase**
+  - Interactive avatar stacks (facepiles)
+  - Role-based identification for project architects
+  - Direct GitHub integration for all contributors
 
-- ✅ **Event Discovery**
-  - Browse upcoming, live, and past hackathons
-  - Filter events by status and themes
-  - View detailed event information
+### For Operatives (Participants)
+-  **Identity Management**
+  - Secure authentication via Supabase
+  - Detailed profiles with avatars and social links
+  - Skill tracking and portfolio showcase
 
-- ✅ **Event Registration**
-  - Register for events with team details
-  - Automatic waitlist management for full events
-  - Registration status tracking (confirmed/waitlist/cancelled)
+-  **Mission Discovery**
+  - Browse upcoming, live, and past events (hackathons)
+  - Filter missions by status and tactical themes
+  - Access detailed event briefings and requirements
 
-- ✅ **Dashboard**
-  - View registered events
-  - Track registration status
-  - Access announcements and resources
+-  **Event Registration**
+  - Quick sign-up for community missions
+  - Status tracking (Confirmed, Waitlist, Finalized)
+  - Real-time enrollment indicator (participant counts)
 
-### For Organizers (Admin)
+### For High Command (Admin)
+-  **Operation Management**
+  - Create and deploy new community events
+  - Manage enrollment limits and mission timelines
+  - Coordinate prize distribution and rules
 
-- ✅ **Event Management**
-  - Create and edit hackathon events
-  - Set capacity limits and registration periods
-  - Upload event images and define themes
-  - Manage prizes and rules
-
-- ✅ **Participant Management**
-  - View all registrations
-  - Approve or reject participants
-  - Manage waitlists
-
-- ✅ **Content Management**
-  - Post announcements
-  - Share resources and learning materials
-  - Showcase sponsors with logos
-
-- ✅ **Leaderboard**
-  - Track participant scores
-  - Real-time ranking updates
-  - Export results
-
-### Technical Features
-
-- ✅ **RESTful API**: Complete backend with 30+ endpoints
-- ✅ **Type Safety**: Full TypeScript implementation
-- ✅ **Data Validation**: Zod schemas for request/response validation
-- ✅ **Error Handling**: Consistent error responses with proper status codes
-- ✅ **Rate Limiting**: Protection against abuse
-- ✅ **Caching**: Optimized performance with caching strategies
-- ✅ **Real-time**: Supabase real-time subscriptions
-- ✅ **File Uploads**: Secure file storage with type and size validation
-- ✅ **Database Migrations**: Version-controlled schema changes
-- ✅ **Row Level Security**: Fine-grained access control
+-  **Content Distribution**
+  - Broadcast community announcements
+  - Distribute learning resources and tactical materials
+  - Manage sponsor logistics and brand visibility
 
 ---
 
@@ -159,32 +143,32 @@
 ## 🏗 Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend (React)                     │
+┌────────────────────────────────────────────────────────────┐
+│                         Frontend (React)                   │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │   Pages      │  │  Components  │  │   Services   │      │
-│  │  - Events    │  │  - Navbar    │  │  - API Client│      │
-│  │  - Dashboard │  │  - Cards     │  │  - Auth      │      │
-│  │  - Profile   │  │  - Forms     │  │  - Events    │      │
+│  │  - Community │  │  - Navbar    │  │  - API Client│      │
+│  │  - Dashboard │  │  - Comms Hub │  │  - Auth      │      │
+│  │  - Profile   │  │  - Facepile  │  │  - Community │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
-└────────────────────────┬────────────────────────────────────┘
+└────────────────────────┬───────────────────────────────────┘
                          │ HTTP/REST API
-┌────────────────────────┴────────────────────────────────────┐
-│                    Backend (Next.js API)                     │
+┌────────────────────────┴───────────────────────────────────┐
+│                    Backend (Next.js API)                   │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │  API Routes  │  │  Middleware  │  │  Validation  │      │
 │  │  - Auth      │  │  - CORS      │  │  - Zod       │      │
 │  │  - Events    │  │  - Auth      │  │  - Schemas   │      │
 │  │  - Profile   │  │  - Error     │  │              │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
-└────────────────────────┬────────────────────────────────────┘
+└────────────────────────┬───────────────────────────────────┘
                          │
         ┌────────────────┼────────────────┐
         │                │                │
-┌───────┴────────┐ ┌────┴─────┐ ┌────────┴────────┐
-│   PostgreSQL   │ │ Supabase │ │  Resend Email   │
-│   Database     │ │   Auth   │ │    Service      │
-└────────────────┘ └──────────┘ └─────────────────┘
+┌───────┴────────┐ ┌─────┴─────┐ ┌────────┴───────┐
+│   PostgreSQL   │ │ Supabase  │ │  Resend Email  │
+│   Database     │ │   Auth    │ │    Service     │
+└────────────────┘ └───────────┘ └────────────────┘
 ```
 
 ### Database Schema
@@ -192,13 +176,13 @@
 ```
 auth.users (Supabase Auth)
     ↓
-public.profiles (User profiles)
+public.profiles (Operative profiles)
     ↓
-public.events (Hackathon events)
+public.events (Community Missions/Hackathons)
     ↓
-public.registrations (Event sign-ups)
+public.registrations (Mission Enrollment)
     ↓
-public.leaderboard (Competition scores)
+public.leaderboard (Operative Rankings)
 
 Additional Tables:
 - public.announcements
@@ -366,12 +350,12 @@ techassassin/
 ├── Client/                     # Frontend application
 │   ├── src/
 │   │   ├── components/        # React components
+│   │   │   ├── CommunityDashboard.tsx # Tactical Hub
 │   │   │   └── ui/            # shadcn/ui components
 │   │   ├── pages/             # Page components
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Events.tsx
-│   │   │   ├── EventDetails.tsx
-│   │   │   ├── EditProfile.tsx
+│   │   │   ├── Community.tsx  # Main Hub
+│   │   │   ├── Dashboard.tsx  # User Briefing
+│   │   │   ├── Events.tsx     # Mission Board
 │   │   │   └── ...
 │   │   ├── services/          # API service layer
 │   │   │   ├── auth.service.ts
@@ -623,25 +607,26 @@ copies or substantial portions of the Software.
 ## 🗺 Roadmap
 
 ### Version 1.0 (Current)
-- ✅ Core authentication
-- ✅ Event management
-- ✅ Registration system
-- ✅ Profile management
-- ✅ Basic dashboard
+- ✅ Core authentication & Security
+- ✅ Community Hub & Tactical Dashboard
+- ✅ Global Leaderboard with Trend Tracking
+- ✅ Contributor Avatar Stacks (Facepiles)
+- ✅ Mission (Event) Management
+- ✅ Secure Profile Management
 
 ### Version 1.1 (Planned)
-- 🔄 Team management
-- 🔄 Project submissions
-- 🔄 Judging system
-- 🔄 Advanced leaderboard
-- 🔄 Email notifications
+- 🔄 Professional Assessment System
+- 🔄 Project Portfolio Submissions
+- 🔄 Advanced Team Operations
+- 🔄 Automated Mission Notifications
+- 🔄 Real-time Intelligence Feed
 
 ### Version 2.0 (Future)
-- 📅 Calendar integration
-- 📊 Analytics dashboard
-- 🎥 Video submissions
-- 💬 Chat system
-- 🏆 Achievements & badges
+- 📅 Strategic Calendar Integration
+- 📊 Advanced Analytics & Data Viz
+- 🎥 Tactical Video Briefings
+- 💬 Encrypted Chat System
+- 🏆 Achievements, Medals & Badges
 
 ---
 
@@ -649,6 +634,6 @@ copies or substantial portions of the Software.
 
 **Made with ❤️ by the TechAssassin Team**
 
-[⬆ Back to Top](#techassassin---hackathon-management-platform)
+[⬆ Back to Top](#tech-assassin---community-platform)
 
 </div>

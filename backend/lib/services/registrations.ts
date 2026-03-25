@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../supabase/server'
 import { getParticipantCount } from './events'
 
 /**

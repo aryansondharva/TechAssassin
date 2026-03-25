@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getEventById } from '@/lib/services/events'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
+import { getEventById } from '../../../../../lib/services/events'
+import { createClient } from '../../../../../lib/supabase/server'
+import { requireAuth, requireAdmin } from '../../../../../lib/middleware/auth'
 
 /**
  * POST /api/events/[id]/images
@@ -10,10 +10,10 @@ import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     // Verify authentication
     const user = await requireAuth()

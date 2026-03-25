@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
-import { sponsorUpdateSchema } from '@/lib/validations/sponsor'
-import { deleteSponsorLogo } from '@/lib/storage/cleanup'
+import { createClient } from '../../../../lib/supabase/server'
+import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '../../../../lib/middleware/auth'
+import { sponsorUpdateSchema } from '../../../../lib/validations/sponsor'
+import { deleteSponsorLogo } from '../../../../lib/storage/cleanup'
 import { ZodError } from 'zod'
-import { cache, CacheKeys } from '@/lib/utils/cache'
+import { cache, CacheKeys } from '../../../../lib/utils/cache'
 
 /**
  * PATCH /api/sponsors/[id]

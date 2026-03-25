@@ -9,26 +9,14 @@ A serverless Next.js 14 backend application for the TechAssassin hackathon commu
 ### ✅ Completed
 - Project structure and dependencies
 - Complete database schema (7 tables)
-- All database migrations
-- Row Level Security (RLS) policies
-- Supabase Storage buckets and policies
-- TypeScript type definitions
-- Database schema validation tests
-- Test infrastructure setup
-
-### 🔄 In Progress
-- Supabase client configuration
-- Zod validation schemas
-- Authentication middleware
-- API route implementations
-
-### 📋 Upcoming
-- Profile management API
-- Event management API
-- Registration system API
-- Email service integration
-- Real-time subscriptions
-- Comprehensive test suite
+- All database migrations & RLS policies
+- Supabase Storage & File Management
+- Mission (Event) Management API
+- Community Hub API (Stats, Activities, Contributors)
+- Global Leaderboard with Trend Tracking
+- Profile Management & Authentication
+- Email Service & Real-time Subscriptions
+- Comprehensive Test Suite (Vitest)
 
 ## Tech Stack
 
@@ -46,9 +34,13 @@ A serverless Next.js 14 backend application for the TechAssassin hackathon commu
 ```
 backend/
 ├── app/
-│   ├── api/              # API routes (in progress)
-│   │   └── health/       # Health check endpoint ✅
-│   └── ...               # Next.js app files
+│   ├── api/              # API routes
+│   │   ├── auth/         # Security management
+│   │   ├── community/    # Hub features (Stats, Activities)
+│   │   ├── events/       # Mission management
+│   │   ├── leaderboard/  # Competitive ranking
+│   │   ├── profile/      # Operative identity
+│   │   └── health/       # Health check ✅
 ├── lib/                  # Business logic and utilities
 │   ├── email/           # Email service (planned)
 │   ├── errors/          # Error handling (planned)
@@ -184,17 +176,17 @@ See `.env.example` for required environment variables:
 API routes are located in `app/api/` and follow RESTful conventions.
 
 ### Current Endpoints
-- ✅ `GET /api/health` - Health check endpoint
 
-### Planned Endpoints
-- 🔄 Authentication: `/api/auth/*`
-- 🔄 Profiles: `/api/profile/*`
-- 🔄 Events: `/api/events/*`
-- 🔄 Registrations: `/api/registrations/*`
-- 🔄 Announcements: `/api/announcements/*`
-- 🔄 Resources: `/api/resources/*`
-- 🔄 Sponsors: `/api/sponsors/*`
-- 🔄 Leaderboard: `/api/leaderboard/*`
+- ✅ **Authentication**: `/api/auth/*`
+- ✅ **Community Hub**: `/api/community/*` (activities, contributors, stats)
+- ✅ **Profiles**: `/api/profile/*`
+- ✅ **Missions (Events)**: `/api/events/*`
+- ✅ **Registrations**: `/api/registrations/*`
+- ✅ **Announcements**: `/api/announcements/*`
+- ✅ **Resources**: `/api/resources/*`
+- ✅ **Sponsors**: `/api/sponsors/*`
+- ✅ **Leaderboard**: `/api/leaderboard/*`
+- ✅ **Health Check**: `/api/health`
 
 Full API documentation will be available in `API.md` once implementation is complete.
 

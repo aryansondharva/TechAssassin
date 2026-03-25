@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getLeaderboard } from '@/lib/services/leaderboard'
-import { requireAuth } from '@/lib/middleware/auth'
-import { handleApiError } from '@/lib/errors'
+import { getLeaderboard } from '../../../../lib/services/leaderboard'
+import { requireAuth } from '../../../../lib/middleware/auth'
+import { handleApiError } from '../../../../lib/errors'
 
 /**
  * GET /api/leaderboard/[eventId]
@@ -11,13 +11,13 @@ import { handleApiError } from '@/lib/errors'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ eventId: string }> }
+  { params }: { params: { eventId: string } }
 ) {
   try {
     // Verify authentication
     await requireAuth()
     
-    const { eventId } = await params
+    const { eventId } = params
     
     // Get leaderboard entries with user profiles
     const entries = await getLeaderboard(eventId)
