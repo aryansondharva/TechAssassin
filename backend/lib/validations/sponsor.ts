@@ -18,7 +18,7 @@ export const sponsorCreateSchema = z.object({
     .url('Website URL must be a valid URL'),
   tier: z
     .enum(['gold', 'silver', 'bronze'], {
-      errorMap: () => ({ message: 'Tier must be gold, silver, or bronze' })
+      message: 'Tier must be gold, silver, or bronze'
     }),
   description: z
     .string()

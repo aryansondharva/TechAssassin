@@ -96,7 +96,7 @@ export async function getLeaderboard(eventId: string): Promise<LeaderboardEntry[
     throw new Error(`Failed to get leaderboard: ${error.message}`)
   }
   
-  return entries || []
+  return (entries as any) || []
 }
 
 /**
