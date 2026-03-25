@@ -10,10 +10,6 @@ const nextConfig = {
         fs: false,
       };
     }
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@/*': './*',
-    };
     return config;
   },
 };
