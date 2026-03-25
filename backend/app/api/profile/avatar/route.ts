@@ -40,6 +40,21 @@ export async function POST(request: Request) {
     // Get Supabase client
     const supabase = await createClient()
     
+    // Ensure 'avatars' bucket exists and is public
+    const { data: buckets } = await supabase.storage.listBuckets()
+    const avatarsBucket = buckets?.find(b => b.name === 'avatars')
+    
+    if (!avatarsBucket) {
+      const { error: bucketError } = await supabase.storage.createBucket('avatars', {
+        public: true,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        fileSizeLimit: maxSize
+      })
+      if (bucketError) {
+        throw new Error(`Failed to create storage bucket: ${bucketError.message}`)
+      }
+    }
+    
     // Generate unique filename
     const fileExt = file.name.split('.').pop()
     const fileName = `${user.id}/${Date.now()}.${fileExt}`
@@ -65,23 +80,18 @@ export async function POST(request: Request) {
       .from('avatars')
       .getPublicUrl(fileName)
     
-    // Update profile with avatar URL
-    const { data: profiles, error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('id', user.id)
-      .select()
+    // Update profile in local PostgreSQL database
+    const { updateProfile } = await import('@/lib/auth/server')
+    const updatedProfile = await updateProfile(user.id, { avatar_url: publicUrl })
     
-    if (updateError) {
-      throw new Error(`Failed to update profile with avatar URL: ${updateError.message}`)
+    if (!updatedProfile) {
+      throw new Error('Failed to update profile in database')
     }
-
-    const updatedProfile = profiles && profiles.length > 0 ? profiles[0] : null;
 
     return NextResponse.json({
       message: 'Avatar uploaded successfully',
       avatar_url: publicUrl,
-      profile: updatedProfile as Profile
+      profile: updatedProfile
     })
   } catch (error) {
     return handleApiError(error)

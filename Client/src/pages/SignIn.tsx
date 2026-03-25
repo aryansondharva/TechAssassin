@@ -97,11 +97,28 @@ export default function SignIn() {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl font-bold text-hero-black">
-                Welcome Back to <span className="text-primary">TechAssasin</span>
+                Welcome Back to <span className="text-primary">Tech Assassin</span>
               </h1>
-              <p className="text-xl text-hero-muted">
+              <p className="text-xl text-hero-muted mb-6">
                 Continue your journey. Build, innovate, and conquer with the community.
               </p>
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 w-fit backdrop-blur-sm">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0a0a0b] overflow-hidden shadow-xl ring-2 ring-primary/20">
+                      <img 
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`} 
+                        alt="Operative" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div className="text-sm font-black italic text-hero-foreground font-heading uppercase tracking-widest leading-none mb-1">Elite Operatives</div>
+                  <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">156+ Active In-Field</div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-6">

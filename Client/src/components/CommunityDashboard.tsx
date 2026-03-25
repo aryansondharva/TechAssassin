@@ -77,7 +77,11 @@ const CommunityDashboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [activities, setActivities] = useState<HackathonActivity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
-  const [contributors, setContributors] = useState<Contributor[]>([]);
+  const [contributors, setContributors] = useState<Contributor[]>([
+    { id: '1', name: 'Aryan Sondharva', username: 'aryansondharva', avatar: 'https://github.com/aryansondharva.png', contributions: 156, role: 'Lead Architect', githubUrl: 'https://github.com/aryansondharva' },
+    { id: '2', name: 'Hetvi Lad', username: 'hlad-2317', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shadow', contributions: 89, role: 'Senior Developer', githubUrl: '#' },
+    { id: '3', name: 'Ghost Hacker', username: 'ghost_hacker', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ghost', contributions: 67, role: 'Security Analyst', githubUrl: '#' }
+  ]);
   const [stats, setStats] = useState([
     { label: 'Active Hackers', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
     { label: 'Total Events', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
@@ -103,7 +107,9 @@ const CommunityDashboard = () => {
       setLeaderboard(leaderboardData);
       setActivities(activitiesData);
       setUpcomingEvents(eventsData);
-      setContributors(contributorsData);
+      if (contributorsData && contributorsData.length > 0) {
+        setContributors(contributorsData);
+      }
       if (statsData.length > 0) setStats(statsData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -292,7 +298,16 @@ const CommunityDashboard = () => {
                   {tab === 'leaderboard' && <Trophy className="w-4 h-4" />}
                   {tab === 'activities' && <Activity className="w-4 h-4" />}
                   {tab === 'events' && <Globe className="w-4 h-4" />}
-                  {tab === 'contributors' && <Github className="w-4 h-4" />}
+                  {tab === 'contributors' && (
+                    <div className="flex -space-x-2 mr-2">
+                      {contributors.slice(0, 3).map((c, i) => (
+                        <div key={c.id} className="w-5 h-5 rounded-full border border-[#0a0a0b] overflow-hidden bg-white/10 ring-1 ring-white/5">
+                          <img src={c.avatar} alt={c.username} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {tab === 'contributors' && contributors.length === 0 && <Github className="w-4 h-4" />}
                   {tab}
                 </span>
               </button>

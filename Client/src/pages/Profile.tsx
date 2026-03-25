@@ -23,22 +23,53 @@ import {
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("home");
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const user = authService.getUser();
+  const [profileData, setProfileData] = useState<any>(user ? {
+    full_name: user.full_name || "OPERATIVE",
+    username: user.username || "operative",
+    avatar_url: user.avatar_url || null,
+    tagline: user.bio || "SI VIS PACEM , PARA BELLUM",
+    location: user.address || "Unknown Location",
+    joinedDate: user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "January 2024",
+    skills: user.skills?.map((s: any) => s.skill_name) || ["React", "Data Analysis"],
+    stats: { hackathons: 0, projects: 0, contributions: 0 }
+  } : null);
+  const [isLoading, setIsLoading] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Mock data matching the user image provided
-  const profileData = {
-    full_name: user?.full_name || "ARYAN SONDHARVA",
-    username: user?.username || "aryansondharva",
-    avatar_url: user?.avatar_url || null,
-    tagline: "SI VIS PACEM , PARA BELLUM",
-    location: "Surat, India",
-    joinedDate: "January 2024",
-    skills: ["React", "Data Analysis", "Machine Learning", "Data Science", "Natural Language Processing"],
-    stats: {
-      hackathons: 12,
-      projects: 24,
-      contributions: 156
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const data = await profileService.getMyProfile();
+      
+      // Update local storage to keep it in sync
+      const currentUser = authService.getUser();
+      if (currentUser) {
+        const updatedUser = { ...currentUser, ...data };
+        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      }
+      
+      setProfileData({
+        full_name: data.full_name || "OPERATIVE",
+        username: data.username || "operative",
+        avatar_url: data.avatar_url || null,
+        tagline: data.bio || "SI VIS PACEM , PARA BELLUM",
+        location: data.address || "Unknown Location",
+        joinedDate: data.created_at ? new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "January 2024",
+        skills: data.skills?.map((s: any) => s.skill_name) || ["React", "Data Analysis", "Security"],
+        stats: {
+          hackathons: 12,
+          projects: 24,
+          contributions: 156
+        }
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -82,8 +113,8 @@ export default function Profile() {
         description: "Operative identity updated on the global network.",
       });
 
-      // Force a reload to show the new avatar (or use state better)
-      window.location.reload();
+      // Update state directly instead of reload
+      setProfileData((prev: any) => ({ ...prev, avatar_url: response.avatar_url }));
     } catch (error) {
       toast({
         title: "Link Severed",
@@ -94,6 +125,14 @@ export default function Profile() {
       setIsUploading(false);
     }
   };
+
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] pt-32 pb-20 px-4">

@@ -86,7 +86,7 @@ const Navbar = () => {
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-white/20 overflow-hidden">
                     <img 
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${authService.getUser()?.username || 'operative'}`} 
+                      src={authService.getUser()?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authService.getUser()?.username || 'operative'}`} 
                       alt="Avatar" 
                       className="w-full h-full object-cover"
                     />
