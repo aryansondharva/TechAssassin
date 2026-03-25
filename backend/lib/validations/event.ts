@@ -31,7 +31,7 @@ export const eventCreateSchema = z.object({
     .boolean()
     .default(true),
   prizes: z
-    .record(z.any())
+    .record(z.string(), z.any())
     .optional(),
   themes: z
     .array(z.string())
@@ -81,7 +81,7 @@ export const eventUpdateSchema = z.object({
     .boolean()
     .optional(),
   prizes: z
-    .record(z.any())
+    .record(z.string(), z.any())
     .optional(),
   themes: z
     .array(z.string())

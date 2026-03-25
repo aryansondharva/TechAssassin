@@ -106,43 +106,83 @@ export interface ApiError {
 }
 
 // Supabase Database Type
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
         Row: Profile
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>
+        Insert: Partial<Profile>
         Update: Partial<Profile>
+        Relationships: []
       }
       events: {
         Row: Event
-        Insert: Omit<Event, 'created_at'>
+        Insert: Partial<Event>
         Update: Partial<Event>
+        Relationships: []
       }
       registrations: {
         Row: Registration
-        Insert: Omit<Registration, 'created_at'>
+        Insert: Partial<Registration>
         Update: Partial<Registration>
+        Relationships: [
+          {
+            foreignKeyName: "registrations_event_id_fkey"
+            columns: ["event_id"]
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       announcements: {
         Row: Announcement
-        Insert: Omit<Announcement, 'created_at' | 'updated_at'>
+        Insert: Partial<Announcement>
         Update: Partial<Announcement>
+        Relationships: [
+          {
+            foreignKeyName: "announcements_author_id_fkey"
+            columns: ["author_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       resources: {
         Row: Resource
-        Insert: Omit<Resource, 'created_at'>
+        Insert: Partial<Resource>
         Update: Partial<Resource>
+        Relationships: []
       }
       sponsors: {
         Row: Sponsor
-        Insert: Omit<Sponsor, 'created_at'>
+        Insert: Partial<Sponsor>
         Update: Partial<Sponsor>
+        Relationships: []
       }
       leaderboard: {
         Row: LeaderboardEntry
-        Insert: Omit<LeaderboardEntry, 'updated_at'>
+        Insert: Partial<LeaderboardEntry>
         Update: Partial<LeaderboardEntry>
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_event_id_fkey"
+            columns: ["event_id"]
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

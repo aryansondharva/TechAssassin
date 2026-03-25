@@ -27,6 +27,6 @@ export const registrationCreateSchema = z.object({
 export const registrationUpdateSchema = z.object({
   status: z
     .enum(['pending', 'confirmed', 'waitlisted'], {
-      errorMap: () => ({ message: 'Status must be pending, confirmed, or waitlisted' })
+      message: 'Status must be pending, confirmed, or waitlisted'
     })
 })

@@ -32,6 +32,19 @@ export function isDatabaseConfigured(): boolean {
   )
 }
 
+// Aliases and additional helpers for tests
+export const createTestClient = getTestSupabaseClient
+
+export async function cleanupTestData(supabase: any, { events = [], profiles = [] }: { events?: string[], profiles?: string[] }) {
+  if (events.length > 0) {
+    await supabase.from('events').delete().in('id', events)
+  }
+  if (profiles.length > 0) {
+    // Also delete from auth if possible, but at least from profiles
+    await supabase.from('profiles').delete().in('id', profiles)
+  }
+}
+
 // Helper to generate unique test data
 export function generateTestId() {
   return `test_${Date.now()}_${Math.random().toString(36).substring(7)}`
