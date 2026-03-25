@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getEventById } from '@/lib/services/events'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
-import { eventUpdateSchema } from '@/lib/validations/event'
-import { handleApiError, NotFoundError } from '@/lib/errors'
-import { deleteEventImages } from '@/lib/storage/cleanup'
-import { cache } from '@/lib/utils/cache'
+import { getEventById } from '../../../../lib/services/events'
+import { createClient } from '../../../../lib/supabase/server'
+import { requireAuth, requireAdmin } from '../../../../lib/middleware/auth'
+import { eventUpdateSchema } from '../../../../lib/validations/event'
+import { handleApiError, NotFoundError } from '../../../../lib/errors'
+import { deleteEventImages } from '../../../../lib/storage/cleanup'
+import { cache } from '../../../../lib/utils/cache'
 
 /**
  * GET /api/events/[id]
@@ -14,10 +14,10 @@ import { cache } from '@/lib/utils/cache'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     const event = await getEventById(id)
     
@@ -38,10 +38,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     // Verify authentication
     const user = await requireAuth()
@@ -89,10 +89,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     // Verify authentication
     const user = await requireAuth()

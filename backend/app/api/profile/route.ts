@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { requireAuth, requireAuthWithClient, requireAdmin } from '@/lib/middleware/auth'
-import { profileUpdateSchema } from '@/lib/validations/profile'
-import { handleApiError, NotFoundError, ConflictError, AuthorizationError } from '@/lib/errors'
-import { deleteAvatar } from '@/lib/storage/cleanup'
-import type { Profile } from '@/types/database'
+import { requireAuth, requireAuthWithClient, requireAdmin } from '../../../lib/middleware/auth'
+import { profileUpdateSchema } from '../../../lib/validations/profile'
+import { handleApiError, NotFoundError, ConflictError, AuthorizationError } from '../../../lib/errors'
+import { deleteAvatar } from '../../../lib/storage/cleanup'
+import type { Profile } from '../../../types/database'
 
 /**
  * GET /api/profile

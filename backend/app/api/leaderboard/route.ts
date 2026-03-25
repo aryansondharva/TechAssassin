@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { upsertLeaderboardEntry } from '@/lib/services/leaderboard'
-import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
-import { leaderboardUpdateSchema } from '@/lib/validations/leaderboard'
-import { handleApiError } from '@/lib/errors'
+import { upsertLeaderboardEntry } from '../../../lib/services/leaderboard'
+import { requireAuth, requireAdmin } from '../../../lib/middleware/auth'
+import { leaderboardUpdateSchema } from '../../../lib/validations/leaderboard'
+import { handleApiError } from '../../../lib/errors'
 
 /**
  * POST /api/leaderboard

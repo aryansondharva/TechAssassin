@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { Event } from '@/types/database'
+import { Event } from '../../types/database'
 
 // Initialize Resend client with API key
 const resend = new Resend(process.env.RESEND_API_KEY)

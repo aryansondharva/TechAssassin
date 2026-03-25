@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/middleware/auth'
-import { registrationCreateSchema } from '@/lib/validations/registration'
-import { createRegistration } from '@/lib/services/registrations'
-import { createClient } from '@/lib/supabase/server'
-import { checkRateLimit } from '@/lib/utils/rate-limit'
-import { sendRegistrationConfirmation } from '@/lib/email/resend'
-import { handleApiError, NotFoundError, RateLimitError, ValidationError, ConflictError } from '@/lib/errors'
+import { requireAuth } from '../../../lib/middleware/auth'
+import { registrationCreateSchema } from '../../../lib/validations/registration'
+import { createRegistration } from '../../../lib/services/registrations'
+import { createClient } from '../../../lib/supabase/server'
+import { checkRateLimit } from '../../../lib/utils/rate-limit'
+import { sendRegistrationConfirmation } from '../../../lib/email/resend'
+import { handleApiError, NotFoundError, RateLimitError, ValidationError, ConflictError } from '../../../lib/errors'
 
 /**
  * POST /api/registrations

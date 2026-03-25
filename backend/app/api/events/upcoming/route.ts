@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { listEvents } from '@/lib/services/events'
-import { handleApiError } from '@/lib/errors'
+import { listEvents } from '../../../../lib/services/events'
+import { handleApiError } from '../../../../lib/errors'
 
 export async function GET() {
   try {

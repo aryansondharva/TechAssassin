@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { handleApiError, NotFoundError } from '@/lib/errors'
-import type { Profile } from '@/types/database'
+import { createClient } from '../../../../lib/supabase/server'
+import { handleApiError, NotFoundError } from '../../../../lib/errors'
+import type { Profile } from '../../../../types/database'
 
 /**
  * GET /api/profile/[id]
@@ -11,10 +11,10 @@ import type { Profile } from '@/types/database'
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     // Get Supabase client
     const supabase = await createClient()

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { signUp } from '@/lib/auth/server'
-import { signupSchema } from '@/lib/validations/auth'
-import { handleApiError } from '@/lib/errors'
+import { signUp } from '../../../../lib/auth/server'
+import { signupSchema } from '../../../../lib/validations/auth'
+import { handleApiError } from '../../../../lib/errors'
 
 /**
  * POST /api/auth/signup

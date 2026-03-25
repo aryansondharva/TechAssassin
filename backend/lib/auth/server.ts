@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
 
 // Database connection (Local PostgreSQL)
