@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
-import { announcementCreateSchema } from '@/lib/validations/announcement'
-import { handleApiError, ValidationError } from '@/lib/errors'
-import { validatePaginationParams, getPaginationMetadata, paginate } from '@/lib/utils/pagination'
+import { createClient } from '../../../lib/supabase/server'
+import { requireAuth, requireAdmin } from '../../../lib/middleware/auth'
+import { announcementCreateSchema } from '../../../lib/validations/announcement'
+import { handleApiError, ValidationError } from '../../../lib/errors'
+import { validatePaginationParams, getPaginationMetadata, paginate } from '../../../lib/utils/pagination'
 
 /**
  * GET /api/announcements

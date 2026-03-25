@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
-import { announcementUpdateSchema } from '@/lib/validations/announcement'
+import { createClient } from '../../../../lib/supabase/server'
+import { requireAuth, AuthenticationError, AuthorizationError } from '../../../../lib/middleware/auth'
+import { announcementUpdateSchema } from '../../../../lib/validations/announcement'
 import { ZodError } from 'zod'
 
 /**
@@ -11,13 +11,13 @@ import { ZodError } from 'zod'
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     // Verify authentication
     const user = await requireAuth()
     
-    const { id } = await params
+    const { id } = params
     
     // Parse and validate request body
     const body = await request.json()
@@ -116,13 +116,13 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     // Verify authentication
     const user = await requireAuth()
     
-    const { id } = await params
+    const { id } = params
     
     const supabase = await createClient()
     

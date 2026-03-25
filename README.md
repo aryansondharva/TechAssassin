@@ -1,4 +1,4 @@
-# TechAssassin - Hackathon Management Platform
+# Tech Assassin - Community Platform
 
 <div align="center">
 
