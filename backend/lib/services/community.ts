@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../supabase/server'
 
 /**
  * Get global community stats
