@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { authService, profileService } from '@/services';
 import { ApiError } from '@/lib/api-client';
@@ -149,10 +150,10 @@ export default function Dashboard() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <img src="/favicon.ico" alt="TechAssassin" className="w-8 h-8" />
-              <h1 className="text-xl font-bold text-gray-900">Hackathon Dashboard</h1>
+              <h1 className="text-xl font-black italic uppercase tracking-tighter text-gray-900 border-l-2 border-red-600 pl-4">Command Center</h1>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-xl border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
               </Button>
@@ -162,56 +163,59 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-12">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Hackathon Button */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Hackathon</h2>
-            <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/hackathon')}>
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Hackathon Events</h3>
-                    <p className="text-gray-600">View upcoming and past hackathons</p>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" /> Operative Status
+            </h2>
+            <Card className="bg-white border-2 border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-100 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] group" onClick={() => navigate('/events')}>
+              <CardContent className="p-10">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="max-w-[70%]">
+                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">Mission Operations</h3>
+                    <p className="text-gray-500 font-medium leading-relaxed">Access tactical briefing and deployment parameters for live operations.</p>
                   </div>
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Calendar className="h-8 w-8 text-blue-600" />
+                  <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <Calendar className="h-10 w-10 text-blue-600" />
                   </div>
                 </div>
-                <div className="mt-4 text-center">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Explore Hackathons
+                <div className="flex justify-center">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-xs px-10 py-6 rounded-2xl shadow-lg shadow-blue-600/20">
+                    Analyze Missions
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
           {/* Edit Profile Button */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h2>
-            <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Profile Settings</h3>
-                    <p className="text-gray-600">Update your personal information</p>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Neural Configuration
+            </h2>
+            <Card className="bg-white border-2 border-gray-100 shadow-sm hover:shadow-2xl hover:border-green-100 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] group" onClick={() => navigate('/edit-profile')}>
+              <CardContent className="p-10">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="max-w-[70%]">
+                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900 mb-3 group-hover:text-green-600 transition-colors">Operative Identity</h3>
+                    <p className="text-gray-500 font-medium leading-relaxed">Modify your global footprint and synchronize your skill matrix with the network.</p>
                   </div>
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <Settings className="h-8 w-8 text-green-600" />
+                  <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <Settings className="h-10 w-10 text-green-600" />
                   </div>
                 </div>
-                <div className="mt-4 text-center">
+                <div className="flex justify-center">
                   <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => navigate('/edit-profile')}
+                    className="bg-green-600 hover:bg-green-700 text-white font-black uppercase tracking-widest text-xs px-10 py-6 rounded-2xl shadow-lg shadow-green-600/20"
                   >
-                    Edit Your Profile
+                    Sync Profile
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </div>
       </div>
 
