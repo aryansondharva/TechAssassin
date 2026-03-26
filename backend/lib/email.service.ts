@@ -5,6 +5,7 @@
  */
 
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 // Initialize SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -22,6 +23,9 @@ const FROM_EMAIL = process.env.SMTP_USER || 'noreply@techassassin.com';
 const FROM_NAME = process.env.SMTP_FROM_NAME || 'Tech Assassin';
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6');
+
+// Path to logo in Client/public
+const LOGO_PATH = path.resolve(process.cwd(), '../Client/public/favicon.ico');
 
 // Email types
 interface SendOTPData {
@@ -56,7 +60,7 @@ export class EmailService {
                 <!-- Logo -->
                 <tr>
                   <td style="padding-bottom:20px;">
-                    <img src="https://tech-assassin.vercel.app/favicon.ico" width="65" />
+                    <img src="cid:logo" alt="TechAssassin" width="65" style="display:block;margin:0 auto;" />
                   </td>
                 </tr>
                 <!-- Title -->
@@ -122,6 +126,11 @@ export class EmailService {
         to: email,
         subject: emailContent.subject,
         html: emailContent.html,
+        attachments: [{
+          filename: 'logo.png',
+          path: LOGO_PATH,
+          cid: 'logo'
+        }]
       });
       
       console.log(`OTP sent to ${email} for ${purpose} via SMTP`);
@@ -142,6 +151,11 @@ export class EmailService {
         subject: data.subject,
         html: data.html,
         text: data.text,
+        attachments: [{
+          filename: 'logo.png',
+          path: LOGO_PATH,
+          cid: 'logo'
+        }]
       });
       
       console.log(`Email sent to ${data.to} via SMTP`);
@@ -174,6 +188,11 @@ export class EmailService {
         to: email,
         subject: 'Security Alert: Password Updated',
         html: html,
+        attachments: [{
+          filename: 'logo.png',
+          path: LOGO_PATH,
+          cid: 'logo'
+        }]
       });
       console.log(`Password update confirmation sent to ${email}`);
     } catch (error) {
