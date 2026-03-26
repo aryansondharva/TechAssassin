@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
 import { ConflictError } from '../errors';
+import { EmailService } from '../email.service';
 
 // Database connection (Local PostgreSQL)
 const pool = new Pool({
@@ -485,12 +486,24 @@ export async function requestPasswordReset(email: string): Promise<void> {
  */
 export async function resetPassword(password: string): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({
+  
+  // 1. Update the password
+  const { data, error } = await supabase.auth.updateUser({
     password,
   });
   
   if (error) {
     console.error('[AUTH] Password reset failed:', error.message);
     throw error;
+  }
+
+  // 2. Send confirmation email
+  if (data.user?.email) {
+    try {
+      await EmailService.sendPasswordUpdatedConfirmation(data.user.email);
+    } catch (emailError) {
+      console.error('[AUTH] Failed to send password update confirmation email:', emailError);
+      // Don't throw here, the password was successfully reset
+    }
   }
 }
