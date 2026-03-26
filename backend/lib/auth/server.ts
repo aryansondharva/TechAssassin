@@ -1,13 +1,14 @@
 import { Pool } from 'pg';
 import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
+import { ConflictError } from '../errors';
 
 // Database connection (Local PostgreSQL)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  idleTimeoutMillis: 60000, // Increase to 1 minute
+  connectionTimeoutMillis: 10000, // Increase to 10 seconds for cloud DBs
 });
 
 // Interface definitions
@@ -60,11 +61,13 @@ export interface SignUpData {
  * Create a new user account via Supabase Auth + Local Database Sync
  */
 export async function signUp(userData: SignUpData): Promise<AuthResponse> {
-  const supabase = await createClient();
-  const client = await pool.connect();
+  let client;
   
   try {
     // 1. REGISTER IN SUPABASE AUTH
+    console.log(`[AUTH] Starting registration for: ${userData.email}`);
+    const supabase = await createClient();
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password: userData.password,
@@ -76,65 +79,87 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
       }
     });
     
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('Auth registration failed');
+    if (authError) {
+      console.error('[AUTH] Supabase error:', authError.message);
+      throw authError;
+    }
+    
+    if (!authData.user) {
+      console.error('[AUTH] No user data returned from Supabase');
+      throw new Error('Auth registration failed');
+    }
 
     const userId = authData.user.id;
+    console.log(`[AUTH] Supabase registration successful. ID: ${userId}`);
     
-    // 2. SYNC TO LOCAL POSTGRESQL PROFILES
-    const result = await client.query(
-      `INSERT INTO public.profiles (
-        id, username, email, full_name, phone, aadhaar_number,
-        avatar_url, github_url, bio, address, education,
-        university, graduation_year, is_admin, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, NOW(), NOW())
-      RETURNING *`,
-      [
-        userId,
-        userData.username,
-        userData.email,
-        userData.full_name,
-        userData.phone,
-        userData.aadhaar_number,
-        userData.avatar_url,
-        userData.github_url,
-        userData.bio,
-        userData.address,
-        userData.education,
-        userData.university,
-        userData.graduation_year
-      ]
-    );
+    // 2. CONNECT TO DATABASE
+    try {
+      client = await pool.connect();
+    } catch (dbConnError: any) {
+      console.error('[AUTH] Database connection failed:', dbConnError.message);
+      throw new Error(`Database connection failed: ${dbConnError.message}`);
+    }
 
-    const user = result.rows[0];
-    
-    return {
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        aadhaar_number: user.aadhaar_number,
-        avatar_url: user.avatar_url,
-        github_url: user.github_url,
-        bio: user.bio,
-        address: user.address,
-        education: user.education,
-        university: user.university,
-        graduation_year: user.graduation_year,
-        is_admin: user.is_admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at
-      },
-      token: authData.session?.access_token || '' // Supabase session token
-    };
+    // 3. SYNC TO LOCAL POSTGRESQL PROFILES
+    // We use ON CONFLICT because Supabase might have a trigger that already created the profile
+    console.log(`[AUTH] Syncing to local profile table...`);
+
+    try {
+      const result = await client.query(
+        `INSERT INTO public.profiles (
+          id, username, email, full_name, phone, aadhaar_number,
+          avatar_url, github_url, bio, address, education,
+          university, graduation_year, is_admin, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          username = EXCLUDED.username,
+          full_name = EXCLUDED.full_name,
+          email = EXCLUDED.email,
+          updated_at = NOW()
+        RETURNING *`,
+        [
+          userId,
+          userData.username,
+          userData.email,
+          userData.full_name,
+          userData.phone,
+          userData.aadhaar_number,
+          userData.avatar_url,
+          userData.github_url,
+          userData.bio,
+          userData.address,
+          userData.education,
+          userData.university,
+          userData.graduation_year
+        ]
+      );
+
+      if (result.rows.length === 0) {
+        console.error('[AUTH] Profile sync failed - no row returned');
+        throw new Error('Database profile creation failed');
+      }
+
+      const user = result.rows[0];
+      console.log('[AUTH] Signup process complete');
+      
+      return {
+        user: formatUser(user),
+        token: authData.session?.access_token || '' 
+      };
+    } catch (syncError: any) {
+      // Check if this is a unique constraint violation on username
+      if (syncError.code === '23505' && syncError.constraint === 'profiles_username_key') {
+        console.error(`[AUTH] Username ${userData.username} is already taken.`);
+        throw new ConflictError(`Username '${userData.username}' is already taken. Please choose another one.`);
+      }
+      throw syncError;
+    }
     
   } catch (error: any) {
-    // If local DB failed but auth succeeded, you might want to rollback but usually just log it
+    console.error('[AUTH] Critical error during signup:', error.message);
     throw error;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
@@ -142,56 +167,100 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
  * Sign in user via Supabase Auth
  */
 export async function signIn(credentials: SignInData): Promise<AuthResponse> {
-  const supabase = await createClient();
-  const client = await pool.connect();
+  let client;
   
   try {
     // 1. AUTHENTICATE IN SUPABASE
+    console.log(`[AUTH] Starting signin for: ${credentials.email}`);
+    const supabase = await createClient();
+    
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: credentials.email,
       password: credentials.password,
     });
     
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('Invalid credentials');
+    if (authError) {
+      console.error('[AUTH] Supabase signin error:', authError.message);
+      throw authError;
+    }
+    
+    if (!authData.user) {
+      console.error('[AUTH] No user data returned from Supabase');
+      throw new Error('Invalid credentials');
+    }
 
-    // 2. FETCH PROFILE FROM LOCAL DB
+    // 2. CONNECT TO DATABASE
+    try {
+      client = await pool.connect();
+    } catch (dbConnError: any) {
+      console.error('[AUTH] Database connection failed:', dbConnError.message);
+      throw new Error(`Database connection failed: ${dbConnError.message}`);
+    }
+
+    // 3. FETCH PROFILE FROM LOCAL DB
     const profileResult = await client.query(
       'SELECT * FROM public.profiles WHERE id = $1',
       [authData.user.id]
     );
     
     if (profileResult.rows.length === 0) {
-      throw new Error('User profile not found in database');
+      console.warn(`[AUTH] Profile not found for user ${authData.user.id}, creating one...`);
+      // If profile is missing (e.g. sync failed during signup), create one now
+      const syncResult = await client.query(
+        `INSERT INTO public.profiles (id, username, email, full_name, is_admin, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, false, NOW(), NOW())
+         RETURNING *`,
+        [
+          authData.user.id,
+          authData.user.email?.split('@')[0] || 'user',
+          authData.user.email,
+          authData.user.user_metadata?.full_name || ''
+        ]
+      );
+      
+      const user = syncResult.rows[0];
+      return {
+        user: formatUser(user),
+        token: authData.session?.access_token || ''
+      };
     }
     
     const user = profileResult.rows[0];
+    console.log(`[AUTH] Signin successful for: ${user.email}`);
     
     return {
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        aadhaar_number: user.aadhaar_number,
-        avatar_url: user.avatar_url,
-        github_url: user.github_url,
-        bio: user.bio,
-        address: user.address,
-        education: user.education,
-        university: user.university,
-        graduation_year: user.graduation_year,
-        is_admin: user.is_admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at
-      },
+      user: formatUser(user),
       token: authData.session?.access_token || ''
     };
     
+  } catch (error: any) {
+    console.error('[AUTH] Critical error during signin:', error.message);
+    throw error;
   } finally {
-    client.release();
+    if (client) client.release();
   }
+}
+
+// Helper to format user object consistently
+function formatUser(user: any): User {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    full_name: user.full_name,
+    phone: user.phone,
+    aadhaar_number: user.aadhaar_number,
+    avatar_url: user.avatar_url,
+    github_url: user.github_url,
+    bio: user.bio,
+    address: user.address,
+    education: user.education,
+    university: user.university,
+    graduation_year: user.graduation_year,
+    is_admin: user.is_admin,
+    created_at: user.created_at,
+    updated_at: user.updated_at
+  };
 }
 
 /**
