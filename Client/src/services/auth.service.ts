@@ -136,4 +136,11 @@ export const authService = {
     
     return response;
   },
+
+  /**
+   * Reset password with OTP
+   */
+  resetPassword: async (data: { email: string, otp: string, password: string }): Promise<void> => {
+    await api.post('/auth/reset-password', data);
+  },
 };

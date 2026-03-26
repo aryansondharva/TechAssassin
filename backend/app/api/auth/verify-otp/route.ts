@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '../../../../lib/supabase/server'
+import { verifyPasswordResetOTP } from '../../../../lib/auth/server'
 import { verifyOtpSchema } from '../../../../lib/validations/auth'
 import { handleApiError } from '../../../../lib/errors'
 
@@ -12,15 +12,13 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { email, otp } = verifyOtpSchema.parse(body)
     
-    const supabase = await createClient()
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'recovery',
-    })
+    // Use custom OTP verification
+    const isValid = await verifyPasswordResetOTP(email, otp);
     
-    if (error) {
-      throw error
+    if (!isValid) {
+      return NextResponse.json({ 
+        error: 'Invalid or expired verification code' 
+      }, { status: 400 })
     }
     
     return NextResponse.json({
