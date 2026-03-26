@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
 import { ConflictError } from '../errors';
+import { EmailService } from '../email.service';
 
 // Database connection (Local PostgreSQL)
 const pool = new Pool({
@@ -241,6 +242,54 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
   }
 }
 
+/**
+ * Ensure user profile exists in local DB, creating it if necessary
+ */
+export async function ensureUserProfile(supabaseUser: any, suggestedUsername?: string): Promise<User> {
+  let client;
+  
+  try {
+    client = await pool.connect();
+    
+    // Check if profile exists
+    const profileResult = await client.query(
+      'SELECT * FROM public.profiles WHERE id = $1',
+      [supabaseUser.id]
+    );
+    
+    if (profileResult.rows.length > 0) {
+      return formatUser(profileResult.rows[0]);
+    }
+    
+    // Profile missing, create one
+    console.log(`[AUTH] Profile not found for user ${supabaseUser.id}, creating one...`);
+    
+    const username = suggestedUsername || supabaseUser.email?.split('@')[0] || `user_${Date.now()}`;
+    const fullName = supabaseUser.user_metadata?.full_name || '';
+    
+    const syncResult = await client.query(
+      `INSERT INTO public.profiles (id, username, email, full_name, is_admin, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, false, NOW(), NOW())
+       ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email
+       RETURNING *`,
+      [
+        supabaseUser.id,
+        username,
+        supabaseUser.email,
+        fullName
+      ]
+    );
+    
+    return formatUser(syncResult.rows[0]);
+    
+  } catch (error: any) {
+    console.error('[AUTH] Error ensuring user profile:', error.message);
+    throw error;
+  } finally {
+    if (client) client.release();
+  }
+}
+
 // Helper to format user object consistently
 function formatUser(user: any): User {
   return {
@@ -415,5 +464,147 @@ export async function getUserById(userId: string): Promise<User | null> {
     
   } finally {
     client.release();
+  }
+}
+/**
+ * Request password reset (Forgot Password) using 6-digit OTP
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const client = await pool.connect();
+  try {
+    // 1. Check if user exists
+    const userResult = await client.query('SELECT id FROM public.profiles WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      // For security, don't reveal if user exists. Just return (or throw generic error)
+      return;
+    }
+
+    // 2. Generate 6-digit OTP
+    const otp = EmailService.generateOTP();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes expiry
+
+    // 3. Store OTP in database
+    await client.query(
+      `INSERT INTO public.verification_tokens (email, token, purpose, expires_at) 
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (email, purpose) DO UPDATE SET token = $2, expires_at = $4, created_at = NOW()`,
+      [email, otp, 'password_reset', expiresAt]
+    );
+
+    // 4. Send email via EmailService
+    await EmailService.sendOTP({
+      email,
+      otp,
+      purpose: 'password_reset'
+    });
+
+    console.log(`[AUTH] Password reset OTP sent to ${email}`);
+  } catch (error: any) {
+    console.error('[AUTH] Reset password request failed:', error.message);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Verify OTP for password reset
+ */
+export async function verifyPasswordResetOTP(email: string, otp: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM public.verification_tokens 
+       WHERE email = $1 AND token = $2 AND purpose = 'password_reset' AND expires_at > NOW()`,
+      [email, otp]
+    );
+
+    if (result.rows.length === 0) {
+      return false;
+    }
+
+    // Optional: Delete token after use or mark as verified
+    // For now we keep it and delete in resetPasswordWithOTP
+    return true;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Reset password using OTP verification
+ */
+export async function resetPasswordWithOTP(email: string, otp: string, password: string): Promise<void> {
+  const client = await pool.connect();
+  try {
+    // 1. Verify OTP one last time
+    const isValid = await verifyPasswordResetOTP(email, otp);
+    if (!isValid) {
+      throw new Error('Invalid or expired verification code');
+    }
+
+    // 2. Get User ID from profile
+    const userResult = await client.query('SELECT id FROM public.profiles WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      throw new Error('User not found');
+    }
+    const userId = userResult.rows[0].id;
+
+    // 3. Update password in Supabase using Admin client
+    const { createClient: createAdminClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      password: password
+    });
+
+    if (updateError) {
+      console.error('[AUTH] Supabase admin password update failed:', updateError.message);
+      throw updateError;
+    }
+
+    // 4. Clean up the token
+    await client.query('DELETE FROM public.verification_tokens WHERE email = $1 AND purpose = $2', [email, 'password_reset']);
+
+    // 5. Send confirmation email
+    await EmailService.sendPasswordUpdatedConfirmation(email);
+
+    console.log(`[AUTH] Password successfully reset for ${email} via OTP`);
+  } catch (error: any) {
+    console.error('[AUTH] Password reset with OTP failed:', error.message);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Reset password with new password
+ */
+export async function resetPassword(password: string): Promise<void> {
+  const supabase = await createClient();
+  
+  // 1. Update the password
+  const { data, error } = await supabase.auth.updateUser({
+    password,
+  });
+  
+  if (error) {
+    console.error('[AUTH] Password reset failed:', error.message);
+    throw error;
+  }
+
+  // 2. Send confirmation email
+  if (data.user?.email) {
+    try {
+      await EmailService.sendPasswordUpdatedConfirmation(data.user.email);
+    } catch (emailError) {
+      console.error('[AUTH] Failed to send password update confirmation email:', emailError);
+      // Don't throw here, the password was successfully reset
+    }
   }
 }
