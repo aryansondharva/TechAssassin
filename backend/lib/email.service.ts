@@ -1,11 +1,10 @@
 /**
  * Email Service - Backend
  * 
- * Handles email operations using Resend API for OTP and notifications
+ * Handles email operations using SMTP for OTP and notifications
  */
 
 import nodemailer from 'nodemailer';
-import path from 'path';
 
 // Initialize SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -24,8 +23,8 @@ const FROM_NAME = process.env.SMTP_FROM_NAME || 'Tech Assassin';
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6');
 
-// Path to logo in Client/public
-const LOGO_PATH = path.resolve(process.cwd(), '../Client/public/favicon.ico');
+// Public logo URL to avoid Gmail attachment "pill"
+const LOGO_URL = 'https://raw.githubusercontent.com/aryansondharva/TechAssassin/arya/Client/public/favicon.ico';
 
 // Email types
 interface SendOTPData {
@@ -60,7 +59,7 @@ export class EmailService {
                 <!-- Logo -->
                 <tr>
                   <td style="padding-bottom:20px;">
-                    <img src="cid:logo" alt="TechAssassin" width="65" style="display:block;margin:0 auto;" />
+                    <img src="${LOGO_URL}" alt="TechAssassin" width="65" style="display:block;margin:0 auto;" />
                   </td>
                 </tr>
                 <!-- Title -->
@@ -117,7 +116,6 @@ export class EmailService {
    */
   static async sendOTP(data: SendOTPData): Promise<void> {
     const { email, otp, purpose } = data;
-    
     const emailContent = this.formatOTPEmail(otp, purpose, email);
     
     try {
@@ -126,13 +124,7 @@ export class EmailService {
         to: email,
         subject: emailContent.subject,
         html: emailContent.html,
-        attachments: [{
-          filename: 'logo.png',
-          path: LOGO_PATH,
-          cid: 'logo'
-        }]
       });
-      
       console.log(`OTP sent to ${email} for ${purpose} via SMTP`);
     } catch (error) {
       console.error('Failed to send OTP email via SMTP:', error);
@@ -151,13 +143,7 @@ export class EmailService {
         subject: data.subject,
         html: data.html,
         text: data.text,
-        attachments: [{
-          filename: 'logo.png',
-          path: LOGO_PATH,
-          cid: 'logo'
-        }]
       });
-      
       console.log(`Email sent to ${data.to} via SMTP`);
     } catch (error) {
       console.error('Failed to send email via SMTP:', error);
@@ -188,11 +174,6 @@ export class EmailService {
         to: email,
         subject: 'Security Alert: Password Updated',
         html: html,
-        attachments: [{
-          filename: 'logo.png',
-          path: LOGO_PATH,
-          cid: 'logo'
-        }]
       });
       console.log(`Password update confirmation sent to ${email}`);
     } catch (error) {
@@ -228,94 +209,56 @@ export class EmailService {
     `;
 
     const html = this.getBaseTemplate(purposeTitle, content);
-    
     return { subject, html };
   }
 
-  /**
-   * Get email subject based on purpose
-   */
   private static getSubject(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return 'TechAssassin - Password Reset OTP';
-      case 'login_verification':
-        return 'TechAssassin - Login Verification OTP';
-      case 'email_verification':
-        return 'TechAssassin - Email Verification OTP';
-      default:
-        return 'TechAssassin - Verification OTP';
+      case 'password_reset': return 'TechAssassin - Password Reset OTP';
+      case 'login_verification': return 'TechAssassin - Login Verification OTP';
+      case 'email_verification': return 'TechAssassin - Email Verification OTP';
+      default: return 'TechAssassin - Verification OTP';
     }
   }
 
-  /**
-   * Get title based on purpose
-   */
   private static getPurposeTitle(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return 'Reset Password';
-      case 'login_verification':
-        return 'Login Verification';
-      case 'email_verification':
-        return 'Verify Email';
-      default:
-        return 'Account Verification';
+      case 'password_reset': return 'Reset Password';
+      case 'login_verification': return 'Login Verification';
+      case 'email_verification': return 'Verify Email';
+      default: return 'Account Verification';
     }
   }
 
-  /**
-   * Get description based on purpose
-   */
   private static getPurposeDescription(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return 'We received a request to reset your password. Use the following code to proceed.';
-      case 'login_verification':
-        return 'Use the following code to complete your login and verify your identity.';
-      case 'email_verification':
-        return 'Welcome to TechAssassin! Please use the code below to verify your email.';
-      default:
-        return 'Please use the verification code below to secure your account.';
+      case 'password_reset': return 'We received a request to reset your password. Use the following code to proceed.';
+      case 'login_verification': return 'Use the following code to complete your login and verify your identity.';
+      case 'email_verification': return 'Welcome to TechAssassin! Please use the code below to verify your email.';
+      default: return 'Please use the verification code below to secure your account.';
     }
   }
 
-
-  /**
-   * Validate email format
-   */
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
-  /**
-   * Get email provider for analytics
-   */
   static getEmailProvider(email: string): string {
     const domain = email.split('@')[1]?.toLowerCase();
     if (!domain) return 'unknown';
-    
     if (domain.includes('gmail')) return 'gmail';
     if (domain.includes('yahoo')) return 'yahoo';
     if (domain.includes('outlook') || domain.includes('hotmail')) return 'outlook';
     if (domain.includes('protonmail')) return 'protonmail';
     if (domain.includes('icloud')) return 'icloud';
-    
     return 'other';
   }
 
-  /**
-   * Test email configuration
-   */
   static async testEmail(email: string = 'study.aura.ai@gmail.com'): Promise<boolean> {
     try {
       const testOTP = this.generateOTP();
-      await this.sendOTP({
-        email,
-        otp: testOTP,
-        purpose: 'email_verification'
-      });
+      await this.sendOTP({ email, otp: testOTP, purpose: 'email_verification' });
       return true;
     } catch (error) {
       console.error('Email test failed:', error);
