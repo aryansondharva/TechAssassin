@@ -14,6 +14,13 @@ export interface ReconnectConfig {
   backoffMultiplier: number;
 }
 
+export interface ConnectionError {
+  type: 'connection_failed' | 'subscription_failed' | 'reconnection_timeout';
+  message: string;
+  timestamp: Date;
+  canRetry: boolean;
+}
+
 export interface PresenceState {
   [userId: string]: {
     status: 'online' | 'away' | 'busy' | 'offline';
@@ -62,6 +69,7 @@ export class RealtimeManager {
   private channels: Map<string, RealtimeChannel> = new Map();
   private connectionState: ConnectionState = 'disconnected';
   private stateChangeCallbacks: Set<(state: ConnectionState) => void> = new Set();
+  private errorCallbacks: Set<(error: ConnectionError) => void> = new Set();
   private reconnectAttempts: number = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectConfig: ReconnectConfig = {
@@ -70,6 +78,7 @@ export class RealtimeManager {
     maxDelay: 30000,
     backoffMultiplier: 2,
   };
+  private lastError: ConnectionError | null = null;
 
   /**
    * Connect to Supabase Realtime
@@ -83,9 +92,24 @@ export class RealtimeManager {
       this.supabase = createClient();
       this.setConnectionState('connected');
       this.reconnectAttempts = 0;
+      this.lastError = null;
     } catch (error) {
+      const connectionError: ConnectionError = {
+        type: 'connection_failed',
+        message: error instanceof Error ? error.message : 'Failed to connect to Supabase Realtime',
+        timestamp: new Date(),
+        canRetry: true,
+      };
+      
+      this.lastError = connectionError;
+      this.notifyError(connectionError);
+      
       console.error('Failed to connect to Supabase Realtime:', error);
       this.setConnectionState('disconnected');
+      
+      // Automatically attempt reconnection
+      this.attemptReconnect();
+      
       throw error;
     }
   }
@@ -130,6 +154,25 @@ export class RealtimeManager {
   }
 
   /**
+   * Register callback for connection errors
+   */
+  onConnectionError(callback: (error: ConnectionError) => void): Subscription {
+    this.errorCallbacks.add(callback);
+    return {
+      unsubscribe: () => {
+        this.errorCallbacks.delete(callback);
+      },
+    };
+  }
+
+  /**
+   * Get last connection error
+   */
+  getLastError(): ConnectionError | null {
+    return this.lastError;
+  }
+
+  /**
    * Subscribe to presence channel
    */
   subscribeToPresence(callback: (state: PresenceState) => void): Subscription {
@@ -141,23 +184,55 @@ export class RealtimeManager {
     let channel = this.channels.get(channelName);
 
     if (!channel) {
-      channel = this.supabase
-        .channel(channelName)
-        .on('presence', { event: 'sync' }, () => {
-          const state = channel!.presenceState();
-          callback(state as unknown as PresenceState);
-        })
-        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          const state = channel!.presenceState();
-          callback(state as unknown as PresenceState);
-        })
-        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          const state = channel!.presenceState();
-          callback(state as unknown as PresenceState);
-        })
-        .subscribe();
+      try {
+        channel = this.supabase
+          .channel(channelName)
+          .on('presence', { event: 'sync' }, () => {
+            const state = channel!.presenceState();
+            callback(state as unknown as PresenceState);
+          })
+          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+            const state = channel!.presenceState();
+            callback(state as unknown as PresenceState);
+          })
+          .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+            const state = channel!.presenceState();
+            callback(state as unknown as PresenceState);
+          })
+          .subscribe((status, err) => {
+            if (status === 'CHANNEL_ERROR' || err) {
+              const subscriptionError: ConnectionError = {
+                type: 'subscription_failed',
+                message: err?.message || 'Failed to subscribe to presence channel',
+                timestamp: new Date(),
+                canRetry: true,
+              };
+              this.lastError = subscriptionError;
+              this.notifyError(subscriptionError);
+              console.error('Presence channel subscription error:', err);
+              
+              // Retry subscription after delay
+              setTimeout(() => {
+                if (this.connectionState === 'connected') {
+                  console.log('Retrying presence channel subscription...');
+                  this.subscribeToPresence(callback);
+                }
+              }, 5000);
+            }
+          });
 
-      this.channels.set(channelName, channel);
+        this.channels.set(channelName, channel);
+      } catch (error) {
+        const subscriptionError: ConnectionError = {
+          type: 'subscription_failed',
+          message: error instanceof Error ? error.message : 'Failed to create presence channel',
+          timestamp: new Date(),
+          canRetry: true,
+        };
+        this.lastError = subscriptionError;
+        this.notifyError(subscriptionError);
+        throw error;
+      }
     }
 
     return {
@@ -182,23 +257,55 @@ export class RealtimeManager {
     let channel = this.channels.get(channelName);
 
     if (!channel) {
-      channel = this.supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'activity_feed',
-          },
-          (payload) => {
-            const activity = this.mapActivityPayload(payload.new);
-            callback(activity);
-          }
-        )
-        .subscribe();
+      try {
+        channel = this.supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'activity_feed',
+            },
+            (payload) => {
+              const activity = this.mapActivityPayload(payload.new);
+              callback(activity);
+            }
+          )
+          .subscribe((status, err) => {
+            if (status === 'CHANNEL_ERROR' || err) {
+              const subscriptionError: ConnectionError = {
+                type: 'subscription_failed',
+                message: err?.message || 'Failed to subscribe to activity channel',
+                timestamp: new Date(),
+                canRetry: true,
+              };
+              this.lastError = subscriptionError;
+              this.notifyError(subscriptionError);
+              console.error('Activity channel subscription error:', err);
+              
+              // Retry subscription after delay
+              setTimeout(() => {
+                if (this.connectionState === 'connected') {
+                  console.log('Retrying activity channel subscription...');
+                  this.subscribeToActivity(callback);
+                }
+              }, 5000);
+            }
+          });
 
-      this.channels.set(channelName, channel);
+        this.channels.set(channelName, channel);
+      } catch (error) {
+        const subscriptionError: ConnectionError = {
+          type: 'subscription_failed',
+          message: error instanceof Error ? error.message : 'Failed to create activity channel',
+          timestamp: new Date(),
+          canRetry: true,
+        };
+        this.lastError = subscriptionError;
+        this.notifyError(subscriptionError);
+        throw error;
+      }
     }
 
     return {
@@ -226,24 +333,56 @@ export class RealtimeManager {
     let channel = this.channels.get(channelName);
 
     if (!channel) {
-      channel = this.supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'leaderboard_scores',
-            filter: `event_id=eq.${eventId}`,
-          },
-          (payload) => {
-            const update = this.mapLeaderboardPayload(payload);
-            callback(update);
-          }
-        )
-        .subscribe();
+      try {
+        channel = this.supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'leaderboard_scores',
+              filter: `event_id=eq.${eventId}`,
+            },
+            (payload) => {
+              const update = this.mapLeaderboardPayload(payload);
+              callback(update);
+            }
+          )
+          .subscribe((status, err) => {
+            if (status === 'CHANNEL_ERROR' || err) {
+              const subscriptionError: ConnectionError = {
+                type: 'subscription_failed',
+                message: err?.message || 'Failed to subscribe to leaderboard channel',
+                timestamp: new Date(),
+                canRetry: true,
+              };
+              this.lastError = subscriptionError;
+              this.notifyError(subscriptionError);
+              console.error('Leaderboard channel subscription error:', err);
+              
+              // Retry subscription after delay
+              setTimeout(() => {
+                if (this.connectionState === 'connected') {
+                  console.log('Retrying leaderboard channel subscription...');
+                  this.subscribeToLeaderboard(eventId, callback);
+                }
+              }, 5000);
+            }
+          });
 
-      this.channels.set(channelName, channel);
+        this.channels.set(channelName, channel);
+      } catch (error) {
+        const subscriptionError: ConnectionError = {
+          type: 'subscription_failed',
+          message: error instanceof Error ? error.message : 'Failed to create leaderboard channel',
+          timestamp: new Date(),
+          canRetry: true,
+        };
+        this.lastError = subscriptionError;
+        this.notifyError(subscriptionError);
+        throw error;
+      }
     }
 
     return {
@@ -291,6 +430,16 @@ export class RealtimeManager {
   private async attemptReconnect(): Promise<void> {
     if (this.reconnectAttempts >= this.reconnectConfig.maxAttempts) {
       console.error('Max reconnection attempts reached');
+      
+      const timeoutError: ConnectionError = {
+        type: 'reconnection_timeout',
+        message: `Failed to reconnect after ${this.reconnectConfig.maxAttempts} attempts`,
+        timestamp: new Date(),
+        canRetry: true,
+      };
+      
+      this.lastError = timeoutError;
+      this.notifyError(timeoutError);
       this.setConnectionState('disconnected');
       return;
     }
@@ -339,6 +488,13 @@ export class RealtimeManager {
       this.connectionState = state;
       this.stateChangeCallbacks.forEach((callback) => callback(state));
     }
+  }
+
+  /**
+   * Notify error callbacks
+   */
+  private notifyError(error: ConnectionError): void {
+    this.errorCallbacks.forEach((callback) => callback(error));
   }
 
   /**
