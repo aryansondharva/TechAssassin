@@ -4,14 +4,22 @@
  * Handles email operations using Resend API for OTP and notifications
  */
 
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize SMTP transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // Email configuration
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@techassassin.com';
-const FROM_NAME = process.env.RESEND_FROM_NAME || 'TechAssassin';
+const FROM_EMAIL = process.env.SMTP_USER || 'noreply@techassassin.com';
+const FROM_NAME = process.env.SMTP_FROM_NAME || 'Tech Assassin';
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6');
 
@@ -51,16 +59,16 @@ export class EmailService {
     const emailContent = this.formatOTPEmail(otp, purpose);
     
     try {
-      await resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [email],
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        to: email,
         subject: emailContent.subject,
         html: emailContent.html,
       });
       
-      console.log(`OTP sent to ${email} for ${purpose}`);
+      console.log(`OTP sent to ${email} for ${purpose} via SMTP`);
     } catch (error) {
-      console.error('Failed to send OTP email:', error);
+      console.error('Failed to send OTP email via SMTP:', error);
       throw new Error('Failed to send OTP email');
     }
   }
@@ -70,17 +78,17 @@ export class EmailService {
    */
   static async sendEmail(data: EmailData): Promise<void> {
     try {
-      await resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [data.to],
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        to: data.to,
         subject: data.subject,
         html: data.html,
         text: data.text,
       });
       
-      console.log(`Email sent to ${data.to}`);
+      console.log(`Email sent to ${data.to} via SMTP`);
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('Failed to send email via SMTP:', error);
       throw new Error('Failed to send email');
     }
   }

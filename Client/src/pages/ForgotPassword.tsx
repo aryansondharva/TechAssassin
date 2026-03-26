@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '@/services';
 import { ApiError } from '@/lib/api-client';
@@ -21,7 +21,7 @@ export default function ForgotPassword() {
   const [resendEnabled, setResendEnabled] = useState(false);
 
   // Countdown timer for OTP
-  useState(() => {
+  useEffect(() => {
     if (timeLeft > 0) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {

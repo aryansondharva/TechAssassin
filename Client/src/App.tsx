@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import ForgotPassword from "./pages/ForgotPassword";
+import MagicLink from "./pages/MagicLink";
+import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
 
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/magic-link" element={<MagicLink />} />
+          <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
           <Route path="/dashboard" element={<Profile />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<EditProfile />} />

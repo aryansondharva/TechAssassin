@@ -241,6 +241,54 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
   }
 }
 
+/**
+ * Ensure user profile exists in local DB, creating it if necessary
+ */
+export async function ensureUserProfile(supabaseUser: any, suggestedUsername?: string): Promise<User> {
+  let client;
+  
+  try {
+    client = await pool.connect();
+    
+    // Check if profile exists
+    const profileResult = await client.query(
+      'SELECT * FROM public.profiles WHERE id = $1',
+      [supabaseUser.id]
+    );
+    
+    if (profileResult.rows.length > 0) {
+      return formatUser(profileResult.rows[0]);
+    }
+    
+    // Profile missing, create one
+    console.log(`[AUTH] Profile not found for user ${supabaseUser.id}, creating one...`);
+    
+    const username = suggestedUsername || supabaseUser.email?.split('@')[0] || `user_${Date.now()}`;
+    const fullName = supabaseUser.user_metadata?.full_name || '';
+    
+    const syncResult = await client.query(
+      `INSERT INTO public.profiles (id, username, email, full_name, is_admin, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, false, NOW(), NOW())
+       ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email
+       RETURNING *`,
+      [
+        supabaseUser.id,
+        username,
+        supabaseUser.email,
+        fullName
+      ]
+    );
+    
+    return formatUser(syncResult.rows[0]);
+    
+  } catch (error: any) {
+    console.error('[AUTH] Error ensuring user profile:', error.message);
+    throw error;
+  } finally {
+    if (client) client.release();
+  }
+}
+
 // Helper to format user object consistently
 function formatUser(user: any): User {
   return {
@@ -415,5 +463,34 @@ export async function getUserById(userId: string): Promise<User | null> {
     
   } finally {
     client.release();
+  }
+}
+/**
+ * Request password reset (Forgot Password)
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
+  });
+  
+  if (error) {
+    console.error('[AUTH] Reset password request failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Reset password with new password
+ */
+export async function resetPassword(password: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    password,
+  });
+  
+  if (error) {
+    console.error('[AUTH] Password reset failed:', error.message);
+    throw error;
   }
 }

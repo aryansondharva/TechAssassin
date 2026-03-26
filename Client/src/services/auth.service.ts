@@ -4,7 +4,7 @@
  * Handles user authentication operations including sign up, sign in, sign out, and password reset.
  */
 
-import { api, setAuthToken, clearAuthToken } from '@/lib/api-client';
+import { api, setAuthToken, clearAuthToken, API_URL } from '@/lib/api-client';
 import type {
   SignUpRequest,
   SignInRequest,
@@ -106,5 +106,34 @@ export const authService = {
    */
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('auth_token');
+  },
+  /**
+   * Sign in with Social Provider (OAuth)
+   */
+  signInWithProvider: async (provider: 'github' | 'google'): Promise<void> => {
+    // In a real app with Supabase, this would call supabase.auth.signInWithOAuth
+    // Since we are proxying, we redirect to a backend endpoint that handles the redirect
+    window.location.href = `${API_URL}/auth/social?provider=${provider}`;
+  },
+
+  /**
+   * Request Magic Link (Email OTP)
+   */
+  sendMagicLink: async (email: string): Promise<void> => {
+    await api.post('/auth/magic-link', { email });
+  },
+
+  /**
+   * Verify Magic Link OTP
+   */
+  verifyMagicLink: async (email: string, otp: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/verify-magic-link', { email, otp });
+    
+    if (response.token) {
+      setAuthToken(response.token);
+      localStorage.setItem('auth_user', JSON.stringify(response.user));
+    }
+    
+    return response;
   },
 };
