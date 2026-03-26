@@ -17,6 +17,7 @@ export default function SignUp() {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -39,7 +40,7 @@ export default function SignUp() {
     e.preventDefault();
     
     // Validation
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.name || !formData.username || !formData.email || !formData.password) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all fields',
@@ -79,7 +80,7 @@ export default function SignUp() {
 
     try {
       await authService.signUp({
-        username: formData.name.toLowerCase().replace(/\s+/g, '_'),
+        username: formData.username,
         full_name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -214,6 +215,23 @@ export default function SignUp() {
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="pl-10 bg-background border-input text-card-foreground placeholder-muted-foreground focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-card-foreground font-medium">Username</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().trim() })}
                     disabled={isLoading}
                     required
                     className="pl-10 bg-background border-input text-card-foreground placeholder-muted-foreground focus:border-primary"
