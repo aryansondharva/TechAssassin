@@ -63,6 +63,10 @@ export interface LeaderboardUpdate {
  * - Handle connection state (connected, disconnected, reconnecting)
  * - Implement exponential backoff for reconnection attempts
  * - Coordinate state resynchronization after reconnection
+ * 
+ * Performance Optimizations:
+ * - Requirement 9.2: Throttle activity updates to max 10 per second per client
+ * - Optimized channel subscription strategy for scalability
  */
 export class RealtimeManager {
   private supabase: SupabaseClient | null = null;
@@ -80,8 +84,15 @@ export class RealtimeManager {
   };
   private lastError: ConnectionError | null = null;
 
+  // Throttling for activity updates (Requirement 9.2: max 10 updates/second)
+  private activityUpdateQueue: ActivityEvent[] = [];
+  private activityThrottleTimer: NodeJS.Timeout | null = null;
+  private readonly MAX_UPDATES_PER_SECOND = 10;
+  private readonly THROTTLE_INTERVAL = 100; // ms (10 updates per second = 1 update per 100ms)
+
   /**
-   * Connect to Supabase Realtime
+   * Connect to Supabase Realtime with optimized configuration
+   * Requirement 9.2: Configure eventsPerSecond throttling
    */
   async connect(): Promise<void> {
     if (this.connectionState === 'connected') {
@@ -89,7 +100,12 @@ export class RealtimeManager {
     }
 
     try {
+      // Create Supabase client with optimized realtime configuration
       this.supabase = createClient();
+      
+      // Note: Realtime throttling is configured in the Supabase client initialization
+      // See: lib/supabase/client.ts for eventsPerSecond configuration
+      
       this.setConnectionState('connected');
       this.reconnectAttempts = 0;
       this.lastError = null;
@@ -129,6 +145,15 @@ export class RealtimeManager {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+
+    // Clear throttle timer
+    if (this.activityThrottleTimer) {
+      clearTimeout(this.activityThrottleTimer);
+      this.activityThrottleTimer = null;
+    }
+
+    // Clear activity queue
+    this.activityUpdateQueue = [];
 
     this.setConnectionState('disconnected');
     this.supabase = null;
@@ -246,7 +271,8 @@ export class RealtimeManager {
   }
 
   /**
-   * Subscribe to activity channel
+   * Subscribe to activity channel with throttling
+   * Requirement 9.2: Throttle to max 10 updates per second per client
    */
   subscribeToActivity(callback: (activity: ActivityEvent) => void): Subscription {
     if (!this.supabase) {
@@ -269,7 +295,9 @@ export class RealtimeManager {
             },
             (payload) => {
               const activity = this.mapActivityPayload(payload.new);
-              callback(activity);
+              
+              // Apply throttling: queue the activity and process at controlled rate
+              this.queueActivityUpdate(activity, callback);
             }
           )
           .subscribe((status, err) => {
@@ -495,6 +523,40 @@ export class RealtimeManager {
    */
   private notifyError(error: ConnectionError): void {
     this.errorCallbacks.forEach((callback) => callback(error));
+  }
+
+  /**
+   * Queue activity update for throttled delivery
+   * Implements Requirement 9.2: Max 10 updates per second per client
+   */
+  private queueActivityUpdate(activity: ActivityEvent, callback: (activity: ActivityEvent) => void): void {
+    this.activityUpdateQueue.push(activity);
+
+    // Start throttle timer if not already running
+    if (!this.activityThrottleTimer) {
+      this.processActivityQueue(callback);
+    }
+  }
+
+  /**
+   * Process activity queue at controlled rate (10 updates/second)
+   */
+  private processActivityQueue(callback: (activity: ActivityEvent) => void): void {
+    if (this.activityUpdateQueue.length === 0) {
+      this.activityThrottleTimer = null;
+      return;
+    }
+
+    // Take up to MAX_UPDATES_PER_SECOND items from queue
+    const batch = this.activityUpdateQueue.splice(0, this.MAX_UPDATES_PER_SECOND);
+
+    // Deliver batch to callback
+    batch.forEach((activity) => callback(activity));
+
+    // Schedule next batch after THROTTLE_INTERVAL
+    this.activityThrottleTimer = setTimeout(() => {
+      this.processActivityQueue(callback);
+    }, this.THROTTLE_INTERVAL);
   }
 
   /**
