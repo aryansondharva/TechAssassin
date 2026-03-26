@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db/postgres';
+import { requireAuth } from '@/lib/middleware/auth';
+import { handleApiError } from '@/lib/errors';
 
 /**
  * GET /api/activity/:id
  * Get single activity by ID
+ * Requirements: 3.1, 4.1, 4.2
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Verify authentication
+    await requireAuth();
     const { id } = params;
 
     // Validate ID format (UUID)
@@ -56,10 +61,6 @@ export async function GET(
       createdAt: activity.created_at,
     });
   } catch (error) {
-    console.error('Error fetching activity:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

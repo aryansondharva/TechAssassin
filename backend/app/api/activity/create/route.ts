@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/middleware/auth';
+import { handleApiError } from '@/lib/errors';
 
 /**
  * POST /api/activity/create
  * Create a new activity and persist to database
+ * Requirements: 3.1, 4.1, 4.2
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify authentication
+    const user = await requireAuth();
+    
     const body = await request.json();
-    const { type, userId, metadata } = body;
+    const { type, metadata } = body;
 
     // Validate required fields
-    if (!type || !userId) {
+    if (!type) {
       return NextResponse.json(
-        { error: 'Missing required fields: type, userId' },
+        { error: 'Missing required field: type' },
         { status: 400 }
       );
     }
@@ -30,15 +36,15 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Get user details
-    const { data: user, error: userError } = await supabase
+    const { data: profile, error: userError } = await supabase
       .from('profiles')
       .select('username, avatar_url')
-      .eq('id', userId)
+      .eq('id', user.id)
       .single();
 
-    if (userError || !user) {
+    if (userError || !profile) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'User profile not found' },
         { status: 404 }
       );
     }
@@ -48,7 +54,7 @@ export async function POST(request: NextRequest) {
       .from('activity_feed')
       .insert({
         type,
-        user_id: userId,
+        user_id: user.id,
         metadata: metadata || {},
       })
       .select()
@@ -67,16 +73,12 @@ export async function POST(request: NextRequest) {
       id: activity.id,
       type: activity.type,
       userId: activity.user_id,
-      username: user.username,
-      avatarUrl: user.avatar_url,
+      username: profile.username,
+      avatarUrl: profile.avatar_url,
       metadata: activity.metadata,
       createdAt: activity.created_at,
     });
   } catch (error) {
-    console.error('Error creating activity:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

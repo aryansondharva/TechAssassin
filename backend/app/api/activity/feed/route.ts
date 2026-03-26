@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/middleware/auth';
+import { handleApiError } from '@/lib/errors';
 
 /**
  * GET /api/activity/feed
  * Get activity feed with filtering and pagination
+ * Requirements: 3.1, 4.1, 4.2
  */
 export async function GET(request: NextRequest) {
   try {
+    // Verify authentication
+    await requireAuth();
     const searchParams = request.nextUrl.searchParams;
     
     // Parse query parameters
@@ -128,10 +133,6 @@ export async function GET(request: NextRequest) {
       hasMore,
     });
   } catch (error) {
-    console.error('Error fetching activity feed:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

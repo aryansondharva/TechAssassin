@@ -24,6 +24,7 @@ export interface PresenceState {
     lastSeen: Date;
     username: string;
     avatarUrl?: string;
+    isPending?: boolean;
   };
 }
 
@@ -144,15 +145,15 @@ export class RealtimeManager {
         .channel(channelName)
         .on('presence', { event: 'sync' }, () => {
           const state = channel!.presenceState();
-          callback(state as PresenceState);
+          callback(state as unknown as PresenceState);
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }) => {
           const state = channel!.presenceState();
-          callback(state as PresenceState);
+          callback(state as unknown as PresenceState);
         })
         .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
           const state = channel!.presenceState();
-          callback(state as PresenceState);
+          callback(state as unknown as PresenceState);
         })
         .subscribe();
 

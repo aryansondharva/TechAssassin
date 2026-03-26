@@ -93,6 +93,7 @@ export class LeaderboardService {
     const processedEntries = (entries || []).map(entry => {
       const processedEntry: LeaderboardEntry = {
         ...entry,
+        user: Array.isArray(entry.user) ? entry.user[0] : entry.user,
         rankChange: this.calculateRankChange(entry.rank, entry.previous_rank),
         isCurrentUser: this.currentUserId ? entry.user_id === this.currentUserId : false
       };

@@ -82,7 +82,7 @@ export interface LeaderboardEntry {
   previous_rank?: number
   updated_at: string
   created_at?: string
-  user?: Profile
+  user?: Partial<Profile>
   rankChange?: 'up' | 'down' | 'same' | null
   isCurrentUser?: boolean
 }

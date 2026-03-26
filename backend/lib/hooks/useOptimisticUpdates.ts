@@ -116,7 +116,7 @@ function showErrorToast(error: ErrorNotification): void {
 
   // Simple browser alert as fallback
   // In production, replace with your toast library (e.g., react-hot-toast, sonner)
-  if (typeof window !== 'undefined' && window.alert) {
+  if (typeof window !== 'undefined') {
     console.error('Optimistic update failed:', message);
     
     // You can integrate with a toast library here:
