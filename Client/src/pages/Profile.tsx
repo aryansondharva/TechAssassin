@@ -43,7 +43,7 @@ import Footer from "@/components/Footer";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
@@ -180,7 +180,7 @@ export default function Profile() {
                   )}
                   <div className="absolute inset-x-0 bottom-0 top-0 flex items-center justify-center pointer-events-none">
                      <h1 className="text-white text-5xl md:text-8xl font-black italic tracking-tighter opacity-10 select-none uppercase">
-                        {identity.full_name || identity.username}
+                        {identity.full_name || identity.username || 'NEW OPERATIVE'}
                      </h1>
                   </div>
                    {isOwnProfile && (
@@ -202,7 +202,7 @@ export default function Profile() {
                       <Avatar className="h-40 w-40 md:h-52 md:w-52 border-8 border-white">
                         <AvatarImage src={identity.avatar_url} className="object-cover" />
                         <AvatarFallback className="bg-blue-50 text-5xl font-black text-blue-200">
-                          {identity.username?.charAt(0).toUpperCase()}
+                          {(identity.username?.charAt(0) || 'U')?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -233,11 +233,11 @@ export default function Profile() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
                      <div className="space-y-5">
                         <div className="flex items-center gap-3">
-                          <h2 className="text-4xl font-black text-gray-900 uppercase italic tracking-tighter">{identity.full_name || identity.username}</h2>
+                          <h2 className="text-4xl font-black text-gray-900 uppercase italic tracking-tighter">{identity.full_name || identity.username || 'NEW OPERATIVE'}</h2>
                         </div>
                         
                         <div className="space-y-3 text-[14px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
-                           {(isOwnProfile || identity.is_address_public) && (
+                           {(isOwnProfile || !!identity.is_address_public) && (
                              <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
                            )}
                            <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800 lowercase">{identity.username}</span></div>
@@ -247,14 +247,14 @@ export default function Profile() {
                         </div>
 
                         <div className="pt-4 space-y-3">
-                           {(isOwnProfile || identity.is_email_public) && (
+                           {(isOwnProfile || !!identity.is_email_public) && (
                              <div className="flex items-center gap-3 text-sm font-black text-blue-600">
                                 <Mail className="w-4 h-4 text-gray-400" /> 
                                 <span className="hover:underline cursor-pointer lowercase">{identity.email}</span>
                              </div>
                            )}
                            <div className="flex items-center gap-8 text-[13px] font-black text-gray-900">
-                              {(isOwnProfile || identity.is_phone_public) && (
+                              {(isOwnProfile || !!identity.is_phone_public) && (
                                 <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
                               )}
                            </div>
@@ -267,13 +267,13 @@ export default function Profile() {
                               <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Skillset Matrix</span>
                               <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
                            </div>
-                           <div className="flex flex-wrap gap-3">
-                              {identity.skills?.length > 0 ? identity.skills.map((s: string) => (
-                                <Badge key={s} variant="secondary" className="bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest px-5 py-2 border-none transition-all hover:bg-red-600 shadow-md">
-                                  {s}
-                                </Badge>
-                              )) : <span className="text-[12px] text-gray-300 italic font-bold">Waiting for skill transmission...</span>}
-                           </div>
+                            <div className="flex flex-wrap gap-3">
+                               {(identity.skills || []).length > 0 ? (identity.skills || []).map((s: string) => (
+                                 <Badge key={s} variant="secondary" className="bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest px-5 py-2 border-none transition-all hover:bg-red-600 shadow-md">
+                                   {s}
+                                 </Badge>
+                               )) : <span className="text-[12px] text-gray-300 italic font-bold">Waiting for skill transmission...</span>}
+                            </div>
                         </div>
 
                         <div className="space-y-3">
@@ -282,17 +282,17 @@ export default function Profile() {
                               <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
                            </div>
                            <div className="flex flex-wrap gap-3">
-                              {identity.interests?.length > 0 ? identity.interests.map((it: string) => (
-                                <Badge key={it} variant="outline" className="border-gray-300 text-gray-700 rounded-xl text-[11px] uppercase font-black px-5 py-2 hover:border-red-500 hover:text-red-500 transition-all">
-                                  {it}
-                                </Badge>
-                              )) : (
-                                <div className="flex flex-wrap gap-2 opacity-40">
-                                   <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">Cybersecurity</Badge>
-                                   <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">BlockChain</Badge>
-                                </div>
-                              )}
-                           </div>
+                               {(identity.interests || []).length > 0 ? (identity.interests || []).map((it: string) => (
+                                 <Badge key={it} variant="outline" className="border-gray-300 text-gray-700 rounded-xl text-[11px] uppercase font-black px-5 py-2 hover:border-red-500 hover:text-red-500 transition-all">
+                                   {it}
+                                 </Badge>
+                               )) : (
+                                 <div className="flex flex-wrap gap-2 opacity-40">
+                                    <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">Cybersecurity</Badge>
+                                    <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">BlockChain</Badge>
+                                 </div>
+                               )}
+                            </div>
                         </div>
 
                         <div className="space-y-3">
@@ -376,12 +376,14 @@ export default function Profile() {
                         date="July 25, 2024 - Active" 
                         authors={["ARYAN"]} 
                         description="Dismantling tech, mastering code, and weaponizing creativity in the digital hunt. A high-performance community engine."
+                        isOwnProfile={isOwnProfile}
                      />
                      <ProjectCard 
                         title="Neural Portfolio" 
                         date="Jan 20, 2024 - Active" 
                         authors={[]}
                         description="A cinematic operative dashboard showcasing tactical development skills and lethal UI components."
+                        isOwnProfile={isOwnProfile}
                      />
                   </div>
                </Section>
@@ -453,7 +455,7 @@ function InitiativeCard({ title, org, image }: any) {
    );
 }
 
-function ProjectCard({ title, date, authors, description }: any) {
+function ProjectCard({ title, date, authors, description, isOwnProfile }: any) {
    return (
       <Card className="border-gray-100 shadow-none bg-white hover:shadow-xl transition-all group p-8 rounded-3xl border-r-8 border-r-red-600/10 hover:border-r-red-600 transition-all">
          <div className="flex justify-between items-start mb-4">
