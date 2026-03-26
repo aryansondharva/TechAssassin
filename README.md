@@ -40,64 +40,63 @@
 
 ## 🎯 Overview
 
-**Tech Assassin** is an elite community platform designed for developers, hackers, and digital operatives. It goes beyond simple event management, providing a centralized **Community Hub** where members can track their performance, discover mission-critical events, and collaborate on dismantling the most complex technical challenges.
+**Tech Assassin** is the ultimate community hub for elite developers, hackers, and digital operatives. It is a centralized **Command Center** where high-performance individuals synchronize on tactical missions, track global rankings, and collaborate on dismantling the most complex technical challenges.
 
 ### Key Highlights
 
--  **Community Hub**: Real-time dashboard with tactical synchronization
--  **Live Leaderboard**: Dynamic ranking system with performance trends and badges
--  **Contributor Ecosystem**: Showcase the lead architects and operatives
--  **Tactical Stats**: Real-time monitoring of active hackers, events, and bounties
--  **Secure Access**: Integrated Supabase Auth with JWT security
--  **Cinematic UI**: Modern, dark-mode aesthetic with fluid animations
--  **Mission-Ready**: High test coverage and robust type safety
+-  **Strategic Hub**: Real-time dashboard with tactical synchronization and live network status.
+-  **Performance Ranking**: Dynamic leaderboard with performance trends, badges, and operative assessments.
+-  **Operative Ecosystem**: Showcasing the lead architects and field operatives behind the missions.
+-  **Mission Board**: Discovery and deployment into upcoming tactical missions (hackathons) and sprints.
+-  **Secure Identity**: Integrated Supabase Auth with JWT security for operative credentialing.
+-  **Tactical Aesthetics**: A modern, cinematic dark-mode interface designed for high-focus operations.
 
 ---
 
 ## ✨ Features
 
-### Community Intelligence
--  **Community Hub (Dashboard)**
-  - Real-time synchronization with the operative network
-  - Tactical stats monitoring (Active Hackers, Total Events, Bounties)
-  - Activity feed of milestones and achievements
+### Tactical Intelligence
+-  **Command Center (Dashboard)**
+  - Real-time synchronization with the operative network.
+  - Tactical metrics monitoring (Active Operatives, Total Missions, Bounty Pool).
+  - Activity feed of mission milestones and elite achievements.
   
--  **Global Leaderboard**
-  - Dynamic ranking with "up/down" trend tracking
-  - Honor badges and assessment scores
-  - Secure profile links for top operatives
+-  **Global Rankings**
+  - Dynamic performance tracking with "up/down" trend indicators.
+  - Honor badges and technical assessment scores.
+  - Direct profile access for high-ranking operatives.
 
--  **Contributor Showcase**
-  - Interactive avatar stacks (facepiles)
-  - Role-based identification for project architects
-  - Direct GitHub integration for all contributors
+-  **Architect Showcase**
+  - Interactive avatar stacks (facepiles) for lead contributors.
+  - Role-based identification for system architects.
+  - Direct GitHub telemetry for all active operatives.
 
-### For Operatives (Participants)
--  **Identity Management**
-  - Secure authentication via Supabase
-  - Detailed profiles with avatars and social links
-  - Skill tracking and portfolio showcase
+### For Operatives
+-  **Identity Profile**
+  - Secure credentialing via Supabase.
+  - Detailed operative dossiers with avatars and social links.
+  - Skill matrix tracking and portfolio showcase.
 
 -  **Mission Discovery**
-  - Browse upcoming, live, and past events (hackathons)
-  - Filter missions by status and tactical themes
-  - Access detailed event briefings and requirements
+  - Browse upcoming, live, and past missions (tactical hackathons).
+  - Filter by mission type and tactical themes.
+  - Access detailed mission briefings and requirements.
 
--  **Event Registration**
-  - Quick sign-up for community missions
-  - Status tracking (Confirmed, Waitlist, Finalized)
-  - Real-time enrollment indicator (participant counts)
+-  **Mission Deployment**
+  - Seamless enrollment into community missions.
+  - Status tracking (Confirmed, Waitlist, Finalized).
+  - Real-time deployment indicators (operative counts).
 
 ### For High Command (Admin)
 -  **Operation Management**
-  - Create and deploy new community events
-  - Manage enrollment limits and mission timelines
-  - Coordinate prize distribution and rules
+  - Create and deploy new community missions.
+  - Manage operative allocation and mission timelines.
+  - Coordinate prize distribution and rules of engagement (RoE).
 
--  **Content Distribution**
-  - Broadcast community announcements
-  - Distribute learning resources and tactical materials
-  - Manage sponsor logistics and brand visibility
+-  **Intelligence Distribution**
+  - Broadcast global community announcements.
+  - Provision learning resources and tactical materials.
+  - Manage sponsor logistics and operative visibility.
 
 ---
 

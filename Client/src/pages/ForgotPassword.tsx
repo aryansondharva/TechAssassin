@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '@/services';
 import { ApiError } from '@/lib/api-client';
@@ -11,17 +11,18 @@ import { Loader2, Mail, ArrowLeft, ArrowRight, Shield, Clock } from 'lucide-reac
 
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<'email' | 'otp' | 'success'>('email');
+  const [step, setStep] = useState<'email' | 'otp' | 'reset' | 'success'>('email');
   const [formData, setFormData] = useState({
     email: '',
     otp: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [emailSent, setEmailSent] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [resendEnabled, setResendEnabled] = useState(false);
 
   // Countdown timer for OTP
-  useState(() => {
+  useEffect(() => {
     if (timeLeft > 0) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
@@ -37,8 +38,8 @@ export default function ForgotPassword() {
     }
   }, [timeLeft]);
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     
     if (!formData.email) {
       toast({
@@ -49,43 +50,24 @@ export default function ForgotPassword() {
       return;
     }
 
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter a valid email address',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       await authService.forgotPassword({ email: formData.email });
-      
-      setEmailSent(true);
       setStep('otp');
-      setTimeLeft(60); // 60 seconds countdown
+      setTimeLeft(60);
       setResendEnabled(false);
       
       toast({
         title: 'OTP Sent',
-        description: 'A 6-digit OTP has been sent to your email',
+        description: 'A verification code has been sent to your email',
       });
-    } catch (error) {
-      if (error instanceof ApiError) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to send OTP. Please try again.',
-          variant: 'destructive',
-        });
-      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send OTP',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -93,53 +75,48 @@ export default function ForgotPassword() {
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.otp || formData.otp.length !== 6) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter a valid 6-digit OTP',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Please enter 6-digit code', variant: 'destructive' });
       return;
     }
 
     setIsLoading(true);
-
     try {
-      await authService.verifyOTP({ 
-        email: formData.email, 
-        otp: formData.otp 
-      });
-      
-      setStep('success');
-      
-      toast({
-        title: 'Success',
-        description: 'OTP verified successfully. You can now reset your password.',
-      });
-    } catch (error) {
-      if (error instanceof ApiError) {
-        toast({
-          title: 'Verification Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Invalid OTP. Please try again.',
-          variant: 'destructive',
-        });
-      }
+      await authService.verifyOTP({ email: formData.email, otp: formData.otp });
+      setStep('reset');
+      toast({ title: 'Verified', description: 'Please set your new password' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Verification failed', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResendOTP = async () => {
-    setResendEnabled(false);
-    setTimeLeft(60);
-    await handleSendOTP({ preventDefault: () => {} } as React.FormEvent);
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' });
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast({ title: 'Error', description: 'At least 6 characters required', variant: 'destructive' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.resetPassword({
+        email: formData.email,
+        otp: formData.otp,
+        password: formData.password
+      });
+      setStep('success');
+      toast({ title: 'Success', description: 'Password reset successfully' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Reset failed', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -160,173 +137,134 @@ export default function ForgotPassword() {
         <Card className="bg-card/80 backdrop-blur-lg border-border shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
-              <img 
-                src="/favicon.ico" 
-                alt="TechAssassin" 
-                className="w-16 h-16 mx-auto"
-              />
+              <img src="/favicon.ico" alt="TechAssassin" className="w-16 h-16 mx-auto" />
             </div>
-            
-            {step === 'email' && (
-              <>
-                <CardTitle className="text-2xl font-bold text-card-foreground">Forgot Password</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Enter your email address to receive a password reset OTP
-                </CardDescription>
-              </>
-            )}
-            
-            {step === 'otp' && (
-              <>
-                <CardTitle className="text-2xl font-bold text-card-foreground">Enter OTP</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  We've sent a 6-digit code to {formData.email}
-                </CardDescription>
-              </>
-            )}
-            
-            {step === 'success' && (
-              <>
-                <CardTitle className="text-2xl font-bold text-card-foreground text-green-600">OTP Verified!</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  You can now reset your password. Check your email for the reset link.
-                </CardDescription>
-              </>
-            )}
+            <CardTitle className="text-2xl font-bold text-card-foreground">
+              {step === 'email' && 'Forgot Password'}
+              {step === 'otp' && 'Verify Identity'}
+              {step === 'reset' && 'New Password'}
+              {step === 'success' && 'Reset Complete'}
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              {step === 'email' && "Enter email to receive a reset code"}
+              {step === 'otp' && `Enter the 6-digit code sent to ${formData.email}`}
+              {step === 'reset' && "Create a new strong password"}
+              {step === 'success' && "Your password has been changed successfully!"}
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {step === 'email' && (
-              <form onSubmit={handleSendOTP}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-card-foreground font-medium">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="name@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="pl-10 bg-background border-input text-card-foreground placeholder-muted-foreground focus:border-primary"
-                      />
-                    </div>
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      disabled={isLoading}
+                      required
+                      className="pl-10 h-11"
+                    />
                   </div>
                 </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending OTP...
-                    </>
-                  ) : (
-                    <>
-                      Send OTP
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
+                <Button type="submit" className="w-full h-11" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Code"}
                 </Button>
               </form>
             )}
 
             {step === 'otp' && (
-              <form onSubmit={handleVerifyOTP}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="otp" className="text-card-foreground font-medium">6-Digit OTP</Label>
-                    <div className="relative">
-                      <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="otp"
-                        type="text"
-                        placeholder="123456"
-                        value={formData.otp}
-                        onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '') })}
-                        disabled={isLoading}
-                        maxLength={6}
-                        className="pl-10 text-center text-2xl tracking-widest bg-background border-input text-card-foreground placeholder-muted-foreground focus:border-primary"
-                      />
-                    </div>
-                  </div>
-                  
-                  {timeLeft > 0 && (
-                    <div className="flex items-center justify-center text-sm text-muted-foreground">
-                      <Clock className="mr-2 h-4 w-4" />
-                      Resend OTP in {formatTime(timeLeft)}
-                    </div>
-                  )}
-                  
-                  {resendEnabled && (
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleResendOTP}
+              <form onSubmit={handleVerifyOTP} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp">6-Digit Code</Label>
+                  <div className="relative">
+                    <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="123456"
+                      value={formData.otp}
+                      onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '') })}
                       disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Resending...
-                        </>
-                      ) : (
-                        'Resend OTP'
-                      )}
+                      maxLength={6}
+                      className="pl-10 h-11 text-center text-xl tracking-widest font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button type="submit" className="w-full h-11" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Verify Code"}
+                  </Button>
+                  {timeLeft > 0 ? (
+                    <p className="text-center text-xs text-muted-foreground mt-2 flex items-center justify-center">
+                      <Clock className="w-3 h-3 mr-1" /> Resend in {formatTime(timeLeft)}
+                    </p>
+                  ) : (
+                    <Button type="button" variant="link" size="sm" onClick={() => handleSendOTP()} disabled={isLoading}>
+                      Resend Code
                     </Button>
                   )}
                 </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      Verify OTP
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
+              </form>
+            )}
+
+            {step === 'reset' && (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">New Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+                <Button type="submit" className="w-full h-11" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Update Password"}
                 </Button>
               </form>
             )}
 
             {step === 'success' && (
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-green-500" />
                 </div>
-                <Link to="/signin">
-                  <Button className="w-full">
-                    Back to Sign In
-                    <ArrowLeft className="ml-2 h-4 w-4" />
-                  </Button>
+                <Link to="/signin" className="block w-full">
+                  <Button className="w-full h-11">Back to Sign In</Button>
                 </Link>
               </div>
             )}
 
-            <div className="text-center">
-              <Link 
-                to="/signin" 
-                className="text-sm text-primary hover:text-primary/80 hover:underline"
-              >
-                <ArrowLeft className="inline mr-1 h-3 w-3" />
-                Back to Sign In
-              </Link>
-            </div>
+            {step !== 'success' && (
+              <div className="text-center pt-2">
+                <Link to="/signin" className="text-sm text-primary hover:underline flex items-center justify-center">
+                  <ArrowLeft className="w-3 h-3 mr-1" /> Back to Sign In
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

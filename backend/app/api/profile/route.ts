@@ -93,7 +93,10 @@ export async function PATCH(request: Request) {
       // Update existing profile
       const result = await supabase
         .from('profiles')
-        .update(validatedData)
+        .update({
+          ...validatedData,
+          username: validatedData.username?.toLowerCase()
+        })
         .eq('id', user.id)
         .select()
         .single()
@@ -106,7 +109,9 @@ export async function PATCH(request: Request) {
         .from('profiles')
         .insert({
           id: user.id,
-          ...validatedData
+          email: user.email?.toLowerCase(),
+          ...validatedData,
+          username: validatedData.username?.toLowerCase()
         })
         .select()
         .single()

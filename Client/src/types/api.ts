@@ -23,6 +23,11 @@ export interface Profile {
   education: string | null;
   university: string | null;
   graduation_year: number | null;
+  interests: string[] | null;
+  banner_url: string | null;
+  is_email_public: boolean;
+  is_phone_public: boolean;
+  is_address_public: boolean;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -175,6 +180,13 @@ export interface ProfileUpdateRequest {
   linkedin_url?: string;
   portfolio_url?: string;
   skills?: string[];
+  university?: string;
+  education?: string;
+  graduation_year?: number;
+  phone?: string;
+  address?: string;
+  interests?: string[];
+  banner_url?: string;
 }
 
 export interface AvatarUploadResponse {

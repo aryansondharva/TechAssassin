@@ -88,14 +88,14 @@ export default function Events() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-[#0a0a0b] text-white">
       <Navbar />
       
       <div className="container mx-auto px-4 py-24">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Hackathon Events</h1>
-          <p className="text-muted-foreground">
-            Browse and register for upcoming hackathons
+          <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">Community Missions</h1>
+          <p className="text-white/40 font-medium">
+            Analyze and deploy into upcoming tactical missions
           </p>
         </div>
 
@@ -103,24 +103,28 @@ export default function Events() {
         <div className="flex gap-2 mb-8">
           <Button
             variant={filter === 'all' ? 'default' : 'outline'}
+            className={filter === 'all' ? 'bg-red-600 hover:bg-red-700' : 'border-white/10 text-white/60'}
             onClick={() => setFilter('all')}
           >
-            All Events
+            All Missions
           </Button>
           <Button
             variant={filter === 'live' ? 'default' : 'outline'}
+            className={filter === 'live' ? 'bg-red-600 hover:bg-red-700' : 'border-white/10 text-white/60'}
             onClick={() => setFilter('live')}
           >
             Live
           </Button>
           <Button
             variant={filter === 'upcoming' ? 'default' : 'outline'}
+            className={filter === 'upcoming' ? 'bg-red-600 hover:bg-red-700' : 'border-white/10 text-white/60'}
             onClick={() => setFilter('upcoming')}
           >
             Upcoming
           </Button>
           <Button
             variant={filter === 'past' ? 'default' : 'outline'}
+            className={filter === 'past' ? 'bg-red-600 hover:bg-red-700' : 'border-white/10 text-white/60'}
             onClick={() => setFilter('past')}
           >
             Past
@@ -139,79 +143,61 @@ export default function Events() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-              <Card key={event.id} className={`flex flex-col ${event.id === 'luma-code4cause-2024' ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
+              <Card key={event.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-red-600/50 transition-all duration-500 flex flex-col group">
                 {event.image_urls && event.image_urls.length > 0 && (
-                  <div className="h-32 overflow-hidden rounded-t-lg relative">
+                  <div className="h-48 overflow-hidden relative">
                     <img
                       src={event.image_urls[0]}
                       alt={event.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                     />
-                    {event.id === 'luma-code4cause-2024' && (
-                      <div className="absolute top-1 right-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs font-bold">
-                        LIVE
-                      </div>
-                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                    <div className="absolute top-4 left-4">
+                      {getStatusBadge(event.status)}
+                    </div>
                   </div>
                 )}
                 <CardHeader className="pb-2">
-                  <div className="flex items-start gap-2 mb-1">
-                    <CardTitle className="text-sm font-semibold line-clamp-1">
-                      {event.title}
-                      {event.id === 'luma-code4cause-2024' && (
-                        <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1 py-0.5 rounded">
-                          Luma
-                        </span>
-                      )}
-                    </CardTitle>
-                    {getStatusBadge(event.status)}
-                  </div>
+                  <CardTitle className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-500 transition-colors line-clamp-1">
+                    {event.title}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 py-3">
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center text-muted-foreground">
-                      <Calendar className="mr-1 h-3 w-3" />
+                <CardContent className="flex-1 py-4">
+                  <div className="space-y-4 text-sm">
+                    <div className="flex items-center text-white/40 font-medium">
+                      <Calendar className="mr-2 h-4 w-4 text-red-500" />
                       {formatDate(event.start_date)}
                     </div>
-                    <div className="flex items-center text-muted-foreground">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      <span className="truncate">{event.location}</span>
+                    <div className="flex items-center text-white/40 font-medium line-clamp-1">
+                      <MapPin className="mr-2 h-4 w-4 text-red-500" />
+                      <span>{event.location}</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-muted-foreground">
-                        <Users className="mr-1 h-3 w-3" />
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="flex items-center text-white/70 font-bold">
+                        <Users className="mr-2 h-4 w-4 text-red-500" />
                         {event.participant_count}/{event.max_participants}
                       </div>
-                      {event.id === 'luma-code4cause-2024' && event.prizes && (
-                        <div className="flex items-center text-green-600 font-semibold">
-                          <span className="mr-1">🏆</span>
-                          {event.prizes['1st']}
+                      {event.prizes && (
+                        <div className="text-red-500 font-black italic tracking-tighter uppercase">
+                          Bounty: {event.prizes['1st'] || 'TBA'}
                         </div>
                       )}
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-2">
-                  {event.id === 'luma-code4cause-2024' ? (
-                    <a 
-                      href="https://luma.com/0hmim4ly" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-full"
-                    >
-                      <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs">
-                        Register
-                      </Button>
-                    </a>
-                  ) : (
-                    <Link to={`/events/${event.id}`} className="w-full">
-                      <Button size="sm" className="w-full text-xs">
-                        View
-                      </Button>
-                    </Link>
-                  )}
+                <CardFooter className="p-6 pt-2">
+                  <a 
+                    href={event.id === 'luma-code4cause-2025' ? "https://luma.com/0hmim4ly" : `/events/${event.id}`} 
+                    target={event.id === 'luma-code4cause-2025' ? "_blank" : "_self"}
+                    rel={event.id === 'luma-code4cause-2025' ? "noopener noreferrer" : ""}
+                    className="w-full"
+                  >
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs py-6 rounded-2xl shadow-lg shadow-red-600/20">
+                      {event.id === 'luma-code4cause-2025' ? 'Deploy Mission' : 'Mission Briefing'}
+                    </Button>
+                  </a>
                 </CardFooter>
               </Card>
             ))}

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         user: result.user,
-        session: result.token
+        token: result.token
       },
       { status: 201 }
     )

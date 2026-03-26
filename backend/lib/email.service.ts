@@ -1,19 +1,30 @@
 /**
  * Email Service - Backend
  * 
- * Handles email operations using Resend API for OTP and notifications
+ * Handles email operations using SMTP for OTP and notifications
  */
 
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize SMTP transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // Email configuration
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@techassassin.com';
-const FROM_NAME = process.env.RESEND_FROM_NAME || 'TechAssassin';
+const FROM_EMAIL = process.env.SMTP_USER || 'noreply@techassassin.com';
+const FROM_NAME = process.env.SMTP_FROM_NAME || 'Tech Assassin';
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || '10');
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6');
+
+// Public logo URL to avoid Gmail attachment "pill"
+const LOGO_URL = 'https://raw.githubusercontent.com/aryansondharva/TechAssassin/arya/Client/public/favicon.ico';
 
 // Email types
 interface SendOTPData {
@@ -31,6 +42,64 @@ interface EmailData {
 
 export class EmailService {
   /**
+   * Base template for all system emails
+   */
+  private static getBaseTemplate(title: string, content: string, footer: string = 'This is an automated security notification.'): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <body style="margin:0;background:#ffffff;font-family:Arial,sans-serif;color:#111111;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 15px;">
+          <tr>
+            <td align="center">
+              <!-- Card -->
+              <table width="460" cellpadding="0" cellspacing="0" 
+              style="background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:32px;text-align:center;
+              box-shadow:0 10px 25px rgba(0,0,0,0.08);">
+                <!-- Logo -->
+                <tr>
+                  <td style="padding-bottom:20px;">
+                    <img src="${LOGO_URL}" alt="TechAssassin" width="65" style="display:block;margin:0 auto;" />
+                  </td>
+                </tr>
+                <!-- Title -->
+                <tr>
+                  <td>
+                    <h2 style="margin:0;color:#111111;font-weight:600;">
+                      ${title}
+                    </h2>
+                  </td>
+                </tr>
+                <!-- Divider -->
+                <tr>
+                  <td>
+                    <div style="width:40px;height:2px;background:#ef4444;margin:15px auto 20px;border-radius:2px;"></div>
+                  </td>
+                </tr>
+                <!-- Content -->
+                <tr>
+                  <td>
+                    ${content}
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td>
+                    <p style="font-size:12px;color:#9ca3af;margin-top:20px;">
+                      ${footer}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
    * Generate 6-digit OTP
    */
   static generateOTP(): string {
@@ -47,20 +116,18 @@ export class EmailService {
    */
   static async sendOTP(data: SendOTPData): Promise<void> {
     const { email, otp, purpose } = data;
-    
-    const emailContent = this.formatOTPEmail(otp, purpose);
+    const emailContent = this.formatOTPEmail(otp, purpose, email);
     
     try {
-      await resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [email],
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        to: email,
         subject: emailContent.subject,
         html: emailContent.html,
       });
-      
-      console.log(`OTP sent to ${email} for ${purpose}`);
+      console.log(`OTP sent to ${email} for ${purpose} via SMTP`);
     } catch (error) {
-      console.error('Failed to send OTP email:', error);
+      console.error('Failed to send OTP email via SMTP:', error);
       throw new Error('Failed to send OTP email');
     }
   }
@@ -70,251 +137,128 @@ export class EmailService {
    */
   static async sendEmail(data: EmailData): Promise<void> {
     try {
-      await resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [data.to],
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        to: data.to,
         subject: data.subject,
         html: data.html,
         text: data.text,
       });
-      
-      console.log(`Email sent to ${data.to}`);
+      console.log(`Email sent to ${data.to} via SMTP`);
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('Failed to send email via SMTP:', error);
       throw new Error('Failed to send email');
+    }
+  }
+
+  /**
+   * Send Password Updated Confirmation
+   */
+  static async sendPasswordUpdatedConfirmation(email: string): Promise<void> {
+    const content = `
+      <p style="color:#374151;font-size:14px;margin:0 0 10px;">
+        Your password has been successfully changed.
+      </p>
+      <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">
+        Account: <strong style="color:#111;">${email}</strong>
+      </p>
+      <p style="color:#6b7280;font-size:13px;margin:0 0 25px;line-height:1.6;">
+        If you didn’t make this change, please contact support immediately to secure your account.
+      </p>
+    `;
+    const html = this.getBaseTemplate('Password Updated', content);
+    
+    try {
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        to: email,
+        subject: 'Security Alert: Password Updated',
+        html: html,
+      });
+      console.log(`Password update confirmation sent to ${email}`);
+    } catch (error) {
+      console.error('Failed to send password update confirmation:', error);
     }
   }
 
   /**
    * Format OTP email template
    */
-  static formatOTPEmail(otp: string, purpose: string): { subject: string; html: string } {
+  static formatOTPEmail(otp: string, purpose: string, email: string): { subject: string; html: string } {
     const subject = this.getSubject(purpose);
-    const html = this.getOTPEmailHTML(otp, purpose);
-    
+    const purposeTitle = this.getPurposeTitle(purpose);
+    const purposeDesc = this.getPurposeDescription(purpose);
+
+    const content = `
+      <p style="color:#374151;font-size:14px;margin:0 0 10px;">
+        ${purposeDesc}
+      </p>
+      <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">
+        Account: <strong style="color:#111;">${email}</strong>
+      </p>
+      
+      <div style="background:#f9fafb;border-radius:8px;padding:24px;margin:24px 0;border:1px solid #f3f4f6;">
+        <p style="font-size:11px;color:#9ca3af;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Verification Code</p>
+        <div style="font-size:36px;font-weight:700;color:#ef4444;letter-spacing:8px;font-family:monospace;margin:10px 0;">${otp}</div>
+        <p style="font-size:12px;color:#9ca3af;margin:8px 0 0;">Valid for ${OTP_EXPIRY_MINUTES} minutes</p>
+      </div>
+
+      <p style="color:#6b7280;font-size:13px;margin:25px 0 0;line-height:1.6;">
+        Never share this code with anyone. If you didn't request this code, please contact support immediately.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate(purposeTitle, content);
     return { subject, html };
   }
 
-  /**
-   * Get email subject based on purpose
-   */
   private static getSubject(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return 'TechAssassin - Password Reset OTP';
-      case 'login_verification':
-        return 'TechAssassin - Login Verification OTP';
-      case 'email_verification':
-        return 'TechAssassin - Email Verification OTP';
-      default:
-        return 'TechAssassin - Verification OTP';
+      case 'password_reset': return 'TechAssassin - Password Reset OTP';
+      case 'login_verification': return 'TechAssassin - Login Verification OTP';
+      case 'email_verification': return 'TechAssassin - Email Verification OTP';
+      default: return 'TechAssassin - Verification OTP';
     }
   }
 
-  /**
-   * Generate HTML email template for OTP
-   */
-  private static getOTPEmailHTML(otp: string, purpose: string): string {
-    const purposeText = this.getPurposeText(purpose);
-    
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TechAssassin - OTP Verification</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-          }
-          .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .logo {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #2563eb, #f59e0b);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
-            margin: 0 auto;
-          }
-          .title {
-            color: #2563eb;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-          }
-          .subtitle {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 20px;
-          }
-          .otp-container {
-            background-color: #f8fafc;
-            border: 2px dashed #2563eb;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin: 30px 0;
-          }
-          .otp-code {
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: 8px;
-            color: #2563eb;
-            margin: 10px 0;
-            font-family: 'Courier New', monospace;
-          }
-          .expiry {
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 10px;
-          }
-          .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            color: #64748b;
-            font-size: 12px;
-          }
-          .security-note {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-          }
-          .purpose-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">TA</div>
-            <div class="title">
-              Tech<span style="color: #f59e0b;">Assassin</span>
-            </div>
-            <div class="subtitle">${purposeText}</div>
-          </div>
-
-          <div class="purpose-icon">
-            ${this.getPurposeIcon(purpose)}
-          </div>
-
-          <div class="otp-container">
-            <p style="margin-bottom: 10px; font-weight: 600;">Your verification code is:</p>
-            <div class="otp-code">${otp}</div>
-            <p class="expiry">This code will expire in ${OTP_EXPIRY_MINUTES} minutes</p>
-          </div>
-
-          <div class="security-note">
-            <strong>🔒 Security Notice:</strong> Never share this code with anyone. Our team will never ask for your OTP via phone or email.
-          </div>
-
-          <p>If you didn't request this code, please ignore this email or contact our support team immediately.</p>
-
-          <div class="footer">
-            <p>&copy; 2025 TechAssassin. All rights reserved.</p>
-            <p>This is an automated message, please do not reply to this email.</p>
-            <p>Need help? Contact us at support@techassassin.com</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  }
-
-  /**
-   * Get purpose text for email
-   */
-  private static getPurposeText(purpose: string): string {
+  private static getPurposeTitle(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return 'Reset your password';
-      case 'login_verification':
-        return 'Verify your login';
-      case 'email_verification':
-        return 'Verify your email address';
-      default:
-        return 'Verify your account';
+      case 'password_reset': return 'Reset Password';
+      case 'login_verification': return 'Login Verification';
+      case 'email_verification': return 'Verify Email';
+      default: return 'Account Verification';
     }
   }
 
-  /**
-   * Get purpose icon for email
-   */
-  private static getPurposeIcon(purpose: string): string {
+  private static getPurposeDescription(purpose: string): string {
     switch (purpose) {
-      case 'password_reset':
-        return '🔐';
-      case 'login_verification':
-        return '👤';
-      case 'email_verification':
-        return '✉️';
-      default:
-        return '🔒';
+      case 'password_reset': return 'We received a request to reset your password. Use the following code to proceed.';
+      case 'login_verification': return 'Use the following code to complete your login and verify your identity.';
+      case 'email_verification': return 'Welcome to TechAssassin! Please use the code below to verify your email.';
+      default: return 'Please use the verification code below to secure your account.';
     }
   }
 
-  /**
-   * Validate email format
-   */
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
-  /**
-   * Get email provider for analytics
-   */
   static getEmailProvider(email: string): string {
     const domain = email.split('@')[1]?.toLowerCase();
     if (!domain) return 'unknown';
-    
     if (domain.includes('gmail')) return 'gmail';
     if (domain.includes('yahoo')) return 'yahoo';
     if (domain.includes('outlook') || domain.includes('hotmail')) return 'outlook';
     if (domain.includes('protonmail')) return 'protonmail';
     if (domain.includes('icloud')) return 'icloud';
-    
     return 'other';
   }
 
-  /**
-   * Test email configuration
-   */
-  static async testEmail(): Promise<boolean> {
+  static async testEmail(email: string = 'study.aura.ai@gmail.com'): Promise<boolean> {
     try {
       const testOTP = this.generateOTP();
-      await this.sendOTP({
-        email: 'test@example.com',
-        otp: testOTP,
-        purpose: 'email_verification'
-      });
+      await this.sendOTP({ email, otp: testOTP, purpose: 'email_verification' });
       return true;
     } catch (error) {
       console.error('Email test failed:', error);

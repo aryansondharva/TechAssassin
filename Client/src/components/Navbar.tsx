@@ -84,12 +84,18 @@ const Navbar = () => {
                 <button
                   className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-white/20 overflow-hidden">
-                    <img 
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${authService.getUser()?.username || 'operative'}`} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-white/20 overflow-hidden bg-gray-900">
+                    {authService.getUser()?.avatar_url ? (
+                      <img 
+                        src={authService.getUser()?.avatar_url} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-[10px]">
+                        {authService.getUser()?.username?.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[11px] font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">
                     {authService.getUser()?.username || 'Operative'}
@@ -113,7 +119,7 @@ const Navbar = () => {
                         <span className="text-[11px] font-black uppercase tracking-widest">My Profile</span>
                       </Link>
 
-                      <Link to="/profile/edit" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                      <Link to="/edit-profile" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
                         <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
                           <Zap className="w-4 h-4" />
                         </div>
@@ -122,11 +128,11 @@ const Navbar = () => {
 
                       <div className="h-[1px] bg-white/5 my-1 mx-2" />
 
-                      <Link to="/community/hackathons" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
+                      <Link to="/community/missions" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
                         <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:text-red-500 transition-colors">
                           <Menu className="w-4 h-4" />
                         </div>
-                        <span className="text-[11px] font-black uppercase tracking-widest">My Hackathons</span>
+                        <span className="text-[11px] font-black uppercase tracking-widest">My Missions</span>
                       </Link>
 
                       <Link to="/community/projects" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition-all group/item">
@@ -170,7 +176,7 @@ const Navbar = () => {
                   to="/signup"
                   className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-xl"
                 >
-                  Join Guild <Zap className="w-3 h-3 fill-current" />
+                  Join Squad <Zap className="w-3 h-3 fill-current" />
                 </Link>
               </div>
             )}
@@ -229,7 +235,7 @@ const Navbar = () => {
                     onClick={() => setMobileOpen(false)}
                     className="w-full py-4 rounded-2xl bg-white text-black text-center font-black uppercase tracking-widest"
                   >
-                    Join Guild
+                    Join Squad
                   </Link>
                 </div>
               )}

@@ -121,6 +121,19 @@ export function getStatusCode(error: unknown): number {
     if (error.message.toLowerCase().includes('rate limit')) {
       return 429
     }
+    // Handle specific fetch/networking errors (like UND_ERR_CONNECT_TIMEOUT)
+    if (error.message.includes('UND_ERR_CONNECT_TIMEOUT') || 
+        error.message.includes('fetch failed') ||
+        error.message.includes('Connect Timeout')) {
+      return 504 // Gateway Timeout
+    }
+  }
+  
+  // Check code property if it's not a standard Error instance but has it
+  if (error && typeof error === 'object' && 'code' in error) {
+    if ((error as any).code === 'UND_ERR_CONNECT_TIMEOUT') {
+      return 504
+    }
   }
   
   // Default to 500 for unknown errors
@@ -213,6 +226,15 @@ export function formatErrorResponse(error: unknown): ApiErrorResponse {
   // Handle standard Error instances
   if (error instanceof Error) {
     const statusCode = getStatusCode(error)
+    
+    // Provide specific message for timeouts
+    if (statusCode === 504) {
+      return {
+        error: 'Backend connection to Supabase timed out. Please check your internet connection or if Supabase is down.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        statusCode: 504
+      }
+    }
     
     // Don't expose internal error details in production for 500 errors
     if (statusCode === 500 && process.env.NODE_ENV === 'production') {

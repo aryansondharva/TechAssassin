@@ -49,20 +49,20 @@ const CommunitySection = () => {
   const projects: Project[] = [
     {
       id: '1',
-      name: 'TechAssassin Platform',
-      description: 'A comprehensive hackathon management platform with registration, team formation, and project tracking.',
+      name: 'TechAssassin Command Center',
+      description: 'The central hub for the TechAssassin community, managing missions, operatives, and global impact.',
       stars: 1234,
       forks: 89,
       language: 'TypeScript',
       lastUpdated: '2 days ago',
       tags: ['React', 'Node.js', 'PostgreSQL'],
       githubUrl: 'https://github.com/aryansondharva/TechAssassin',
-      demoUrl: 'https://techassassin.dev'
+      demoUrl: 'https://community.techassassin.dev'
     },
     {
       id: '2',
-      name: 'Hackathon Starter Kit',
-      description: 'Boilerplate template for organizing hackathons with pre-built components and workflows.',
+      name: 'Mission Starter Kit',
+      description: 'Boilerplate for launching new community missions and collaborative projects with elite workflows.',
       stars: 567,
       forks: 234,
       language: 'JavaScript',
@@ -72,8 +72,8 @@ const CommunitySection = () => {
     },
     {
       id: '3',
-      name: 'Team Formation API',
-      description: 'RESTful API for intelligent team formation based on skills, preferences, and availability.',
+      name: 'Squad Assembly Engine',
+      description: 'Intelligent squad formation based on operative skillsets and mission requirements.',
       stars: 234,
       forks: 45,
       language: 'Python',
@@ -83,8 +83,8 @@ const CommunitySection = () => {
     },
     {
       id: '4',
-      name: 'Hackathon Mobile App',
-      description: 'Cross-platform mobile app for hackathon participants with real-time updates and notifications.',
+      name: 'Field Operative App',
+      description: 'Real-time mission updates and operative communications on the go for active digital assassins.',
       stars: 189,
       forks: 67,
       language: 'React Native',
@@ -95,10 +95,10 @@ const CommunitySection = () => {
   ];
 
   const stats = [
-    { label: 'Total Contributors', value: '156+', icon: Users, color: 'text-blue-500' },
-    { label: 'Active Projects', value: '23', icon: GitBranch, color: 'text-green-500' },
-    { label: 'Total Stars', value: '3.2k+', icon: Star, color: 'text-yellow-500' },
-    { label: 'Community Members', value: '1.8k+', icon: Heart, color: 'text-red-500' }
+    { label: 'Total Operatives', value: '156+', icon: Users, color: 'text-blue-500' },
+    { label: 'Active Missions', value: '23', icon: GitBranch, color: 'text-green-500' },
+    { label: 'Global Impact', value: '3.2k+', icon: Star, color: 'text-yellow-500' },
+    { label: 'Elite Members', value: '1.8k+', icon: Heart, color: 'text-red-500' }
   ];
 
   const getLanguageColor = (language: string) => {
@@ -122,12 +122,12 @@ const CommunitySection = () => {
           </div>
           
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-6">
-            Join Our <span className="text-primary">Open Source</span> Community
+            Join the <span className="text-primary">Global Elite</span> Squad
           </h2>
           
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            TechAssassin is built by passionate developers worldwide. Contribute to projects, 
-            share ideas, and grow together with our amazing community.
+            TechAssassin is powered by a community of elite operatives. Join the mission, 
+            share intelligence, and evolve alongside the world's most capable builders.
           </p>
 
           {/* Call to Action */}
@@ -158,7 +158,7 @@ const CommunitySection = () => {
               <div className="flex flex-col items-center">
                 <div className="text-2xl font-bold text-foreground">{stat.value}</div>
                 <div className="text-sm text-muted-foreground mb-3">{stat.label}</div>
-                {stat.label === 'Total Contributors' && (
+                {stat.label === 'Total Operatives' && (
                   <div className="flex -space-x-2">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="w-8 h-8 rounded-full border-2 border-background overflow-hidden bg-primary/10">
@@ -189,7 +189,7 @@ const CommunitySection = () => {
               }`}
             >
               <Users className="w-4 h-4 inline mr-2" />
-              Contributors
+              Operatives
             </button>
             <button
               onClick={() => setActiveTab('projects')}
@@ -200,7 +200,7 @@ const CommunitySection = () => {
               }`}
             >
               <GitBranch className="w-4 h-4 inline mr-2" />
-              Projects
+              Missions
             </button>
             <button
               onClick={() => setActiveTab('stats')}
@@ -211,7 +211,7 @@ const CommunitySection = () => {
               }`}
             >
               <Trophy className="w-4 h-4 inline mr-2" />
-              Achievements
+              Elite Status
             </button>
           </div>
 
@@ -361,20 +361,20 @@ const CommunitySection = () => {
                   <div className="p-6 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20">
                     <div className="flex items-center gap-3 mb-3">
                       <Trophy className="w-6 h-6 text-blue-500" />
-                      <h4 className="font-semibold text-foreground">100+ Contributors</h4>
+                      <h4 className="font-semibold text-foreground">100+ Elite Operatives</h4>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Reached our first major milestone with over 100 active contributors from around the world.
+                      Reached our first major milestone with over 100 active operatives from around the world.
                     </p>
                   </div>
 
                   <div className="p-6 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20">
                     <div className="flex items-center gap-3 mb-3">
                       <Zap className="w-6 h-6 text-green-500" />
-                      <h4 className="font-semibold text-foreground">5000+ Commits</h4>
+                      <h4 className="font-semibold text-foreground">5000+ Intelligence Reports</h4>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Community has made over 5000 contributions, continuously improving the platform.
+                      Our squad has made over 5000 contributions, continuously optimizing the hub.
                     </p>
                   </div>
 

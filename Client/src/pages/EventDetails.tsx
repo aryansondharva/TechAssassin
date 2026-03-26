@@ -183,78 +183,81 @@ export default function EventDetails() {
   const isFull = event.participant_count >= event.max_participants;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-[#0a0a0b] text-white">
       <Navbar />
       
       <div className="container mx-auto px-4 py-24">
         <Button
           variant="ghost"
           onClick={() => navigate('/events')}
-          className="mb-6"
+          className="mb-6 text-white/40 hover:text-white hover:bg-white/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Events
+          Back to Missions
         </Button>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Event Header */}
-            <Card>
+            <Card className="bg-white/5 border-white/10 overflow-hidden rounded-3xl">
               {event.image_urls && event.image_urls.length > 0 && (
-                <div className="h-64 overflow-hidden rounded-t-lg">
+                <div className="h-80 overflow-hidden relative">
                   <img
                     src={event.image_urls[0]}
                     alt={event.title}
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-transparent opacity-60" />
                 </div>
               )}
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <CardTitle className="text-3xl">{event.title}</CardTitle>
+              <CardHeader className="relative -mt-20 z-10 px-8 pb-8">
+                <div className="flex flex-wrap justify-between items-end gap-4 mb-4">
+                  <CardTitle className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white drop-shadow-2xl">
+                    {event.title}
+                  </CardTitle>
                   {getStatusBadge(event.status)}
                 </div>
-                <CardDescription className="text-base">
+                <CardDescription className="text-lg text-white/60 font-medium leading-relaxed italic max-w-3xl">
                   {event.description}
                 </CardDescription>
               </CardHeader>
             </Card>
 
             {/* Event Details */}
-            <Card>
+            <Card className="bg-white/5 border-white/10 rounded-3xl p-4">
               <CardHeader>
-                <CardTitle>Event Details</CardTitle>
+                <CardTitle className="text-xl font-black italic uppercase tracking-widest text-white/90">Mission Parameters</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="flex items-start">
-                  <Calendar className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
+                  <Calendar className="mr-4 h-5 w-5 text-red-600 mt-1" />
                   <div>
-                    <p className="font-medium">Start Date</p>
-                    <p className="text-muted-foreground">{formatDate(event.start_date)}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Infiltration Date</p>
+                    <p className="text-white font-bold">{formatDate(event.start_date)}</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <Calendar className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
+                  <Calendar className="mr-4 h-5 w-5 text-red-600 mt-1" />
                   <div>
-                    <p className="font-medium">End Date</p>
-                    <p className="text-muted-foreground">{formatDate(event.end_date)}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Extraction Date</p>
+                    <p className="text-white font-bold">{formatDate(event.end_date)}</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <MapPin className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
+                  <MapPin className="mr-4 h-5 w-5 text-red-600 mt-1" />
                   <div>
-                    <p className="font-medium">Location</p>
-                    <p className="text-muted-foreground">{event.location}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Operations Base</p>
+                    <p className="text-white font-bold">{event.location}</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <Users className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
+                  <Users className="mr-4 h-5 w-5 text-red-600 mt-1" />
                   <div>
-                    <p className="font-medium">Participants</p>
-                    <p className="text-muted-foreground">
-                      {event.participant_count} / {event.max_participants} registered
-                      {isFull && <span className="text-destructive ml-2">(FULL)</span>}
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Operative Allocation</p>
+                    <p className="text-white font-bold">
+                      {event.participant_count} / {event.max_participants} Deployed
+                      {isFull && <span className="text-red-600 ml-2 font-black italic tracking-tighter">MAX CAPACITY</span>}
                     </p>
                   </div>
                 </div>
@@ -263,17 +266,17 @@ export default function EventDetails() {
 
             {/* Themes */}
             {event.themes && event.themes.length > 0 && (
-              <Card>
+              <Card className="bg-white/5 border-white/10 rounded-3xl p-4">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Tag className="mr-2 h-5 w-5" />
-                    Themes
+                  <CardTitle className="flex items-center text-xl font-black italic uppercase tracking-widest text-white/90">
+                    <Tag className="mr-3 h-5 w-5 text-red-600" />
+                    Mission Tags
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {event.themes.map((theme, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="bg-white/10 text-white/80 border-white/10 px-4 py-1 uppercase font-black text-[10px] tracking-widest">
                         {theme}
                       </Badge>
                     ))}
@@ -284,17 +287,22 @@ export default function EventDetails() {
 
             {/* Prizes */}
             {event.prizes && (
-              <Card>
+              <Card className="bg-white/5 border-white/10 rounded-3xl p-4">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Trophy className="mr-2 h-5 w-5" />
-                    Prizes
+                  <CardTitle className="flex items-center text-xl font-black italic uppercase tracking-widest text-white/90">
+                    <Trophy className="mr-3 h-5 w-5 text-red-600" />
+                    Mission Bounty
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="text-sm whitespace-pre-wrap">
-                    {JSON.stringify(event.prizes, null, 2)}
-                  </pre>
+                  <div className="grid gap-4">
+                    {Object.entries(event.prizes).map(([rank, prize]) => (
+                      <div key={rank} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5">
+                        <span className="text-white/40 font-black uppercase tracking-widest text-xs">{rank} Place</span>
+                        <span className="text-red-500 font-bold italic">{String(prize)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -302,32 +310,36 @@ export default function EventDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white/5 border-white/10 rounded-3xl p-4 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-1 opacity-20">
+                <div className="w-12 h-12 border-t-2 border-r-2 border-red-600 rounded-tr-2xl" />
+              </div>
               <CardHeader>
-                <CardTitle>Registration</CardTitle>
+                <CardTitle className="text-lg font-black italic uppercase tracking-widest text-white/90">Deployment</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {event.status === 'past' ? (
-                  <p className="text-muted-foreground">This event has ended</p>
+                  <p className="text-white/30 font-bold italic uppercase tracking-widest">MISSION TERMINATED</p>
                 ) : !event.registration_open ? (
-                  <p className="text-muted-foreground">Registration is closed</p>
+                  <p className="text-white/30 font-bold italic uppercase tracking-widest">COMMS DOWN (CLOSED)</p>
                 ) : isFull ? (
                   <>
-                    <p className="text-destructive font-medium">Event is full</p>
-                    <p className="text-sm text-muted-foreground">
-                      You can still register to be added to the waitlist
+                    <p className="text-red-500 font-black italic uppercase tracking-widest">MAX CAPACITY REACHED</p>
+                    <p className="text-sm text-white/40 font-medium">
+                      Join the secondary squad (waitlist).
                     </p>
-                    <Button onClick={handleRegisterClick} className="w-full">
+                    <Button onClick={handleRegisterClick} className="w-full bg-white/5 hover:bg-white/10 border-white/10 text-white font-black uppercase tracking-widest rounded-2xl py-6">
                       Join Waitlist
                     </Button>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-muted-foreground">
-                      {event.max_participants - event.participant_count} spots remaining
-                    </p>
-                    <Button onClick={handleRegisterClick} className="w-full" size="lg">
-                      Register Now
+                    <div className="flex justify-between items-end">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Available Slots</p>
+                      <p className="text-2xl font-black italic text-white leading-none">{event.max_participants - event.participant_count}</p>
+                    </div>
+                    <Button onClick={handleRegisterClick} className="w-full bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest rounded-2xl py-8 shadow-xl shadow-red-600/20" size="lg">
+                      Deploy Now
                     </Button>
                   </>
                 )}
@@ -339,58 +351,56 @@ export default function EventDetails() {
 
       {/* Registration Form Dialog */}
       <Dialog open={showRegistrationForm} onOpenChange={setShowRegistrationForm}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="bg-[#0a0a0b] border-white/10 text-white p-8 rounded-[2.5rem] shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Register for {event.title}</DialogTitle>
-            <DialogDescription>
-              Fill in your details to register for this hackathon
+            <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter mb-2">Deploy for {event.title}</DialogTitle>
+            <DialogDescription className="text-white/40 font-medium italic">
+              Synchronize your squad and project parameters for this mission.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitRegistration} className="space-y-4">
+          <form onSubmit={handleSubmitRegistration} className="space-y-6 pt-6">
             <div className="space-y-2">
-              <Label htmlFor="team_name">Team Name *</Label>
+              <Label htmlFor="team_name" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Squad Designation *</Label>
               <Input
                 id="team_name"
-                placeholder="Enter your team name"
+                placeholder="Enter squad name"
                 value={formData.team_name}
                 onChange={(e) => setFormData({ ...formData, team_name: e.target.value })}
                 disabled={isSubmitting}
+                className="bg-white/5 border-white/10 focus:ring-red-600/50 rounded-xl py-6"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project_idea">Project Idea *</Label>
+              <Label htmlFor="project_idea" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Mission Strategy (Project Idea) *</Label>
               <Textarea
                 id="project_idea"
-                placeholder="Describe your project idea (minimum 10 characters)"
+                placeholder="Briefly describe your tactical approach..."
                 value={formData.project_idea}
                 onChange={(e) => setFormData({ ...formData, project_idea: e.target.value })}
                 disabled={isSubmitting}
-                rows={5}
+                className="bg-white/5 border-white/10 focus:ring-red-600/50 rounded-xl min-h-[150px]"
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                {formData.project_idea.length} characters
-              </p>
             </div>
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-6">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowRegistrationForm(false)}
                 disabled={isSubmitting}
-                className="flex-1"
+                className="flex-1 bg-white/5 border-white/10 text-white rounded-xl py-6 hover:bg-white/10"
               >
-                Cancel
+                Abort
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
+              <Button type="submit" disabled={isSubmitting} className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl py-6 font-black uppercase tracking-widest shadow-lg shadow-red-600/20">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
+                    Syncing...
                   </>
                 ) : (
-                  'Submit Registration'
+                  'Confirm Deployment'
                 )}
               </Button>
             </div>

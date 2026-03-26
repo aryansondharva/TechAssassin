@@ -83,9 +83,9 @@ const Footer = () => {
               </h5>
               <ul className="space-y-3.5">
                 {[
-                  "Organize a hackathon",
-                  "Explore hackathons",
-                  "Code of Conduct",
+                  "Launch a Mission",
+                  "Global Missions",
+                  "Rules of Engagement",
                   "Brand Assets",
                   "Documentation",
                 ].map((link) => (
