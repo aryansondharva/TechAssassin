@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
+import { ConflictError } from '../errors';
 
 // Database connection (Local PostgreSQL)
 const pool = new Pool({
@@ -41,7 +42,7 @@ export interface SignInData {
 }
 
 export interface SignUpData {
-  username?: string | null;
+  username: string;
   email: string;
   password: string;
   full_name?: string;
@@ -103,9 +104,8 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
     // We use ON CONFLICT because Supabase might have a trigger that already created the profile
     console.log(`[AUTH] Syncing to local profile table...`);
 
-    let result;
     try {
-      result = await client.query(
+      const result = await client.query(
         `INSERT INTO public.profiles (
           id, username, email, full_name, phone, aadhaar_number,
           avatar_url, github_url, bio, address, education,
@@ -119,7 +119,7 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
         RETURNING *`,
         [
           userId,
-          userData.username || null,
+          userData.username,
           userData.email,
           userData.full_name,
           userData.phone,
@@ -133,71 +133,27 @@ export async function signUp(userData: SignUpData): Promise<AuthResponse> {
           userData.graduation_year
         ]
       );
+
+      if (result.rows.length === 0) {
+        console.error('[AUTH] Profile sync failed - no row returned');
+        throw new Error('Database profile creation failed');
+      }
+
+      const user = result.rows[0];
+      console.log('[AUTH] Signup process complete');
+      
+      return {
+        user: formatUser(user),
+        token: authData.session?.access_token || '' 
+      };
     } catch (syncError: any) {
       // Check if this is a unique constraint violation on username
       if (syncError.code === '23505' && syncError.constraint === 'profiles_username_key') {
-        console.warn(`[AUTH] Username ${userData.username} is already taken, syncing with null username instead.`);
-        result = await client.query(
-          `INSERT INTO public.profiles (
-            id, username, email, full_name, phone, aadhaar_number,
-            avatar_url, github_url, bio, address, education,
-            university, graduation_year, is_admin, created_at, updated_at
-          ) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, false, NOW(), NOW())
-          ON CONFLICT (id) DO UPDATE SET
-            username = NULL,
-            full_name = EXCLUDED.full_name,
-            email = EXCLUDED.email,
-            updated_at = NOW()
-          RETURNING *`,
-          [
-            userId,
-            userData.email,
-            userData.full_name,
-            userData.phone,
-            userData.aadhaar_number,
-            userData.avatar_url,
-            userData.github_url,
-            userData.bio,
-            userData.address,
-            userData.education,
-            userData.university,
-            userData.graduation_year
-          ]
-        );
-      } else {
-        throw syncError;
+        console.error(`[AUTH] Username ${userData.username} is already taken.`);
+        throw new ConflictError(`Username '${userData.username}' is already taken. Please choose another one.`);
       }
+      throw syncError;
     }
-
-    if (result.rows.length === 0) {
-      console.error('[AUTH] Profile sync failed - no row returned');
-      throw new Error('Database profile creation failed');
-    }
-
-    const user = result.rows[0];
-    console.log('[AUTH] Signup process complete');
-    
-    return {
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        aadhaar_number: user.aadhaar_number,
-        avatar_url: user.avatar_url,
-        github_url: user.github_url,
-        bio: user.bio,
-        address: user.address,
-        education: user.education,
-        university: user.university,
-        graduation_year: user.graduation_year,
-        is_admin: user.is_admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at
-      },
-      token: authData.session?.access_token || '' 
-    };
     
   } catch (error: any) {
     console.error('[AUTH] Critical error during signup:', error.message);
