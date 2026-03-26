@@ -3,7 +3,7 @@
 
 export interface Profile {
   id: string
-  username: string
+  username: string | null
   email: string
   full_name: string | null
   phone: string | null
