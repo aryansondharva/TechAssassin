@@ -38,10 +38,17 @@ export async function POST(request: Request) {
       throw new Error('Signin failed: No user or session data returned')
     }
     
-    // Return user and session
+    // Fetch user's profile from database
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
+    
+    // Return user (profile) and token
     return NextResponse.json({
-      user: data.user,
-      session: data.session
+      user: profile || data.user, // Fallback to supabase user if profile not found
+      token: data.session.access_token
     })
   } catch (error) {
     return handleApiError(error)
