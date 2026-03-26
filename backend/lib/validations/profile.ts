@@ -44,7 +44,9 @@ export const profileUpdateSchema = z.object({
   graduation_year: z.number().int().min(1900).max(2100).optional().or(z.null()),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(200).optional().or(z.literal('')),
-  avatar_url: z.string().url().optional().or(z.literal(''))
+  avatar_url: z.string().url().optional().or(z.literal('')),
+  banner_url: z.string().url().optional().or(z.literal('')),
+  interests: z.array(z.string()).max(10, 'Cannot have more than 10 interests').optional(),
 }).partial()
 
 /**

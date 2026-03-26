@@ -31,20 +31,24 @@ import {
   Twitter,
   Settings as SettingsIcon,
   MessageCircle,
-  Briefcase
+  Briefcase,
+  Image as ImageIcon
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -68,6 +72,10 @@ export default function Profile() {
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleBannerClick = () => {
+    bannerInputRef.current?.click();
   };
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +105,33 @@ export default function Profile() {
     }
   };
 
+  const handleBannerChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast({ title: "Error", description: "Banner size must be under 3MB", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingBanner(true);
+    try {
+       // Re-using the same generic upload if it exists, or update profile with a mock/direct path
+       // Assuming profileService has a method or we can just use update
+       // For now, let's assume we can update the profile directly with a URL if we had one
+       // In a real scenario, we'd have a separate endpoint for banners.
+       // I'll simulate it by updating the profile field.
+       
+       // Just as a demonstration, let's toast and update the state
+       // Ideally we'd upload to Supabase storage first.
+       toast({ title: "Feature Pending", description: "Banner upload logic requires storage bucket for banners." });
+    } catch (error) {
+       toast({ title: "Error", description: "Update failed", variant: "destructive" });
+    } finally {
+       setIsUploadingBanner(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -111,47 +146,45 @@ export default function Profile() {
     <div className="min-h-screen bg-[#F3F4F6]">
       <Navbar />
       
-      {/* Main Layout Container */}
       <main className="max-w-7xl mx-auto px-4 pt-24 pb-12">
-        
-        {/* Header Breadcrumb */}
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 mb-4 uppercase tracking-wider font-semibold">
+        <div className="flex items-center gap-2 text-[12px] text-gray-500 mb-6 uppercase tracking-wider font-bold">
            <Link to="/" className="hover:text-red-600 transition-colors">Home</Link>
            <span>/</span>
            <span className="text-gray-900">User Profile</span>
         </div>
 
-        <div className="w-full space-y-6">
-          
-          {/* Main CONTENT AREA */}
-          <div className="space-y-6">
-            
-            {/* HER0 / BANNER SECTION */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 relative">
-               {/* Textured Banner */}
-               <div className="h-44 md:h-56 bg-[#1a1a1a] relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-20" style={{ 
-                    backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
-                    backgroundSize: '30px 30px'
-                  }}></div>
+        <div className="w-full space-y-8">
+          <div className="space-y-8">
+            <div className="bg-white rounded-[2rem] overflow-hidden shadow-md border border-gray-100 relative transition-all hover:shadow-lg">
+               <div className="h-56 md:h-72 bg-[#0c0c0c] relative overflow-hidden group">
+                  {identity.banner_url ? (
+                    <img src={identity.banner_url} className="w-full h-full object-cover opacity-60" alt="Banner" />
+                  ) : (
+                    <div className="absolute inset-0 opacity-20" style={{ 
+                      backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+                      backgroundSize: '40px 40px'
+                    }}></div>
+                  )}
                   <div className="absolute inset-x-0 bottom-0 top-0 flex items-center justify-center pointer-events-none">
-                     <h1 className="text-white text-4xl md:text-6xl font-black italic tracking-tighter opacity-10 select-none">
-                        {identity.full_name || 'TECH ASSASSIN'}
+                     <h1 className="text-white text-5xl md:text-8xl font-black italic tracking-tighter opacity-10 select-none uppercase">
+                        {identity.full_name || identity.username}
                      </h1>
                   </div>
-                  <button className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white border border-white/20 transition-all">
-                    <Edit3 className="w-4 h-4" />
+                  <button 
+                    onClick={handleBannerClick}
+                    className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-xl text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
+                  >
+                    <ImageIcon className="w-5 h-5" />
                   </button>
+                  <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" accept="image/*" />
                </div>
 
-               {/* Avatar & Basic Info Details */}
-               <div className="px-8 pb-8 relative">
-                  {/* Avatar (Overlapping) */}
-                  <div className="relative inline-block -mt-16 mb-4 group">
-                    <div className="p-1 bgColor-white rounded-full bg-white shadow-xl">
-                      <Avatar className="h-32 w-32 md:h-40 md:w-40 border-4 border-white">
+               <div className="px-10 pb-10 relative">
+                  <div className="relative inline-block -mt-24 md:-mt-32 mb-6 group">
+                    <div className="p-2 bg-white rounded-full shadow-2xl">
+                      <Avatar className="h-40 w-40 md:h-52 md:w-52 border-8 border-white">
                         <AvatarImage src={identity.avatar_url} className="object-cover" />
-                        <AvatarFallback className="bg-gray-100 text-3xl font-black text-gray-300">
+                        <AvatarFallback className="bg-blue-50 text-5xl font-black text-blue-200">
                           {identity.username?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -159,88 +192,101 @@ export default function Profile() {
                     <button 
                       onClick={handleAvatarClick}
                       disabled={isUploading}
-                      className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-lg border border-gray-100 text-red-600 hover:scale-110 transition-transform"
+                      className="absolute bottom-4 right-4 p-3 bg-red-600 text-white rounded-full shadow-2xl border-4 border-white hover:bg-red-700 transition-all z-20"
                     >
-                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                      {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
                   </div>
 
-                  {/* Top Bar Actions */}
-                  <div className="absolute top-4 right-8">
-                     <Button variant="outline" className="rounded-lg h-9 text-xs font-bold uppercase tracking-wider bg-black text-white hover:bg-black/90">
-                        <Terminal className="w-4 h-4 mr-2" /> Public View
-                     </Button>
+                  <div className="absolute top-6 right-10 flex gap-4">
+                     <Link to="/edit-profile">
+                        <Button className="rounded-xl h-12 px-6 bg-red-600 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">
+                           <Edit3 className="w-4 h-4 mr-2" /> Edit Identity
+                        </Button>
+                     </Link>
                   </div>
 
-                  {/* Name and Meta */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
-                     <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">{identity.full_name}</h2>
-                          <button className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
+                     <div className="space-y-5">
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-4xl font-black text-gray-900 uppercase italic tracking-tighter">{identity.full_name || identity.username}</h2>
                         </div>
                         
-                        <div className="space-y-2 text-[12px] font-bold text-gray-500 uppercase tracking-wide">
-                           <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-red-600" /> {identity.address || 'Location Not Set'}</div>
-                           <div className="flex items-center gap-2 text-red-600">@{identity.username} <Edit3 className="w-3.5 h-3.5 text-gray-300" /></div>
-                           <div className="flex items-start gap-2 italic normal-case font-medium text-gray-400">
-                             {identity.education || 'No Academic Profile Transmitted'}
+                        <div className="space-y-3 text-[14px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
+                           <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
+                           <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800">{identity.username}</span></div>
+                           <div className="flex items-start gap-3 italic normal-case font-bold text-gray-500 text-lg">
+                             {identity.education || 'No active academic mission identified...'}
                            </div>
                         </div>
 
-                        <div className="pt-2 space-y-2">
-                           <div className="flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer">
-                              <Mail className="w-3.5 h-3.5 text-gray-400" /> {identity.email}
-                              <button><Edit3 className="w-3.5 h-3.5 text-gray-300" /></button>
+                        <div className="pt-4 space-y-3">
+                           <div className="flex items-center gap-3 text-sm font-black text-blue-600">
+                              <Mail className="w-4 h-4 text-gray-400" /> 
+                              <span className="hover:underline cursor-pointer">{identity.email}</span>
                            </div>
-                           <div className="flex items-center gap-4 text-[11px] font-black text-gray-800">
-                              <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-gray-400" /> {identity.phone || '91XXXXXXXX'}</div>
-                              <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-gray-400" /> {identity.phone || '91XXXXXXXX'}</div>
+                           <div className="flex items-center gap-8 text-[13px] font-black text-gray-900">
+                              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
                            </div>
                         </div>
                      </div>
 
-                     {/* Right side of top area - Skills, Interests etc */}
-                     <div className="space-y-6">
-                        <div className="space-y-2">
+                     <div className="space-y-8 bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
+                        <div className="space-y-3">
                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Skills</span>
-                              <button className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Skillset Matrix</span>
+                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
                            </div>
-                           <div className="flex flex-wrap gap-2">
+                           <div className="flex flex-wrap gap-3">
                               {identity.skills?.length > 0 ? identity.skills.map((s: string) => (
-                                <Badge key={s} variant="secondary" className="bg-gray-800 text-white rounded-md text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-none hover:bg-red-600">
+                                <Badge key={s} variant="secondary" className="bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest px-5 py-2 border-none transition-all hover:bg-red-600 shadow-md">
                                   {s}
                                 </Badge>
-                              )) : <span className="text-[10px] text-gray-300">No skills identified.</span>}
-                              {identity.skills?.length > 4 && <span className="text-[10px] font-bold text-blue-600 cursor-pointer">+4 More</span>}
+                              )) : <span className="text-[12px] text-gray-300 italic font-bold">Waiting for skill transmission...</span>}
                            </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Interests</span>
-                              <button className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Combat Interests</span>
+                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
                            </div>
-                           <div className="flex flex-wrap gap-2">
-                              <Badge variant="outline" className="border-gray-200 text-gray-600 rounded-md text-[10px] uppercase font-bold px-3 py-1">Cybersecurity</Badge>
-                              <Badge variant="secondary" className="bg-gray-800 text-white rounded-md text-[10px] font-bold px-3 py-1">C</Badge>
-                              <Badge variant="secondary" className="bg-gray-800 text-white rounded-md text-[10px] font-bold px-3 py-1">C++</Badge>
-                              <span className="text-[10px] font-bold text-blue-600 cursor-pointer">+3 More</span>
+                           <div className="flex flex-wrap gap-3">
+                              {identity.interests?.length > 0 ? identity.interests.map((it: string) => (
+                                <Badge key={it} variant="outline" className="border-gray-300 text-gray-700 rounded-xl text-[11px] uppercase font-black px-5 py-2 hover:border-red-500 hover:text-red-500 transition-all">
+                                  {it}
+                                </Badge>
+                              )) : (
+                                <div className="flex flex-wrap gap-2 opacity-40">
+                                   <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">Cybersecurity</Badge>
+                                   <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">BlockChain</Badge>
+                                </div>
+                              )}
                            </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Social Handles</span>
-                              <button className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Social Neural-Link</span>
+                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
                            </div>
-                           <div className="flex items-center gap-3">
-                              <a href={identity.linkedin_url} className="text-blue-600 hover:scale-110 transition-transform"><Linkedin className="w-5 h-5 fill-current" /></a>
-                              <a href={identity.github_url} className="text-gray-900 hover:scale-110 transition-transform"><Github className="w-5 h-5" /></a>
-                              <div className="w-5 h-5 bg-orange-500 rounded flex items-center justify-center text-white text-[10px] font-bold cursor-pointer hover:scale-110 transition-transform">L</div>
-                              <div className="w-5 h-5 bg-pink-500 rounded flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform"><Instagram className="w-3.5 h-3.5" /></div>
+                           <div className="flex items-center gap-5">
+                              {identity.linkedin_url && (
+                                <a href={identity.linkedin_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:scale-125 transition-all drop-shadow-md">
+                                  <Linkedin className="w-7 h-7 fill-current" />
+                                </a>
+                              )}
+                              {identity.github_url && (
+                                <a href={identity.github_url} target="_blank" rel="noreferrer" className="text-gray-900 hover:scale-125 transition-all drop-shadow-md">
+                                  <Github className="w-7 h-7" />
+                                </a>
+                              )}
+                              {identity.portfolio_url && (
+                                <a href={identity.portfolio_url} target="_blank" rel="noreferrer" className="text-red-600 hover:scale-125 transition-all drop-shadow-md">
+                                  <Globe className="w-7 h-7" />
+                                </a>
+                              )}
                            </div>
                         </div>
                      </div>
@@ -248,180 +294,86 @@ export default function Profile() {
                </div>
             </div>
 
-            {/* CONTENT SECTIONS */}
-            <div className="grid grid-cols-1 gap-6">
-               
-               {/* About Section */}
-               <Section title="About" onEdit={() => {}}>
-                  <p className="text-xs text-gray-400">
-                    {identity.bio || 'No Operative Personnel Description Loaded...'}
+            <div className="grid grid-cols-1 gap-8">
+               <Section title="Operational Biography" onEdit={() => navigate('/edit-profile')}>
+                  <p className="text-lg text-gray-600 leading-relaxed font-medium italic">
+                    "{identity.bio || 'This operative has not yet transmitted an identity bio...'}"
                   </p>
                </Section>
 
-               {/* Initiatives */}
-               <Section title="Initiatives" onAdd={() => {}}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <Section title="Active Initiatives" onAdd={() => navigate('/events')}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <InitiativeCard 
                         title="AMD Slingshot" 
-                        org="AMD" 
+                        org="AMD OPERATIONS" 
                         image="https://tech-assassin.vercel.app/favicon.ico" 
                      />
                      <InitiativeCard 
-                        title="Gen AI Academy APAC..." 
-                        org="Google Cloud" 
+                        title="Gen AI Academy APAC" 
+                        org="GOOGLE CLOUD" 
                         image="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Logos_Search.png" 
                      />
                   </div>
                </Section>
 
-                {/* Education Section */}
-                <Section title="Education" onAdd={() => {}}>
-                  <Card className="border-gray-100 shadow-none bg-white p-4">
-                     <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 border border-gray-100">
-                           <GraduationCap className="h-6 w-6 text-blue-500" />
+                <Section title="Academic Foundation" onAdd={() => navigate('/edit-profile')}>
+                  <Card className="border-gray-100 shadow-sm bg-white p-8 rounded-3xl transition-all hover:border-red-100">
+                     <div className="flex gap-8">
+                        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
+                           <GraduationCap className="h-8 w-8 text-blue-600" />
                         </div>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1 space-y-2">
                            <div className="flex justify-between items-start">
-                              <h4 className="text-xs font-bold text-gray-600 uppercase tracking-tight">{identity.university || 'GIDC DEGREE ENGINEERING COLLEGE, NAVSARI'}</h4>
-                              <button className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <h4 className="text-xl font-black text-gray-900 uppercase italic tracking-tight">{identity.university || 'UNSPECIFIED ACADEMY'}</h4>
+                              <Link to="/edit-profile" className="text-gray-300 hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></Link>
                            </div>
-                           <p className="text-[11px] font-black text-gray-900 uppercase italic leading-tight">Bachelor Of Engineering (B.E)</p>
-                           <div className="flex items-center gap-2 pt-1">
-                              <Badge className="bg-blue-500 text-white border-none rounded-md text-[9px] font-bold uppercase py-0.5">Computer Engineering</Badge>
+                           <p className="text-sm font-black text-red-600 uppercase tracking-widest italic">{identity.education || 'DEGREE NOT TRANSMITTED'}</p>
+                           <div className="flex items-center gap-3 pt-4">
+                              <Badge className="bg-gray-100 text-gray-600 border-none rounded-lg text-xs font-black uppercase px-4 py-2">Computer Intelligence</Badge>
                            </div>
-                           <div className="flex justify-between items-center text-[10px] pt-3 text-gray-400 font-bold">
-                              <div className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> - End: January 4, 2024</div>
-                              <div>Grade: -</div>
+                           <div className="flex justify-between items-center text-xs pt-6 text-gray-400 font-black uppercase tracking-widest">
+                              <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-red-500" /> Class of {identity.graduation_year || '20XX'}</div>
+                              <div className="bg-gray-50 px-4 py-1 rounded-full text-[10px] border border-gray-100">Grade: ELITE</div>
                            </div>
                         </div>
                      </div>
                   </Card>
                </Section>
 
-               {/* Projects Section */}
-               <Section title="Projects" onAdd={() => {}}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <Section title="Combat Projects" onAdd={() => navigate('/community')}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <ProjectCard 
                         title="Tech Assassins" 
-                        date="July 25, 2024 - Present" 
+                        date="July 25, 2024 - Active" 
                         authors={["ARYAN"]} 
-                        description="We are the TechAssassins : The hunt for bugs sharpens our blades. Dismantling tech, mastering code, and weaponizing creativity in the digital hunt."
+                        description="Dismantling tech, mastering code, and weaponizing creativity in the digital hunt. A high-performance community engine."
                      />
                      <ProjectCard 
-                        title="My Portfolio" 
-                        date="January 23, 2024 - Present" 
+                        title="Neural Portfolio" 
+                        date="Jan 20, 2024 - Active" 
                         authors={[]}
-                        description="I am Aryan Sondharva, a passionate first-year developer with a strong focus on web application development. I am a quick learner with a self-learning attitude..."
+                        description="A cinematic operative dashboard showcasing tactical development skills and lethal UI components."
                      />
                   </div>
                </Section>
 
-                {/* Other Empty Sections to match UI */}
-                <Section title="Experience" onAdd={() => {}} isEmpty={true} />
-                <Section title="Licenses & Certificates" onAdd={() => {}} isEmpty={true} />
-                <Section title="Honors & Awards" onAdd={() => {}} isEmpty={true} />
+                <Section title="Experience Ledger" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.experience} />
+                <Section title="Certifications" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.licenses} />
 
-                {/* Settings Section */}
-                <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 flex items-center justify-between">
-                   <div>
-                      <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-wider">Settings</h3>
-                      <p className="text-[10px] text-gray-400 mt-1 font-bold">Control your privacy, manage notifications, and more — all from one place.</p>
+                <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:shadow-xl">
+                   <div className="text-center md:text-left">
+                      <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">Tactical Settings</h3>
+                      <p className="text-sm text-gray-500 mt-2 font-bold uppercase tracking-widest">Control your operative privacy and manage deployment notifications.</p>
                    </div>
-                   <Link to="/settings">
-                      <Button variant="outline" className="rounded-lg h-9 bg-black text-white px-8 font-black uppercase text-[10px] tracking-widest hover:bg-black/80 transition-all">Settings</Button>
+                   <Link to="/edit-profile">
+                      <Button className="rounded-2xl h-14 bg-black text-white px-10 font-black uppercase text-xs tracking-[0.3em] hover:bg-gray-800 transition-all shadow-xl shadow-black/10">Configure System</Button>
                    </Link>
                 </div>
-
             </div>
-
           </div>
         </div>
       </main>
-
-      {/* FOOTER - Hack2Skill Style */}
-      <footer className="bg-[#1a1c31] text-white py-16">
-         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-            
-            {/* Brand Section */}
-            <div className="space-y-6 col-span-1 md:col-span-1">
-               <h2 className="text-3xl font-extrabold italic uppercase tracking-tighter">H2S</h2>
-               <p className="text-gray-400 text-xs leading-relaxed font-medium">
-                 Equip your company with the most comprehensive innovation management platform, supported by human intelligence.
-               </p>
-               <div className="flex flex-wrap gap-3">
-                  {[Twitter, Instagram, Linkedin, Globe, MessageCircle, Briefcase, Layout].map((Icon, idx) => (
-                    <div key={idx} className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/20 transition-all cursor-pointer">
-                      <Icon className="w-4 h-4 text-white/70" />
-                    </div>
-                  ))}
-               </div>
-               <div className="flex flex-wrap gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <Link to="#" className="hover:text-white transition-colors">Our Blogs</Link>
-                  <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-                  <Link to="#" className="hover:text-white transition-colors">Terms of Service</Link>
-                  <Link to="#" className="hover:text-white transition-colors">Cookie Policy</Link>
-               </div>
-               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cookie Settings</p>
-            </div>
-
-            {/* Contact Information */}
-            <div className="space-y-8">
-               <div className="space-y-4">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-white">Contact with us:</h4>
-                  <div className="space-y-4 text-xs font-medium text-gray-400">
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1">For Business Inquiry:</p>
-                        <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> info@hack2skill.com</div>
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1">For Support & Queries:</p>
-                        <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> support@hack2skill.com</div>
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1">Call:</p>
-                        <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> +91 9570330650</div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            {/* Corporate Address */}
-            <div className="space-y-8 md:col-span-2">
-               <h4 className="text-sm font-black uppercase tracking-widest text-white">Corporate Address:</h4>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] font-medium text-gray-400 leading-relaxed">
-                  <div className="space-y-1">
-                     <p className="font-black text-white/70">India:</p>
-                     <p>Delhi NCR:</p>
-                     <p>A-14, 4th Floor, Eco Tower, Sector 125, Noida, Uttar Pradesh 201301</p>
-                  </div>
-                  <div className="space-y-1">
-                     <p className="font-black text-white/70">Bengaluru:</p>
-                     <p>WeWork Galaxy, 43, Residency Rd, Shantala Nagar, Ashok Nagar, Bengaluru, Karnataka 560025</p>
-                  </div>
-                  <div className="space-y-1">
-                     <p className="font-black text-white/70">USA:</p>
-                     <p>Michigan:</p>
-                     <p>2025, Long Lake, Troy, Michigan - 48098 - Zip Code: (313)</p>
-                  </div>
-                  <div className="flex gap-4 pt-4">
-                    <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">ISO</div>
-                    <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">GDPR</div>
-                  </div>
-               </div>
-            </div>
-
-         </div>
-         <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-            <p>2024 © All rights reserved by Hack2Skill</p>
-            <div className="flex gap-4">
-               {/* Badges/Certifications */}
-               <div className="h-10 w-24 bg-white/5 rounded-md flex items-center justify-center opacity-30 grayscale">ISO CERT</div>
-               <div className="h-10 w-24 bg-white/5 rounded-md flex items-center justify-center opacity-30 grayscale">GDPR READY</div>
-            </div>
-         </div>
-      </footer>
-
+      <Footer />
     </div>
   );
 }
@@ -430,21 +382,24 @@ export default function Profile() {
 
 function Section({ title, onAdd, onEdit, children, isEmpty }: any) {
    return (
-      <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 space-y-4">
-         <div className="flex items-center justify-between border-b border-gray-50 pb-3 mb-2">
-            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-wider">{title}</h3>
-            {onAdd && (
-               <Button variant="outline" className="h-7 px-3 rounded-md border-gray-200 text-gray-600 font-bold text-[9px] uppercase hover:bg-gray-50" onClick={onAdd}>
-                  <Plus className="w-3 h-3 mr-1" /> Add
-               </Button>
-            )}
-            {onEdit && (
-               <button onClick={onEdit} className="text-gray-400 hover:text-red-600 transition-all"><Edit3 className="w-4 h-4" /></button>
-            )}
+      <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 space-y-6 transition-all hover:border-red-100/30">
+         <div className="flex items-center justify-between border-b-2 border-gray-50 pb-5 mb-4">
+            <h3 className="text-lg font-black text-gray-900 uppercase italic tracking-widest border-l-4 border-red-600 pl-4">{title}</h3>
+            <div className="flex gap-4">
+               {onAdd && (
+                  <Button variant="outline" className="h-9 px-5 rounded-xl border-gray-200 text-gray-900 font-black text-[10px] uppercase tracking-widest hover:bg-gray-50" onClick={onAdd}>
+                     <Plus className="w-4 h-4 mr-2" /> Deploy
+                  </Button>
+               )}
+               {onEdit && (
+                  <button onClick={onEdit} className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Edit3 className="w-5 h-5" /></button>
+               )}
+            </div>
          </div>
          {isEmpty ? (
-            <div className="py-2">
-               <p className="text-[10px] text-gray-300 font-bold uppercase italic italic tracking-widest">Nothing to see here... yet!</p>
+            <div className="py-8 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+               <Shield className="w-12 h-12 text-gray-100 mx-auto mb-3" />
+               <p className="text-xs text-gray-300 font-black uppercase italic tracking-[0.3em]">No data records existing in the database...</p>
             </div>
          ) : children}
       </div>
@@ -453,13 +408,13 @@ function Section({ title, onAdd, onEdit, children, isEmpty }: any) {
 
 function InitiativeCard({ title, org, image }: any) {
    return (
-      <div className="flex items-center gap-4 p-4 bg-[#fafafa] rounded-xl border border-gray-100 hover:border-red-500/20 transition-all group">
-         <div className="w-12 h-12 rounded-lg bg-white p-2 shadow-sm border border-gray-100 shrink-0 overflow-hidden">
-            <img src={image} alt={org} className="w-full h-full object-contain" />
+      <div className="flex items-center gap-6 p-6 bg-white rounded-3xl border border-gray-100 hover:border-red-500/20 hover:shadow-lg transition-all group cursor-pointer">
+         <div className="w-16 h-16 rounded-2xl bg-gray-50 p-3 shadow-inner border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
+            <img src={image} alt={org} className="max-w-full max-h-full object-contain grayscale group-hover:grayscale-0 transition-all" />
          </div>
          <div className="flex-1 min-w-0">
-            <h4 className="text-[11px] font-black text-gray-900 uppercase italic tracking-tight truncate group-hover:text-red-600 transition-colors">{title}</h4>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Organized by: <span className="text-gray-600 font-black">{org}</span></p>
+            <h4 className="text-lg font-black text-gray-900 uppercase italic tracking-tighter truncate group-hover:text-red-600 transition-colors">{title}</h4>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Initiative: <span className="text-gray-900">{org}</span></p>
          </div>
       </div>
    );
@@ -467,36 +422,23 @@ function InitiativeCard({ title, org, image }: any) {
 
 function ProjectCard({ title, date, authors, description }: any) {
    return (
-      <Card className="border-gray-100 shadow-none bg-[#fafafa] hover:bg-white hover:shadow-md transition-all group p-5 border-l-4 border-l-red-600">
-         <div className="flex justify-between items-start mb-2">
+      <Card className="border-gray-100 shadow-none bg-white hover:shadow-xl transition-all group p-8 rounded-3xl border-r-8 border-r-red-600/10 hover:border-r-red-600 transition-all">
+         <div className="flex justify-between items-start mb-4">
             <div>
-               <div className="flex items-center gap-2">
-                  <h4 className="text-[11px] font-black text-gray-900 uppercase italic tracking-tight">{title}</h4>
-                  <span className="text-[8px] font-bold text-blue-600 uppercase tracking-widest">Project</span>
+               <div className="flex items-center gap-3">
+                  <h4 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">{title}</h4>
+                  <Badge className="bg-blue-600 text-white border-none rounded-lg text-[10px] font-black uppercase px-3 py-1">Mission</Badge>
                </div>
-               <div className="flex items-center gap-1 text-[9px] text-gray-400 font-bold mt-1">
-                  <Calendar className="w-3 h-3" /> {date} <Globe className="w-3 h-3 ml-1" />
+               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-black uppercase tracking-widest mt-2">
+                  <Calendar className="w-4 h-4 text-red-500" /> {date}
                </div>
             </div>
-            <button className="text-gray-300 group-hover:text-red-600 transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
+            <button className="p-2 text-gray-200 group-hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></button>
          </div>
          
-         {authors.length > 0 && (
-            <div className="flex items-center gap-2 mb-3">
-               <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-200"></div>
-                  <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-300"></div>
-               </div>
-               <span className="text-[9px] font-bold text-gray-400">{authors.length} (Contributors)</span>
-            </div>
-         )}
-         
-         <p className="text-[10px] text-gray-500 leading-relaxed line-clamp-3 font-medium">
+         <p className="text-sm text-gray-500 leading-relaxed font-bold italic border-l-2 border-gray-100 pl-4">
             {description}
          </p>
       </Card>
    );
 }
-
-function Facebook() { return <Shield /> } // Dummy icon placeholders for mapping
-

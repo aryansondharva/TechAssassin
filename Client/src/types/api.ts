@@ -23,6 +23,8 @@ export interface Profile {
   education: string | null;
   university: string | null;
   graduation_year: number | null;
+  interests: string[] | null;
+  banner_url: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -180,7 +182,8 @@ export interface ProfileUpdateRequest {
   graduation_year?: number;
   phone?: string;
   address?: string;
-  avatar_url?: string;
+  interests?: string[];
+  banner_url?: string;
 }
 
 export interface AvatarUploadResponse {
