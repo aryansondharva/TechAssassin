@@ -175,6 +175,12 @@ export interface ProfileUpdateRequest {
   linkedin_url?: string;
   portfolio_url?: string;
   skills?: string[];
+  university?: string;
+  education?: string;
+  graduation_year?: number;
+  phone?: string;
+  address?: string;
+  avatar_url?: string;
 }
 
 export interface AvatarUploadResponse {

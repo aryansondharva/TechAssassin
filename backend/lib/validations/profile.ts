@@ -37,7 +37,14 @@ export const profileUpdateSchema = z.object({
     .or(z.literal('')),
   skills: z
     .array(z.string())
-    .max(10, 'Cannot have more than 10 skills')
+    .max(15, 'Cannot have more than 15 skills')
+    .optional(),
+  university: z.string().max(100).optional().or(z.literal('')),
+  education: z.string().max(100).optional().or(z.literal('')),
+  graduation_year: z.number().int().min(1900).max(2100).optional().or(z.null()),
+  phone: z.string().max(20).optional().or(z.literal('')),
+  address: z.string().max(200).optional().or(z.literal('')),
+  avatar_url: z.string().url().optional().or(z.literal(''))
 }).partial()
 
 /**
