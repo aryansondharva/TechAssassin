@@ -128,15 +128,19 @@ export default function EditProfile() {
     toast({ title: "Note", description: "Banner feature requires storage setup. URL updated in state." });
     // setFormData(prev => ({ ...prev, banner_url: '...' }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await profileService.update({
+      // Clean up data before sending
+      const submissionData = {
         ...formData,
-        graduation_year: formData.graduation_year ? parseInt(formData.graduation_year) : undefined
-      });
+        graduation_year: formData.graduation_year ? parseInt(formData.graduation_year) : null,
+        skills: formData.skills.length > 0 ? formData.skills : [],
+        interests: formData.interests.length > 0 ? formData.interests : [],
+      };
+
+      await profileService.update(submissionData);
       toast({ title: 'Success', description: 'Profile updated! 🔥' });
       navigate('/profile');
     } catch (error: any) {
@@ -225,7 +229,7 @@ export default function EditProfile() {
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Digital Callsign (Username)</Label>
-                    <Input value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="h-12 rounded-xl border-gray-100 bg-gray-50 focus:bg-white transition-all font-bold text-red-600" />
+                    <Input value={formData.username} onChange={e => setFormData({...formData, username: e.target.value.toLowerCase()})} className="h-12 rounded-xl border-gray-100 bg-gray-50 focus:bg-white transition-all font-bold text-red-600 lowercase" />
                   </div>
                 </div>
                 <div className="space-y-3">

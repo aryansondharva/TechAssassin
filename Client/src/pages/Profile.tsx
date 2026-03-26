@@ -215,7 +215,7 @@ export default function Profile() {
                         
                         <div className="space-y-3 text-[14px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
                            <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
-                           <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800">{identity.username}</span></div>
+                           <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800 lowercase">{identity.username}</span></div>
                            <div className="flex items-start gap-3 italic normal-case font-bold text-gray-500 text-lg">
                              {identity.education || 'No active academic mission identified...'}
                            </div>
@@ -224,7 +224,7 @@ export default function Profile() {
                         <div className="pt-4 space-y-3">
                            <div className="flex items-center gap-3 text-sm font-black text-blue-600">
                               <Mail className="w-4 h-4 text-gray-400" /> 
-                              <span className="hover:underline cursor-pointer">{identity.email}</span>
+                              <span className="hover:underline cursor-pointer lowercase">{identity.email}</span>
                            </div>
                            <div className="flex items-center gap-8 text-[13px] font-black text-gray-900">
                               <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
