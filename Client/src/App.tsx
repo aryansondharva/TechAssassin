@@ -34,6 +34,8 @@ const App = () => (
           <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
           <Route path="/dashboard" element={<Profile />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/@:username" element={<Profile />} />
+          <Route path="/:username" element={<Profile />} />
           <Route path="/profile/edit" element={<EditProfile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/events" element={<Events />} />

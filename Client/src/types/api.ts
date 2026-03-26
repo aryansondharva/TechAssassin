@@ -25,6 +25,9 @@ export interface Profile {
   graduation_year: number | null;
   interests: string[] | null;
   banner_url: string | null;
+  is_email_public: boolean;
+  is_phone_public: boolean;
+  is_address_public: boolean;
   is_admin: boolean;
   created_at: string;
   updated_at: string;

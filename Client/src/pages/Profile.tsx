@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { authService, profileService } from "@/services";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
@@ -50,21 +50,34 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   
+  const { username } = useParams<{ username: string }>();
+  // If no username param, it's the own logged in profile
+  const isOwnProfile = !username;
+
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
+    if (isOwnProfile && !authService.isAuthenticated()) {
       navigate('/signin');
       return;
     }
     fetchProfile();
-  }, [navigate]);
+  }, [navigate, username]);
 
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      const data = await profileService.getMyProfile();
+      let data;
+      if (isOwnProfile) {
+        data = await profileService.getMyProfile();
+      } else if (username) {
+        data = await profileService.getByUsername(username);
+      }
       setProfile(data);
     } catch (error) {
       console.error("Failed to load profile", error);
+      if (!isOwnProfile) {
+        toast({ title: "Not Found", description: "Operative dossier not found in the network.", variant: "destructive" });
+        navigate('/community');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -170,13 +183,17 @@ export default function Profile() {
                         {identity.full_name || identity.username}
                      </h1>
                   </div>
-                  <button 
-                    onClick={handleBannerClick}
-                    className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-xl text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
-                  >
-                    <ImageIcon className="w-5 h-5" />
-                  </button>
-                  <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" accept="image/*" />
+                   {isOwnProfile && (
+                    <>
+                      <button 
+                        onClick={handleBannerClick}
+                        className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-xl text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
+                      >
+                        <ImageIcon className="w-5 h-5" />
+                      </button>
+                      <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" accept="image/*" />
+                    </>
+                  )}
                </div>
 
                <div className="px-10 pb-10 relative">
@@ -189,23 +206,29 @@ export default function Profile() {
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <button 
-                      onClick={handleAvatarClick}
-                      disabled={isUploading}
-                      className="absolute bottom-4 right-4 p-3 bg-red-600 text-white rounded-full shadow-2xl border-4 border-white hover:bg-red-700 transition-all z-20"
-                    >
-                      {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
-                    </button>
-                    <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
+                     {isOwnProfile && (
+                      <>
+                        <button 
+                          onClick={handleAvatarClick}
+                          disabled={isUploading}
+                          className="absolute bottom-4 right-4 p-3 bg-red-600 text-white rounded-full shadow-2xl border-4 border-white hover:bg-red-700 transition-all z-20"
+                        >
+                          {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                        </button>
+                        <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
+                      </>
+                    )}
                   </div>
 
-                  <div className="absolute top-6 right-10 flex gap-4">
-                     <Link to="/edit-profile">
-                        <Button className="rounded-xl h-12 px-6 bg-red-600 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">
-                           <Edit3 className="w-4 h-4 mr-2" /> Edit Identity
-                        </Button>
-                     </Link>
-                  </div>
+                   {isOwnProfile && (
+                    <div className="absolute top-6 right-10 flex gap-4">
+                       <Link to="/edit-profile">
+                          <Button className="rounded-xl h-12 px-6 bg-red-600 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">
+                             <Edit3 className="w-4 h-4 mr-2" /> Edit Identity
+                          </Button>
+                       </Link>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
                      <div className="space-y-5">
@@ -214,7 +237,9 @@ export default function Profile() {
                         </div>
                         
                         <div className="space-y-3 text-[14px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
-                           <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
+                           {(isOwnProfile || identity.is_address_public) && (
+                             <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
+                           )}
                            <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800 lowercase">{identity.username}</span></div>
                            <div className="flex items-start gap-3 italic normal-case font-bold text-gray-500 text-lg">
                              {identity.education || 'No active academic mission identified...'}
@@ -222,12 +247,16 @@ export default function Profile() {
                         </div>
 
                         <div className="pt-4 space-y-3">
-                           <div className="flex items-center gap-3 text-sm font-black text-blue-600">
-                              <Mail className="w-4 h-4 text-gray-400" /> 
-                              <span className="hover:underline cursor-pointer lowercase">{identity.email}</span>
-                           </div>
+                           {(isOwnProfile || identity.is_email_public) && (
+                             <div className="flex items-center gap-3 text-sm font-black text-blue-600">
+                                <Mail className="w-4 h-4 text-gray-400" /> 
+                                <span className="hover:underline cursor-pointer lowercase">{identity.email}</span>
+                             </div>
+                           )}
                            <div className="flex items-center gap-8 text-[13px] font-black text-gray-900">
-                              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
+                              {(isOwnProfile || identity.is_phone_public) && (
+                                <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
+                              )}
                            </div>
                         </div>
                      </div>
@@ -268,9 +297,9 @@ export default function Profile() {
 
                         <div className="space-y-3">
                            <div className="flex items-center justify-between">
-                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Social Neural-Link</span>
-                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
-                           </div>
+                               <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Social Neural-Link</span>
+                               {isOwnProfile && <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>}
+                            </div>
                            <div className="flex items-center gap-5">
                               {identity.linkedin_url && (
                                 <a href={identity.linkedin_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:scale-125 transition-all drop-shadow-md">
@@ -295,13 +324,13 @@ export default function Profile() {
             </div>
 
             <div className="grid grid-cols-1 gap-8">
-               <Section title="Operational Biography" onEdit={() => navigate('/edit-profile')}>
+               <Section title="Operational Biography" onEdit={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
                   <p className="text-lg text-gray-600 leading-relaxed font-medium italic">
                     "{identity.bio || 'This operative has not yet transmitted an identity bio...'}"
                   </p>
                </Section>
 
-               <Section title="Active Initiatives" onAdd={() => navigate('/events')}>
+               <Section title="Active Initiatives" onAdd={isOwnProfile ? () => navigate('/events') : undefined}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <InitiativeCard 
                         title="AMD Slingshot" 
@@ -316,7 +345,7 @@ export default function Profile() {
                   </div>
                </Section>
 
-                <Section title="Academic Foundation" onAdd={() => navigate('/edit-profile')}>
+                <Section title="Academic Foundation" onAdd={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
                   <Card className="border-gray-100 shadow-sm bg-white p-8 rounded-3xl transition-all hover:border-red-100">
                      <div className="flex gap-8">
                         <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
@@ -325,7 +354,7 @@ export default function Profile() {
                         <div className="flex-1 space-y-2">
                            <div className="flex justify-between items-start">
                               <h4 className="text-xl font-black text-gray-900 uppercase italic tracking-tight">{identity.university || 'UNSPECIFIED ACADEMY'}</h4>
-                              <Link to="/edit-profile" className="text-gray-300 hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></Link>
+                              {isOwnProfile && <Link to="/edit-profile" className="text-gray-300 hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></Link>}
                            </div>
                            <p className="text-sm font-black text-red-600 uppercase tracking-widest italic">{identity.education || 'DEGREE NOT TRANSMITTED'}</p>
                            <div className="flex items-center gap-3 pt-4">
@@ -340,7 +369,7 @@ export default function Profile() {
                   </Card>
                </Section>
 
-               <Section title="Combat Projects" onAdd={() => navigate('/community')}>
+               <Section title="Combat Projects" onAdd={isOwnProfile ? () => navigate('/community') : undefined}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <ProjectCard 
                         title="Tech Assassins" 
@@ -357,18 +386,22 @@ export default function Profile() {
                   </div>
                </Section>
 
-                <Section title="Experience Ledger" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.experience} />
-                <Section title="Certifications" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.licenses} />
+                {isOwnProfile && (
+                   <>
+                     <Section title="Experience Ledger" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.experience} />
+                     <Section title="Certifications" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.licenses} />
 
-                <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:shadow-xl">
-                   <div className="text-center md:text-left">
-                      <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">Tactical Settings</h3>
-                      <p className="text-sm text-gray-500 mt-2 font-bold uppercase tracking-widest">Control your operative privacy and manage deployment notifications.</p>
-                   </div>
-                   <Link to="/edit-profile">
-                      <Button className="rounded-2xl h-14 bg-black text-white px-10 font-black uppercase text-xs tracking-[0.3em] hover:bg-gray-800 transition-all shadow-xl shadow-black/10">Configure System</Button>
-                   </Link>
-                </div>
+                     <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:shadow-xl">
+                        <div className="text-center md:text-left">
+                           <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">Tactical Settings</h3>
+                           <p className="text-sm text-gray-500 mt-2 font-bold uppercase tracking-widest">Control your operative privacy and manage deployment notifications.</p>
+                        </div>
+                        <Link to="/edit-profile">
+                           <Button className="rounded-2xl h-14 bg-black text-white px-10 font-black uppercase text-xs tracking-[0.3em] hover:bg-gray-800 transition-all shadow-xl shadow-black/10">Configure System</Button>
+                        </Link>
+                     </div>
+                   </>
+                 )}
             </div>
           </div>
         </div>
@@ -433,7 +466,7 @@ function ProjectCard({ title, date, authors, description }: any) {
                   <Calendar className="w-4 h-4 text-red-500" /> {date}
                </div>
             </div>
-            <button className="p-2 text-gray-200 group-hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></button>
+            {isOwnProfile && <button className="p-2 text-gray-200 group-hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></button>}
          </div>
          
          <p className="text-sm text-gray-500 leading-relaxed font-bold italic border-l-2 border-gray-100 pl-4">

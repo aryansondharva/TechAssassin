@@ -31,6 +31,7 @@ import type { Profile } from '@/types/api';
 import Navbar from '@/components/Navbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -59,6 +60,9 @@ export default function EditProfile() {
     graduation_year: '',
     avatar_url: '',
     banner_url: '',
+    is_email_public: false,
+    is_phone_public: false,
+    is_address_public: false,
   });
 
   const [skillInput, setSkillInput] = useState('');
@@ -93,6 +97,9 @@ export default function EditProfile() {
         graduation_year: data.graduation_year?.toString() || '',
         avatar_url: data.avatar_url || '',
         banner_url: data.banner_url || '',
+        is_email_public: data.is_email_public || false,
+        is_phone_public: data.is_phone_public || false,
+        is_address_public: data.is_address_public || false,
       });
     } catch (error) {
       if (error instanceof ApiError && error.status !== 404) {
@@ -294,14 +301,47 @@ export default function EditProfile() {
             <EditSection icon={Mail} title="Network Connectivity" description="Contact methods and social neural-links">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Comms Number (Phone)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Comms Number (Phone)</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase">Public</span>
+                        <Switch 
+                          checked={formData.is_phone_public} 
+                          onCheckedChange={checked => setFormData({...formData, is_phone_public: checked})} 
+                        />
+                      </div>
+                    </div>
                     <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-12 rounded-xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Sector (Address)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Sector (Address)</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase">Public</span>
+                        <Switch 
+                          checked={formData.is_address_public} 
+                          onCheckedChange={checked => setFormData({...formData, is_address_public: checked})} 
+                        />
+                      </div>
+                    </div>
                     <Input value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-12 rounded-xl" />
                   </div>
                 </div>
+                
+                <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-between bg-red-50/30 p-4 rounded-2xl">
+                  <div>
+                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-900">Privacy Cloak: Email Visibility</Label>
+                    <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase">Hide or reveal your primary comms address to the public network.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{formData.is_email_public ? 'VISIBLE' : 'HIDDEN'}</span>
+                    <Switch 
+                      checked={formData.is_email_public} 
+                      onCheckedChange={checked => setFormData({...formData, is_email_public: checked})} 
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-6 pt-6">
                   <SocialLinkInput icon={Github} label="GitHub Nexus" value={formData.github_url} onChange={v => setFormData({...formData, github_url: v})} />
                   <SocialLinkInput icon={Linkedin} label="LinkedIn Network" value={formData.linkedin_url} onChange={v => setFormData({...formData, linkedin_url: v})} />
