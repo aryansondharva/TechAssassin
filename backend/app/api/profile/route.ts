@@ -3,6 +3,7 @@ import { requireAuth, requireAuthWithClient, requireAdmin } from '../../../lib/m
 import { profileUpdateSchema } from '../../../lib/validations/profile'
 import { handleApiError, NotFoundError, ConflictError, AuthorizationError } from '../../../lib/errors'
 import { deleteAvatar } from '../../../lib/storage/cleanup'
+import { profileCompletionService } from '../../../services/profile-completion-service'
 import type { Profile } from '../../../types/database'
 
 /**
@@ -122,6 +123,21 @@ export async function PATCH(request: Request) {
     
     if (error) {
       throw new Error(`Failed to save profile: ${error.message}`)
+    }
+    
+    // Award XP for completed profile fields (Requirements: 16.1, 16.2, 16.3, 16.4)
+    // Check each updated field and award XP if newly completed
+    try {
+      for (const [fieldName, fieldValue] of Object.entries(validatedData)) {
+        await profileCompletionService.awardProfileFieldXP({
+          userId: user.id,
+          fieldName,
+          fieldValue,
+        });
+      }
+    } catch (xpError) {
+      // Log XP error but don't fail the profile update
+      console.error('Failed to award profile completion XP:', xpError);
     }
     
     return NextResponse.json(updatedProfile as Profile)

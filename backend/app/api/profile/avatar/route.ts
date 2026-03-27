@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
 import { requireAuth } from '../../../../lib/middleware/auth'
 import { handleApiError, ValidationError } from '../../../../lib/errors'
+import { profileCompletionService } from '../../../../services/profile-completion-service'
 import type { Profile } from '../../../../types/database'
 
 /**
@@ -77,6 +78,18 @@ export async function POST(request: Request) {
     }
 
     const updatedProfile = profiles && profiles.length > 0 ? profiles[0] : null;
+    
+    // Award XP for completing avatar_url field (Requirements: 16.1, 16.4)
+    try {
+      await profileCompletionService.awardProfileFieldXP({
+        userId: user.id,
+        fieldName: 'avatar_url',
+        fieldValue: publicUrl,
+      });
+    } catch (xpError) {
+      // Log XP error but don't fail the avatar upload
+      console.error('Failed to award profile completion XP for avatar:', xpError);
+    }
 
     return NextResponse.json({
       message: 'Avatar uploaded successfully',
