@@ -47,6 +47,49 @@ export async function POST(request: NextRequest) {
     // Create registration with capacity check
     const registration = await createRegistration(user.id, validatedData)
     
+    // Create activity for event registration (Requirements: 8.2)
+    // Trigger "event_joined" activity when user joins event
+    fetch('/api/activity/create', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || ''
+      },
+      body: JSON.stringify({
+        type: 'event_joined',
+        metadata: {
+          eventName: event.title,
+          eventId: event.id
+        }
+      })
+    }).catch(error => {
+      // Log activity creation error but don't fail the registration
+      console.error('Failed to create event_joined activity:', error)
+    })
+    
+    // Create activity for team registration if team name is provided (Requirements: 8.4)
+    // Trigger "team_registered" activity when team registers
+    if (validatedData.team_name) {
+      fetch('/api/activity/create', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || ''
+        },
+        body: JSON.stringify({
+          type: 'team_registered',
+          metadata: {
+            teamName: validatedData.team_name,
+            eventName: event.title,
+            eventId: event.id
+          }
+        })
+      }).catch(error => {
+        // Log activity creation error but don't fail the registration
+        console.error('Failed to create team_registered activity:', error)
+      })
+    }
+    
     // Send registration confirmation email (non-blocking)
     // Requirements: 5.7, 11.1, 11.4
     if (user.email) {

@@ -88,6 +88,14 @@ export const authService = {
   },
 
   /**
+   * Get the current authenticated user's ID
+   */
+  getCurrentUserId: (): string | null => {
+    const user = authService.getUser();
+    return user?.id || null;
+  },
+
+  /**
    * Request password reset OTP
    */
   forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {

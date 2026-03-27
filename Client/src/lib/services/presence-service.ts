@@ -1,4 +1,4 @@
-import { getRealtimeManager, type PresenceState, type Subscription } from './realtime-manager';
+﻿import { getRealtimeManager, type PresenceState, type Subscription } from './realtime-manager';
 import { createClient } from '@/lib/supabase/client';
 import { getOptimisticUpdateManager, type OptimisticUpdateError } from './optimistic-update-manager';
 
@@ -75,7 +75,7 @@ export class PresenceService {
   /**
    * Update user status with optimistic update
    */
-  async updateStatus(status: UserStatus, retryCount: number = 0): Promise<void> {
+  async updateStatus(status: UserStatus): Promise<void> {
     if (!this.currentUserId) {
       throw new Error('PresenceService not initialized');
     }
@@ -137,19 +137,7 @@ export class PresenceService {
         this.notifyPresenceChange(this.presenceState);
       }
     } catch (error) {
-      // Implement retry logic for transient errors
-      const maxRetries = 3;
-      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
-      
-      if (retryCount < maxRetries && this.isRetryableError(error)) {
-        console.warn(`Status update failed, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})...`);
-        
-        // Wait and retry
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        return this.updateStatus(status, retryCount + 1);
-      }
-      
-      // Rollback on failure after retries exhausted
+      // Rollback on failure
       this.currentStatus = previousStatus;
       this.pendingStatusUpdate = null;
 
@@ -175,28 +163,9 @@ export class PresenceService {
         originalData: { status: previousStatus },
       });
 
-      console.error('Failed to update status after retries:', error);
+      console.error('Failed to update status:', error);
       throw error;
     }
-  }
-
-  /**
-   * Check if error is retryable (network errors, timeouts, 5xx errors)
-   */
-  private isRetryableError(error: unknown): boolean {
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      // Network errors, timeouts, and server errors are retryable
-      return (
-        message.includes('network') ||
-        message.includes('timeout') ||
-        message.includes('fetch failed') ||
-        message.includes('503') ||
-        message.includes('504') ||
-        message.includes('502')
-      );
-    }
-    return false;
   }
 
   /**

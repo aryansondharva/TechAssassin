@@ -1,4 +1,4 @@
-import { getRealtimeManager, type ActivityEvent, type Subscription } from './realtime-manager';
+﻿import { getRealtimeManager, type ActivityEvent, type Subscription } from './realtime-manager';
 import { createClient } from '@/lib/supabase/client';
 import { getOptimisticUpdateManager, type OptimisticUpdateError } from './optimistic-update-manager';
 
@@ -76,7 +76,7 @@ export class ActivityService {
   /**
    * Create activity with server confirmation
    */
-  async createActivity(activity: CreateActivityInput, retryCount: number = 0): Promise<ActivityEvent> {
+  async createActivity(activity: CreateActivityInput): Promise<ActivityEvent> {
     // Validate activity type
     this.validateActivityType(activity.type);
 
@@ -96,40 +96,9 @@ export class ActivityService {
       const serverActivity: ActivityEvent = await response.json();
       return serverActivity;
     } catch (error) {
-      // Implement retry logic for transient errors
-      const maxRetries = 3;
-      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
-      
-      if (retryCount < maxRetries && this.isRetryableError(error)) {
-        console.warn(`Activity creation failed, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})...`);
-        
-        // Wait and retry
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        return this.createActivity(activity, retryCount + 1);
-      }
-      
-      console.error('Failed to create activity after retries:', error);
+      console.error('Failed to create activity:', error);
       throw error;
     }
-  }
-
-  /**
-   * Check if error is retryable (network errors, timeouts, 5xx errors)
-   */
-  private isRetryableError(error: unknown): boolean {
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      // Network errors, timeouts, and server errors are retryable
-      return (
-        message.includes('network') ||
-        message.includes('timeout') ||
-        message.includes('fetch failed') ||
-        message.includes('503') ||
-        message.includes('504') ||
-        message.includes('502')
-      );
-    }
-    return false;
   }
 
   /**

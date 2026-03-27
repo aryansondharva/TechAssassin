@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+﻿import { createClient } from '@/lib/supabase/client';
 import { getRealtimeManager } from './realtime-manager';
 import { getOptimisticUpdateManager, type OptimisticUpdateError } from './optimistic-update-manager';
 import type { LeaderboardEntry } from '../../types/database';
@@ -93,7 +93,6 @@ export class LeaderboardService {
     const processedEntries = (entries || []).map(entry => {
       const processedEntry: LeaderboardEntry = {
         ...entry,
-        user: Array.isArray(entry.user) ? entry.user[0] : entry.user,
         rankChange: this.calculateRankChange(entry.rank, entry.previous_rank),
         isCurrentUser: this.currentUserId ? entry.user_id === this.currentUserId : false
       };
@@ -145,7 +144,7 @@ export class LeaderboardService {
    * Update user score (server-confirmed)
    * Requirements: 5.1
    */
-  async updateScore(eventId: string, userId: string, score: number, retryCount: number = 0): Promise<void> {
+  async updateScore(eventId: string, userId: string, score: number): Promise<void> {
     // Check if there's a pending optimistic update
     const pendingUpdate = this.pendingUpdates.get(userId);
     if (pendingUpdate) {
@@ -178,18 +177,6 @@ export class LeaderboardService {
         this.optimisticManager.confirmUpdate(pendingUpdate.tempId);
       }
     } catch (error) {
-      // Implement retry logic for transient errors
-      const maxRetries = 3;
-      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
-      
-      if (retryCount < maxRetries && this.isRetryableError(error)) {
-        console.warn(`Score update failed, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})...`);
-        
-        // Wait and retry
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        return this.updateScore(eventId, userId, score, retryCount + 1);
-      }
-      
       // If there was a pending update, rollback and notify error
       if (pendingUpdate) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to update score';
@@ -202,25 +189,6 @@ export class LeaderboardService {
       }
       throw error;
     }
-  }
-
-  /**
-   * Check if error is retryable (network errors, timeouts, 5xx errors)
-   */
-  private isRetryableError(error: unknown): boolean {
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      // Network errors, timeouts, and server errors are retryable
-      return (
-        message.includes('network') ||
-        message.includes('timeout') ||
-        message.includes('fetch failed') ||
-        message.includes('503') ||
-        message.includes('504') ||
-        message.includes('502')
-      );
-    }
-    return false;
   }
 
   /**
