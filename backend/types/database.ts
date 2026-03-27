@@ -79,8 +79,12 @@ export interface LeaderboardEntry {
   user_id: string
   score: number
   rank: number
+  previous_rank?: number
   updated_at: string
-  user?: Profile
+  created_at?: string
+  user?: Partial<Profile>
+  rankChange?: 'up' | 'down' | 'same' | null
+  isCurrentUser?: boolean
 }
 
 // API Response Types
@@ -178,6 +182,25 @@ export type Database = {
           },
           {
             foreignKeyName: "leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      leaderboard_scores: {
+        Row: LeaderboardEntry
+        Insert: Partial<LeaderboardEntry>
+        Update: Partial<LeaderboardEntry>
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_scores_event_id_fkey"
+            columns: ["event_id"]
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaderboard_scores_user_id_fkey"
             columns: ["user_id"]
             referencedRelation: "profiles"
             referencedColumns: ["id"]
