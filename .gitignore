@@ -29,6 +29,8 @@ VERIFY_DATABASE.sql
 # =============================================================================
 backend/supabase/
 **/supabase/
+# But allow client-side supabase utilities
+!Client/src/lib/supabase/
 
 # =============================================================================
 # ENVIRONMENT FILES
