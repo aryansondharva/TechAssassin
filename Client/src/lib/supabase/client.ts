@@ -4,7 +4,11 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error('Missing Supabase environment variables:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey
+  });
+  // Don't throw error, just log it - allow app to load
 }
 
 /**
@@ -14,6 +18,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * - Requirement 9.2: Configure eventsPerSecond throttling for realtime
  */
 export const createClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase client created without proper credentials');
+    // Return a dummy client that won't crash the app
+    return createSupabaseClient(
+      'https://placeholder.supabase.co',
+      'placeholder-key',
+      {
+        realtime: {
+          params: {
+            eventsPerSecond: 10,
+          },
+        },
+      }
+    );
+  }
+  
   return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
     realtime: {
       params: {
