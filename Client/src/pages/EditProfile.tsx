@@ -131,9 +131,17 @@ export default function EditProfile() {
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // For now we'll simulate banner upload success or use the same endpoint if supported
-    toast({ title: "Note", description: "Banner feature requires storage setup. URL updated in state." });
-    // setFormData(prev => ({ ...prev, banner_url: '...' }));
+    
+    setIsUploadingBanner(true);
+    try {
+      const response = await profileService.uploadBanner(file);
+      setFormData(prev => ({ ...prev, banner_url: response.banner_url }));
+      toast({ title: 'Success', description: 'Banner uploaded successfully!' });
+    } catch (error: any) {
+      toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,15 +201,20 @@ export default function EditProfile() {
           <div className="lg:col-span-1 space-y-8">
             <Card className="border-none shadow-md rounded-[2.5rem] overflow-hidden bg-white">
               <div className="h-32 bg-gray-900 relative group cursor-pointer" onClick={handleBannerClick}>
-                {formData.banner_url ? (
-                   <img src={formData.banner_url} className="w-full h-full object-cover opacity-50" />
+                {isUploadingBanner ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <Loader2 className="text-white w-8 h-8 animate-spin" />
+                  </div>
+                ) : formData.banner_url ? (
+                   <img src={formData.banner_url} className="w-full h-full object-cover opacity-50" alt="Banner" />
                 ) : (
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all bg-black/30">
                    <ImageIcon className="text-white w-8 h-8" />
+                   <span className="ml-2 text-white font-bold text-sm">Click to upload banner</span>
                 </div>
-                <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" />
+                <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" accept="image/*" />
               </div>
               <CardContent className="relative pt-0 pb-10 text-center">
                 <div className="relative inline-block -mt-16 mb-4 group">
