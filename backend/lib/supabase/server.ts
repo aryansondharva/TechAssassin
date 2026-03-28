@@ -6,15 +6,25 @@ import type { Database } from '../../types/database'
  * Server-side Supabase client for use in Server Components and API routes
  * Uses cookies for session management
  * Must be called within async server context
+ * 
+ * This client uses the service role key for admin operations
  */
 export const createClient = async () => {
   const cookieStore = cookies()
-  return createServerClient<any>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => (cookieStore as any).set(name, value, options))
+  return createServerClient<any>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, 
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       },
-    },
-  })
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => (cookieStore as any).set(name, value, options))
+        },
+      },
+    }
+  )
 }

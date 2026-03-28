@@ -31,6 +31,13 @@ export interface Profile {
   is_admin: boolean;
   created_at: string;
   updated_at: string;
+  // Gamification fields
+  total_xp?: number;
+  current_rank_id?: string | null;
+  current_streak?: number;
+  longest_streak?: number;
+  last_activity_date?: string | null;
+  profile_completion_percentage?: number;
 }
 
 export interface Event {
