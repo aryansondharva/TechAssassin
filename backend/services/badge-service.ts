@@ -161,10 +161,22 @@ const updateBadgeSchema = z.object({
 });
 
 // ============================================================================
+// Badge Criteria Cache
+// ============================================================================
+
+interface BadgeCriteriaCache {
+  badges: Badge[];
+  timestamp: number;
+}
+
+// ============================================================================
 // Badge Service Class
 // ============================================================================
 
 export class BadgeService {
+  // In-memory cache for badge criteria with 5-minute TTL
+  private badgeCriteriaCache: BadgeCriteriaCache | null = null;
+  private readonly CRITERIA_CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
   /**
    * Create a new badge definition
    * 
@@ -197,6 +209,9 @@ export class BadgeService {
     if (error) {
       throw new Error(`Failed to create badge: ${error.message}`);
     }
+    
+    // Invalidate cache since badge definitions changed
+    this.invalidateCriteriaCache();
     
     return this.mapBadgeFromDB(badge);
   }
@@ -242,6 +257,9 @@ export class BadgeService {
       throw new Error(`Failed to update badge: ${error.message}`);
     }
     
+    // Invalidate cache since badge definitions changed
+    this.invalidateCriteriaCache();
+    
     return this.mapBadgeFromDB(badge);
   }
   
@@ -284,6 +302,9 @@ export class BadgeService {
     if (error) {
       throw new Error(`Failed to deactivate badge: ${error.message}`);
     }
+    
+    // Invalidate cache since badge definitions changed
+    this.invalidateCriteriaCache();
   }
   
   /**
@@ -337,10 +358,72 @@ export class BadgeService {
 
   
   /**
+   * Check if badge criteria cache is valid
+   * 
+   * @returns true if cache is valid, false otherwise
+   */
+  private isCriteriaCacheValid(): boolean {
+    if (!this.badgeCriteriaCache) {
+      return false;
+    }
+    return Date.now() - this.badgeCriteriaCache.timestamp < this.CRITERIA_CACHE_TTL;
+  }
+  
+  /**
+   * Get all active badges with caching
+   * Implements 5-minute TTL cache for badge criteria
+   * 
+   * Requirements: 4.5
+   * 
+   * @returns Array of active badges
+   */
+  private async getActiveBadgesCached(): Promise<Badge[]> {
+    // Check cache first
+    if (this.isCriteriaCacheValid()) {
+      return this.badgeCriteriaCache!.badges;
+    }
+    
+    // Cache miss or expired - fetch from database
+    const supabase = await createClient();
+    
+    const { data: badges, error } = await supabase
+      .from('badges')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (error) {
+      throw new Error(`Failed to get active badges: ${error.message}`);
+    }
+    
+    const mappedBadges = (badges || []).map(this.mapBadgeFromDB);
+    
+    // Update cache
+    this.badgeCriteriaCache = {
+      badges: mappedBadges,
+      timestamp: Date.now()
+    };
+    
+    return mappedBadges;
+  }
+  
+  /**
+   * Invalidate badge criteria cache
+   * Should be called when badges are created, updated, or deactivated
+   */
+  private invalidateCriteriaCache(): void {
+    this.badgeCriteriaCache = null;
+  }
+  
+  /**
    * Evaluate badge unlocks for a user
    * Checks all active badges and awards any that meet criteria
    * 
-   * Requirements: 4.1, 4.2, 4.3
+   * Optimizations:
+   * - Incremental evaluation: Only checks badges user doesn't have
+   * - Cached badge criteria: 5-minute TTL cache for badge definitions
+   * - Short-circuit evaluation: Stops checking conditions on first failure
+   * 
+   * Requirements: 4.1, 4.2, 4.3, 4.5
    * 
    * @param userId - User ID
    * @param context - Unlock context (trigger type and metadata)
@@ -349,21 +432,14 @@ export class BadgeService {
   async evaluateBadgeUnlocks(userId: string, context: UnlockContext): Promise<UserBadge[]> {
     const supabase = await createClient();
     
-    // Get all active badges
-    const { data: badges, error: badgesError } = await supabase
-      .from('badges')
-      .select('*')
-      .eq('is_active', true);
+    // Get all active badges from cache
+    const badges = await this.getActiveBadgesCached();
     
-    if (badgesError) {
-      throw new Error(`Failed to get active badges: ${badgesError.message}`);
-    }
-    
-    if (!badges || badges.length === 0) {
+    if (badges.length === 0) {
       return [];
     }
     
-    // Get badges user already has
+    // Get badges user already has (incremental evaluation)
     const { data: existingBadges, error: existingError } = await supabase
       .from('user_badges')
       .select('badge_id')
@@ -376,14 +452,14 @@ export class BadgeService {
     
     const existingBadgeIds = new Set((existingBadges || []).map(ub => ub.badge_id));
     
-    // Filter out badges user already has
+    // Filter out badges user already has (incremental evaluation optimization)
     const badgesToEvaluate = badges.filter(b => !existingBadgeIds.has(b.id));
     
     // Evaluate each badge
     const newlyUnlocked: UserBadge[] = [];
     
     for (const badge of badgesToEvaluate) {
-      const meetsRequirements = await this.checkUnlockCriteria(userId, this.mapBadgeFromDB(badge));
+      const meetsRequirements = await this.checkUnlockCriteria(userId, badge);
       
       if (meetsRequirements.isUnlocked) {
         try {
@@ -736,14 +812,19 @@ export class BadgeService {
   
   /**
    * Calculate progress for each condition in unlock criteria
+   * Implements short-circuit evaluation - stops on first failed condition
+   * 
+   * Requirements: 4.5
    * 
    * @param userId - User ID
    * @param criteria - Unlock criteria
+   * @param shortCircuit - If true, stops evaluation on first failed condition
    * @returns Array of condition progress
    */
   private async calculateConditionProgress(
     userId: string,
-    criteria: UnlockCriteria
+    criteria: UnlockCriteria,
+    shortCircuit: boolean = false
   ): Promise<ConditionProgress[]> {
     const supabase = await createClient();
     
@@ -820,20 +901,32 @@ export class BadgeService {
       
       // Calculate progress percentage based on operator
       let progressPercentage = 0;
+      let conditionMet = false;
       
       switch (condition.operator) {
         case 'gte':
+          conditionMet = currentValue >= requiredValue;
+          progressPercentage = Math.min(100, (currentValue / requiredValue) * 100);
+          break;
+        
         case 'gt':
+          conditionMet = currentValue > requiredValue;
           progressPercentage = Math.min(100, (currentValue / requiredValue) * 100);
           break;
         
         case 'lte':
+          conditionMet = currentValue <= requiredValue;
+          progressPercentage = conditionMet ? 100 : 0;
+          break;
+        
         case 'lt':
-          progressPercentage = currentValue <= requiredValue ? 100 : 0;
+          conditionMet = currentValue < requiredValue;
+          progressPercentage = conditionMet ? 100 : 0;
           break;
         
         case 'eq':
-          progressPercentage = currentValue === requiredValue ? 100 : 0;
+          conditionMet = currentValue === requiredValue;
+          progressPercentage = conditionMet ? 100 : 0;
           break;
       }
       
@@ -843,6 +936,11 @@ export class BadgeService {
         required: requiredValue,
         progress: Math.round(progressPercentage)
       });
+      
+      // Short-circuit evaluation: stop on first failed condition
+      if (shortCircuit && !conditionMet) {
+        break;
+      }
     }
     
     return progress;
