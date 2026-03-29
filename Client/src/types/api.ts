@@ -307,6 +307,40 @@ export interface LeaderboardUpdateRequest {
 }
 
 // ============================================================================
+// Murf AI Types
+// ============================================================================
+
+export interface MurfSynthesizeRequest {
+  text: string;
+  voiceId: string;
+  locale?: string;
+  style?: string;
+  rate?: number;
+  pitch?: number;
+  sampleRate?: number;
+  format?: 'MP3' | 'WAV' | 'ALAW' | 'ULAW';
+  channel?: 'MONO' | 'STEREO';
+}
+
+export interface MurfSynthesizeResponse {
+  audioFile: string;
+  encodedAsBase64?: boolean;
+  consumedCharacterCount?: number;
+  remainingCharacterCount?: number;
+}
+
+export interface MurfVoice {
+  voiceId: string;
+  displayName: string;
+  language: string;
+  locale: string;
+  gender: string;
+  description: string;
+  sampleUrl: string;
+  styles: string[];
+}
+
+// ============================================================================
 // Utility Types
 // ============================================================================
 
