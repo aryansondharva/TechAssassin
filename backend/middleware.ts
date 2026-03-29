@@ -28,9 +28,9 @@ export function middleware(request: NextRequest) {
     // 'https://staging.yourdomain.com',
     
     // Development domains
-    'http://localhost:3000',
+    'http://localhost:3002',
     'http://localhost:3001',
-    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3002',
     'http://127.0.0.1:3001',
   ].filter(Boolean) // Remove any undefined values
   
