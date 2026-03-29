@@ -50,12 +50,17 @@ const PROFILE_FIELDS: ProfileField[] = [
   { name: 'full_name', displayName: 'Full Name', weight: 3, xpAmount: 30 },
   { name: 'bio', displayName: 'Bio', weight: 2, xpAmount: 20 },
   { name: 'avatar_url', displayName: 'Profile Picture', weight: 2, xpAmount: 20 },
+  { name: 'banner_url', displayName: 'Profile Banner', weight: 2, xpAmount: 20 },
   { name: 'phone', displayName: 'Phone Number', weight: 1, xpAmount: 10 },
   { name: 'address', displayName: 'Address', weight: 1, xpAmount: 10 },
   { name: 'education', displayName: 'Education', weight: 2, xpAmount: 20 },
   { name: 'university', displayName: 'University', weight: 2, xpAmount: 20 },
   { name: 'graduation_year', displayName: 'Graduation Year', weight: 1, xpAmount: 10 },
   { name: 'github_url', displayName: 'GitHub URL', weight: 2, xpAmount: 20 },
+  { name: 'linkedin_url', displayName: 'LinkedIn URL', weight: 2, xpAmount: 20 },
+  { name: 'portfolio_url', displayName: 'Portfolio URL', weight: 2, xpAmount: 20 },
+  { name: 'skills', displayName: 'Mastered Skills', weight: 2, xpAmount: 20 },
+  { name: 'interests', displayName: 'Network Interests', weight: 1, xpAmount: 10 },
   { name: 'aadhaar_number', displayName: 'Aadhaar Number', weight: 1, xpAmount: 10 },
 ];
 
@@ -270,6 +275,10 @@ export class ProfileCompletionService {
     
     if (typeof value === 'number') {
       return true; // Any number is considered complete
+    }
+
+    if (Array.isArray(value)) {
+      return value.length > 0; // Any non-empty array is complete
     }
     
     return false;
