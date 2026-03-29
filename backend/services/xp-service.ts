@@ -126,7 +126,7 @@ const awardXPSchema = z.object({
 
 const manualAdjustmentSchema = z.object({
   userId: z.string().uuid(),
-  amount: z.number().int().positive(),
+  amount: z.number().int().refine(val => val !== 0, { message: "Amount cannot be zero" }),
   source: xpSourceSchema,
   activityType: z.string().min(1).max(100),
   description: z.string().min(1),

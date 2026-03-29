@@ -200,6 +200,10 @@ export interface AvatarUploadResponse {
   avatar_url: string;
 }
 
+export interface BannerUploadResponse {
+  banner_url: string;
+}
+
 // ============================================================================
 // Event Types
 // ============================================================================

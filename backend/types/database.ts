@@ -9,13 +9,27 @@ export interface Profile {
   phone: string | null
   aadhaar_number: string | null
   avatar_url: string | null
+  banner_url: string | null
   github_url: string | null
+  linkedin_url: string | null
+  portfolio_url: string | null
   bio: string | null
   address: string | null
   education: string | null
   university: string | null
   graduation_year: number | null
+  skills: string[] | null
+  interests: string[] | null
+  last_activity_date: string | null
+  total_xp: number
+  current_rank_id: string | null
+  current_streak: number
+  longest_streak: number
+  profile_completion_percentage: number
   is_admin: boolean
+  is_email_public?: boolean
+  is_phone_public?: boolean
+  is_address_public?: boolean
   created_at: string
   updated_at: string
 }
