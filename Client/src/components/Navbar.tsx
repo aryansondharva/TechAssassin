@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navLinks = [
   { label: "Home", href: "/", isRoute: true },
   { label: "Community", href: "/community", isRoute: true },
-  { label: "Elite", href: "/leaderboard", isRoute: true },
+  { label: "Elite", href: "/elite", isRoute: true },
 ];
 
 const Navbar = () => {

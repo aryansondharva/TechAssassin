@@ -16,6 +16,7 @@ import EditProfile from "./pages/EditProfile";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Community from "./pages/Community";
+import Elite from "./pages/Elite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,8 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetails />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/elite" element={<Elite />} />
+          <Route path="/leaderboard" element={<Elite />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

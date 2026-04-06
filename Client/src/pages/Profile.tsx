@@ -41,6 +41,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 
+interface GitHubStats {
+  followers: number;
+  public_repos: number;
+  last_repo: {
+    name: string;
+    description: string;
+    updated_at: string;
+    language: string;
+    stargazers_count: number;
+  } | null;
+}
+
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>({});
@@ -49,6 +61,8 @@ export default function Profile() {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [ghStats, setGhStats] = useState<GitHubStats | null>(null);
+  const [isGhLoading, setIsGhLoading] = useState(false);
   
   const { username } = useParams<{ username: string }>();
   // If no username param, it's the own logged in profile
@@ -72,6 +86,9 @@ export default function Profile() {
         data = await profileService.getByUsername(username);
       }
       setProfile(data);
+      if (data?.github_url) {
+        fetchGitHubStats(data.github_url);
+      }
     } catch (error) {
       console.error("Failed to load profile", error);
       if (!isOwnProfile) {
@@ -80,6 +97,39 @@ export default function Profile() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchGitHubStats = async (url: string) => {
+    const match = url.match(/github\.com\/([^/]+)/);
+    if (!match) return;
+    const username = match[1];
+    
+    setIsGhLoading(true);
+    try {
+      const [userRes, reposRes] = await Promise.all([
+        fetch(`https://api.github.com/users/${username}`),
+        fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=1`)
+      ]);
+      
+      const userData = await userRes.json();
+      const reposData = await reposRes.json();
+      
+      setGhStats({
+        followers: userData.followers,
+        public_repos: userData.public_repos,
+        last_repo: reposData[0] ? {
+          name: reposData[0].name,
+          description: reposData[0].description,
+          updated_at: reposData[0].updated_at,
+          language: reposData[0].language,
+          stargazers_count: reposData[0].stargazers_count
+        } : null
+      });
+    } catch (error) {
+      console.error("Failed to fetch GitHub stats", error);
+    } finally {
+      setIsGhLoading(false);
     }
   };
 
@@ -369,7 +419,7 @@ export default function Profile() {
                   </Card>
                </Section>
 
-               <Section title="Combat Projects" onAdd={isOwnProfile ? () => navigate('/community') : undefined}>
+                <Section title="Combat Projects" onAdd={isOwnProfile ? () => navigate('/community') : undefined}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <ProjectCard 
                         title="Tech Assassins" 
@@ -388,7 +438,170 @@ export default function Profile() {
                   </div>
                </Section>
 
-                {isOwnProfile && (
+               <Section title="Elite Operative Pulse">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* GitHub Data Pulse */}
+                    <Card className="bg-black text-white rounded-[2rem] p-8 border-none overflow-hidden relative group">
+                      <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-all group-hover:scale-125">
+                         <Github size={120} />
+                      </div>
+                      <div className="relative z-10 space-y-6">
+                        <div className="flex items-center gap-4">
+                           <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
+                              <Github className="w-6 h-6" />
+                           </div>
+                           <div>
+                              <h4 className="text-xl font-black italic tracking-tighter uppercase">GitHub Active Data</h4>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Real-time Stream</p>
+                           </div>
+                        </div>
+
+                        {isGhLoading ? (
+                          <div className="flex items-center justify-center py-10">
+                             <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                          </div>
+                        ) : ghStats ? (
+                          <div className="space-y-6">
+                             <div className="grid grid-cols-2 gap-4">
+                               <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                  <div className="text-2xl font-black text-red-500">{ghStats.followers}</div>
+                                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Followers</div>
+                               </div>
+                               <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                  <div className="text-2xl font-black text-red-500">{ghStats.public_repos}</div>
+                                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Public Repos</div>
+                               </div>
+                             </div>
+                             
+                             {ghStats.last_repo && (
+                               <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-3">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Latest Build</span>
+                                    <div className="flex items-center gap-1">
+                                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                       <span className="text-[9px] font-black uppercase">Live</span>
+                                    </div>
+                                  </div>
+                                  <h5 className="font-black text-lg italic truncate">{ghStats.last_repo.name}</h5>
+                                  <p className="text-xs text-gray-400 line-clamp-2">{ghStats.last_repo.description || 'System core integration in progress...'}</p>
+                                  <div className="flex items-center gap-4 text-[10px] font-black text-gray-500">
+                                     <div className="flex items-center gap-1"><Code size={12} /> {ghStats.last_repo.language}</div>
+                                     <div className="flex items-center gap-1"><Trophy size={11} /> {ghStats.last_repo.stargazers_count}</div>
+                                  </div>
+                               </div>
+                             )}
+                          </div>
+                        ) : (
+                          <div className="py-10 text-center space-y-4">
+                             <p className="text-xs text-gray-500 font-bold italic uppercase">Awaiting source connection...</p>
+                             {isOwnProfile && (
+                               <Button onClick={() => navigate('/edit-profile')} size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-xl text-[10px] font-black">Link GitHub</Button>
+                             )}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+
+                    {/* LinkedIn Pulse */}
+                    <Card className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all relative group h-full">
+                       <div className="flex items-center justify-between mb-8">
+                          <div className="flex items-center gap-4">
+                             <div className="p-3 bg-blue-50 rounded-2xl">
+                                <Linkedin className="w-6 h-6 text-blue-600" />
+                             </div>
+                             <div>
+                                <h4 className="text-xl font-black text-gray-900 italic tracking-tighter uppercase">LinkedIn App Data</h4>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Professional Identity</p>
+                             </div>
+                          </div>
+                       </div>
+                       
+                       <div className="space-y-6">
+                          {identity.linkedin_url ? (
+                            <>
+                              <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 space-y-4">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                       <Shield className="text-white w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-black text-gray-900 uppercase">Identity Verified</span>
+                                 </div>
+                                 <p className="text-xs text-gray-500 font-medium leading-relaxed italic">
+                                    Profile synchronized with professional network. Career transmission active.
+                                 </p>
+                              </div>
+                              <Button variant="ghost" className="w-full rounded-2xl h-12 text-blue-600 font-black uppercase text-[10px] tracking-widest hover:bg-blue-50" onClick={() => window.open(identity.linkedin_url, '_blank')}>
+                                 View Source Profile <ExternalLink className="w-3 h-3 ml-2" />
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="py-10 text-center space-y-4">
+                               <Linkedin size={48} className="mx-auto text-gray-100" />
+                               <p className="text-xs text-gray-400 font-bold uppercase italic">Professional link offline</p>
+                               {isOwnProfile && (
+                                 <Button onClick={() => navigate('/edit-profile')} size="sm" variant="outline" className="border-gray-200 rounded-xl text-[10px] font-black uppercase">Connect Identity</Button>
+                               )}
+                            </div>
+                          )}
+                       </div>
+                    </Card>
+
+                    {/* Twitter / Activity Pulse */}
+                    <Card className="bg-[#00acee]/5 rounded-[2rem] p-8 border border-[#00acee]/10 shadow-sm hover:shadow-xl transition-all relative group h-full">
+                       <div className="flex items-center justify-between mb-8">
+                          <div className="flex items-center gap-4">
+                             <div className="p-3 bg-[#00acee] rounded-2xl">
+                                <Twitter className="w-6 h-6 text-white" />
+                             </div>
+                             <div>
+                                <h4 className="text-xl font-black text-gray-900 italic tracking-tighter uppercase">Twitter Stream</h4>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Public Broadcast</p>
+                             </div>
+                          </div>
+                       </div>
+                       
+                       <div className="space-y-4">
+                          <div className="p-5 bg-white rounded-3xl border border-blue-100 space-y-3 relative overflow-hidden">
+                             <div className="flex gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                   <Zap size={14} className="text-[#00acee]" />
+                                </div>
+                                <div className="space-y-1">
+                                   <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-black text-gray-900 uppercase">System Intelligence</span>
+                                      <span className="text-[8px] text-gray-400 font-bold">2h ago</span>
+                                   </div>
+                                   <p className="text-[11px] text-gray-600 font-bold italic leading-relaxed">
+                                      "Dismantling complexity one line of code at a time. The tech hunt never ends. #TechAssassin #DevLife"
+                                   </p>
+                                </div>
+                             </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-3">
+                             <div className="bg-white p-3 rounded-2xl text-center border border-blue-50">
+                                <div className="text-sm font-black text-blue-600">42</div>
+                                <div className="text-[7px] font-black text-gray-400 uppercase">Transmissions</div>
+                             </div>
+                             <div className="bg-white p-3 rounded-2xl text-center border border-blue-50">
+                                <div className="text-sm font-black text-blue-600">128</div>
+                                <div className="text-[7px] font-black text-gray-400 uppercase">Interceptors</div>
+                             </div>
+                             <div className="bg-white p-3 rounded-2xl text-center border border-blue-50">
+                                <div className="text-sm font-black text-blue-600">8</div>
+                                <div className="text-[7px] font-black text-gray-400 uppercase">Streaks</div>
+                             </div>
+                          </div>
+                          
+                          <Button variant="ghost" className="w-full rounded-2xl h-10 text-[#00acee] font-black uppercase text-[10px] tracking-widest hover:bg-[#00acee]/10">
+                              Access Neural Stream
+                          </Button>
+                       </div>
+                    </Card>
+                  </div>
+               </Section>
+
+               {isOwnProfile && (
                    <>
                      <Section title="Experience Ledger" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.experience} />
                      <Section title="Certifications" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.licenses} />
