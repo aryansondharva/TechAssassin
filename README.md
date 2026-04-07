@@ -1,9 +1,21 @@
 # Tech Assassin - Community Platform
 
-The elite digital stronghold for Tech Assassins
-Dismantling monoliths, mastering frameworks, and claiming the digital throne
+<div align="center">
 
-[System Overview](#system-overview) | [Features](#features) | [Quick Start](#quick-start) | [Tech Stack](#tech-stack) | [API Reference](#api-reference)
+<img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="80" height="80" />
+
+<h3> The elite digital stronghold for Tech Assassins</h3>
+<p><em>Dismantling monoliths, mastering frameworks, and claiming the digital throne</em></p>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791)](https://www.postgresql.org/)
+
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Tech Stack](#tech-stack) • [Contributing](#contributing)
+
+</div>
 
 ---
 
