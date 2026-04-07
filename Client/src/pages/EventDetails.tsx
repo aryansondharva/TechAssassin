@@ -13,6 +13,10 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2, Calendar, MapPin, Users, Trophy, Tag, ArrowLeft } from 'lucide-react';
 import type { EventWithParticipants } from '@/types/api';
 import Navbar from '@/components/Navbar';
+import { getRealtimeManager } from '@/lib/services/realtime-manager';
+import { getPresenceService } from '@/lib/services/presence-service';
+import { ConnectionStatusIndicator } from '@/components/ConnectionStatusIndicator';
+import { LiveLeaderboard } from '@/components/LiveLeaderboard';
 
 export default function EventDetails() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +25,7 @@ export default function EventDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeParticipants, setActiveParticipants] = useState(0);
   const [formData, setFormData] = useState({
     team_name: '',
     project_idea: '',
@@ -29,8 +34,51 @@ export default function EventDetails() {
   useEffect(() => {
     if (id) {
       fetchEvent();
+      initializeRealtime();
     }
+
+    // Cleanup on unmount
+    return () => {
+      const presenceService = getPresenceService();
+      presenceService.stopTracking();
+    };
   }, [id]);
+
+  const initializeRealtime = async () => {
+    if (!id) return;
+
+    try {
+      const realtimeManager = getRealtimeManager();
+      const presenceService = getPresenceService();
+
+      // Connect to realtime
+      await realtimeManager.connect();
+
+      // Initialize presence service with user ID
+      const userId = authService.getCurrentUserId() || 'guest-user';
+      await presenceService.initialize(userId);
+
+      // Track presence on this event page
+      presenceService.trackPresence({
+        type: 'event',
+        id: id,
+      });
+
+      // Update status to online
+      await presenceService.updateStatus('online');
+
+      // Subscribe to presence changes to update active participants count
+      presenceService.onPresenceChange((state) => {
+        const count = presenceService.getActiveCount({
+          type: 'event',
+          id: id,
+        });
+        setActiveParticipants(count);
+      });
+    } catch (error) {
+      console.error('Failed to initialize realtime services:', error);
+    }
+  };
 
   const fetchEvent = async () => {
     if (!id) return;
@@ -184,6 +232,12 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white">
+<<<<<<< HEAD
+=======
+      {/* Connection Status Indicator */}
+      <ConnectionStatusIndicator position="top-right" />
+      
+>>>>>>> f0d1cf030861dfc9ace6981a38134a7c8235b705
       <Navbar />
       
       <div className="container mx-auto px-4 py-24">
@@ -259,6 +313,14 @@ export default function EventDetails() {
                       {event.participant_count} / {event.max_participants} Deployed
                       {isFull && <span className="text-red-600 ml-2 font-black italic tracking-tighter">MAX CAPACITY</span>}
                     </p>
+                    {activeParticipants > 0 && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-xs text-green-500 font-bold">
+                          {activeParticipants} active now
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -303,6 +365,29 @@ export default function EventDetails() {
                       </div>
                     ))}
                   </div>
+<<<<<<< HEAD
+=======
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Live Leaderboard - Show for live events */}
+            {event.status === 'live' && (
+              <Card className="bg-white/5 border-white/10 rounded-3xl p-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl font-black italic uppercase tracking-widest text-white/90">
+                    <Trophy className="mr-3 h-5 w-5 text-yellow-500" />
+                    Live Rankings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LiveLeaderboard
+                    eventId={event.id}
+                    currentUserId={authService.getCurrentUserId() || undefined}
+                    liveMode={true}
+                    maxDisplay={10}
+                  />
+>>>>>>> f0d1cf030861dfc9ace6981a38134a7c8235b705
                 </CardContent>
               </Card>
             )}

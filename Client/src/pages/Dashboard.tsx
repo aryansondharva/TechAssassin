@@ -4,55 +4,95 @@ import { useNavigate } from 'react-router-dom';
 import { authService, profileService } from '@/services';
 import { ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, LogOut, User, Calendar, Trophy, Users, Settings, Activity, Bell, Search, Plus, TrendingUp, Clock, Star, Target, BookOpen, Award, FileText, Mail, Phone, MapPin, GraduationCap, Heart } from 'lucide-react';
+import { Loader2, LogOut, Calendar, Settings, Heart } from 'lucide-react';
 import type { Profile } from '@/types/api';
+import { getRealtimeManager } from '@/lib/services/realtime-manager';
+import { getPresenceService } from '@/lib/services/presence-service';
+import { ConnectionStatusIndicator } from '@/components/ConnectionStatusIndicator';
+import { OnlineUsersList } from '@/components/OnlineUsersList';
+import { ActivityFeed } from '@/components/ActivityFeed';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  
-  // Editable profile state
-  const [editProfile, setEditProfile] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 234 567 8900',
-    address: '123 Tech Street, Silicon Valley, CA 94000',
-    education: 'Bachelor of Computer Science',
-    university: 'Tech University',
-    graduationYear: '2024',
-    aadhaarNumber: '2341-5678-9012',
-    skills: ['JavaScript', 'React', 'TypeScript', 'Python']
-  });
+  const [onlineCount, setOnlineCount] = useState(0);
+
+  useEffect(() => {
+    // Initialize real-time services
+    const initializeRealtime = async () => {
+      try {
+        const realtimeManager = getRealtimeManager();
+        const presenceService = getPresenceService();
+
+        // Connect to realtime
+        await realtimeManager.connect();
+
+        // Initialize presence service with user ID
+        const userId = authService.getCurrentUserId() || 'guest-user';
+        await presenceService.initialize(userId);
+
+        // Track presence on dashboard page
+        presenceService.trackPresence({
+          type: 'page',
+          id: 'dashboard',
+        });
+
+        // Update status to online
+        await presenceService.updateStatus('online');
+
+        // Subscribe to presence changes to update online count
+        presenceService.onPresenceChange((state) => {
+          const count = presenceService.getActiveCount({
+            type: 'page',
+            id: 'dashboard',
+          });
+          setOnlineCount(count);
+        });
+      } catch (error) {
+        console.error('Failed to initialize realtime services:', error);
+      }
+    };
+
+    initializeRealtime();
+
+    // Cleanup on unmount
+    return () => {
+      const presenceService = getPresenceService();
+      presenceService.stopTracking();
+      presenceService.cleanup();
+    };
+  }, []);
 
   useEffect(() => {
     // For testing purposes, create mock data and show dashboard
     setIsLoading(false);
     
-    // Mock profile data with registration form details
+    // Mock profile data
     const mockProfile: Profile = {
       id: 'test-user-id',
       username: 'testuser',
+      email: 'test@example.com',
       full_name: 'John Doe',
-      skills: ['JavaScript', 'React', 'TypeScript', 'Python'],
+      phone: null,
+      aadhaar_number: null,
+      avatar_url: null,
+      github_url: null,
+      bio: null,
+      address: null,
+      education: null,
+      university: null,
+      graduation_year: null,
+      interests: null,
+      banner_url: null,
+      is_email_public: false,
+      is_phone_public: false,
+      is_address_public: false,
       is_admin: false,
       created_at: new Date().toISOString(),
-      avatar_url: null,
-      github_url: null
-    };
-
-    // Additional registration details for display
-    const registrationDetails = {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+1 234 567 8900',
-      address: '123 Tech Street, Silicon Valley, CA 94000',
-      education: 'Bachelor of Computer Science',
-      university: 'Tech University',
-      graduationYear: '2024'
+      updated_at: new Date().toISOString(),
     };
     
     setProfile(mockProfile);
@@ -83,6 +123,10 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
+      // Stop presence tracking before signing out
+      const presenceService = getPresenceService();
+      presenceService.stopTracking();
+      
       await authService.signOut();
       toast({
         title: 'Signed out',
@@ -98,42 +142,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleEditProfile = () => {
-    setIsEditingProfile(true);
-  };
-
-  const handleSaveProfile = () => {
-    // Here you would normally save to backend
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been successfully updated.',
-    });
-    setIsEditingProfile(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingProfile(false);
-    // Reset to original values
-    setEditProfile({
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+1 234 567 8900',
-      address: '123 Tech Street, Silicon Valley, CA 94000',
-      education: 'Bachelor of Computer Science',
-      university: 'Tech University',
-      graduationYear: '2024',
-      aadhaarNumber: '2341-5678-9012',
-      skills: ['JavaScript', 'React', 'TypeScript', 'Python']
-    });
-  };
-
-  const handleProfileChange = (field: string, value: string | string[]) => {
-    setEditProfile(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -144,6 +152,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Connection Status Indicator */}
+      <ConnectionStatusIndicator position="top-right" />
+
       {/* Simple Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4">
@@ -153,6 +164,17 @@ export default function Dashboard() {
               <h1 className="text-xl font-black italic uppercase tracking-tighter text-gray-900 border-l-2 border-red-600 pl-4">Command Center</h1>
             </div>
             <div className="flex items-center gap-3">
+<<<<<<< HEAD
+=======
+              {onlineCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-bold text-green-700">
+                    {onlineCount} online
+                  </span>
+                </div>
+              )}
+>>>>>>> f0d1cf030861dfc9ace6981a38134a7c8235b705
               <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-xl border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -164,6 +186,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 container mx-auto px-4 py-12">
+<<<<<<< HEAD
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Hackathon Button */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -216,6 +239,86 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </motion.div>
+=======
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left Column - Main Actions */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="grid gap-8 lg:grid-cols-2">
+              {/* Hackathon Button */}
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" /> Operative Status
+                </h2>
+                <Card className="bg-white border-2 border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-100 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] group" onClick={() => navigate('/events')}>
+                  <CardContent className="p-10">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="max-w-[70%]">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">Mission Operations</h3>
+                        <p className="text-gray-500 font-medium leading-relaxed">Access tactical briefing and deployment parameters for live operations.</p>
+                      </div>
+                      <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <Calendar className="h-10 w-10 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-xs px-10 py-6 rounded-2xl shadow-lg shadow-blue-600/20">
+                        Analyze Missions
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Edit Profile Button */}
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Neural Configuration
+                </h2>
+                <Card className="bg-white border-2 border-gray-100 shadow-sm hover:shadow-2xl hover:border-green-100 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2rem] group" onClick={() => navigate('/edit-profile')}>
+                  <CardContent className="p-10">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="max-w-[70%]">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900 mb-3 group-hover:text-green-600 transition-colors">Operative Identity</h3>
+                        <p className="text-gray-500 font-medium leading-relaxed">Modify your global footprint and synchronize your skill matrix with the network.</p>
+                      </div>
+                      <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <Settings className="h-10 w-10 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white font-black uppercase tracking-widest text-xs px-10 py-6 rounded-2xl shadow-lg shadow-green-600/20"
+                      >
+                        Sync Profile
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Activity Feed */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" /> Network Activity
+              </h2>
+              <ActivityFeed showFilters={true} pageSize={10} />
+            </motion.div>
+          </div>
+
+          {/* Right Column - Online Users */}
+          <div className="space-y-8">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Active Operatives
+              </h2>
+              <OnlineUsersList 
+                location={{ type: 'page', id: 'dashboard' }}
+                maxDisplay={10}
+              />
+            </motion.div>
+          </div>
+>>>>>>> f0d1cf030861dfc9ace6981a38134a7c8235b705
         </div>
       </div>
 

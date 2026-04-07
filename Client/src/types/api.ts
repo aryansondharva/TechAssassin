@@ -31,6 +31,13 @@ export interface Profile {
   is_admin: boolean;
   created_at: string;
   updated_at: string;
+  // Gamification fields
+  total_xp?: number;
+  current_rank_id?: string | null;
+  current_streak?: number;
+  longest_streak?: number;
+  last_activity_date?: string | null;
+  profile_completion_percentage?: number;
 }
 
 export interface Event {
@@ -193,6 +200,10 @@ export interface AvatarUploadResponse {
   avatar_url: string;
 }
 
+export interface BannerUploadResponse {
+  banner_url: string;
+}
+
 // ============================================================================
 // Event Types
 // ============================================================================
@@ -297,6 +308,40 @@ export interface LeaderboardUpdateRequest {
   event_id: string;
   user_id: string;
   score: number;
+}
+
+// ============================================================================
+// Murf AI Types
+// ============================================================================
+
+export interface MurfSynthesizeRequest {
+  text: string;
+  voiceId: string;
+  locale?: string;
+  style?: string;
+  rate?: number;
+  pitch?: number;
+  sampleRate?: number;
+  format?: 'MP3' | 'WAV' | 'ALAW' | 'ULAW';
+  channel?: 'MONO' | 'STEREO';
+}
+
+export interface MurfSynthesizeResponse {
+  audioFile: string;
+  encodedAsBase64?: boolean;
+  consumedCharacterCount?: number;
+  remainingCharacterCount?: number;
+}
+
+export interface MurfVoice {
+  voiceId: string;
+  displayName: string;
+  language: string;
+  locale: string;
+  gender: string;
+  description: string;
+  sampleUrl: string;
+  styles: string[];
 }
 
 // ============================================================================

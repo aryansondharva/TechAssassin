@@ -6,6 +6,7 @@ import { createClient } from '../../../lib/supabase/server'
 import { checkRateLimit } from '../../../lib/utils/rate-limit'
 import { sendRegistrationConfirmation } from '../../../lib/email/resend'
 import { handleApiError, NotFoundError, RateLimitError, ValidationError, ConflictError } from '../../../lib/errors'
+import { xpService } from '../../../services/xp-service'
 
 /**
  * POST /api/registrations
@@ -46,6 +47,72 @@ export async function POST(request: NextRequest) {
     
     // Create registration with capacity check
     const registration = await createRegistration(user.id, validatedData)
+    
+    // Award XP for event registration (Requirements: 17.1, 17.5)
+    // Only award XP if registration is confirmed (not waitlisted)
+    if (registration.status === 'confirmed') {
+      try {
+        await xpService.awardXP({
+          userId: user.id,
+          amount: 50, // Base amount for registration
+          source: 'event_participation',
+          activityType: 'registration',
+          referenceId: event.id,
+          description: `Registered for event: ${event.title}`,
+          metadata: {
+            eventId: event.id,
+            eventTitle: event.title,
+            registrationId: registration.id
+          }
+        });
+      } catch (xpError) {
+        // Log XP error but don't fail the registration
+        console.error('Failed to award registration XP:', xpError);
+      }
+    }
+    
+    // Create activity for event registration (Requirements: 8.2)
+    // Trigger "event_joined" activity when user joins event
+    fetch('/api/activity/create', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || ''
+      },
+      body: JSON.stringify({
+        type: 'event_joined',
+        metadata: {
+          eventName: event.title,
+          eventId: event.id
+        }
+      })
+    }).catch(error => {
+      // Log activity creation error but don't fail the registration
+      console.error('Failed to create event_joined activity:', error)
+    })
+    
+    // Create activity for team registration if team name is provided (Requirements: 8.4)
+    // Trigger "team_registered" activity when team registers
+    if (validatedData.team_name) {
+      fetch('/api/activity/create', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || ''
+        },
+        body: JSON.stringify({
+          type: 'team_registered',
+          metadata: {
+            teamName: validatedData.team_name,
+            eventName: event.title,
+            eventId: event.id
+          }
+        })
+      }).catch(error => {
+        // Log activity creation error but don't fail the registration
+        console.error('Failed to create team_registered activity:', error)
+      })
+    }
     
     // Send registration confirmation email (non-blocking)
     // Requirements: 5.7, 11.1, 11.4

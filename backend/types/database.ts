@@ -9,13 +9,27 @@ export interface Profile {
   phone: string | null
   aadhaar_number: string | null
   avatar_url: string | null
+  banner_url: string | null
   github_url: string | null
+  linkedin_url: string | null
+  portfolio_url: string | null
   bio: string | null
   address: string | null
   education: string | null
   university: string | null
   graduation_year: number | null
+  skills: string[] | null
+  interests: string[] | null
+  last_activity_date: string | null
+  total_xp: number
+  current_rank_id: string | null
+  current_streak: number
+  longest_streak: number
+  profile_completion_percentage: number
   is_admin: boolean
+  is_email_public?: boolean
+  is_phone_public?: boolean
+  is_address_public?: boolean
   created_at: string
   updated_at: string
 }
@@ -79,8 +93,12 @@ export interface LeaderboardEntry {
   user_id: string
   score: number
   rank: number
+  previous_rank?: number
   updated_at: string
-  user?: Profile
+  created_at?: string
+  user?: Partial<Profile>
+  rankChange?: 'up' | 'down' | 'same' | null
+  isCurrentUser?: boolean
 }
 
 // API Response Types
@@ -178,6 +196,25 @@ export type Database = {
           },
           {
             foreignKeyName: "leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      leaderboard_scores: {
+        Row: LeaderboardEntry
+        Insert: Partial<LeaderboardEntry>
+        Update: Partial<LeaderboardEntry>
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_scores_event_id_fkey"
+            columns: ["event_id"]
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaderboard_scores_user_id_fkey"
             columns: ["user_id"]
             referencedRelation: "profiles"
             referencedColumns: ["id"]
