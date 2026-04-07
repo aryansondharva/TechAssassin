@@ -4,10 +4,7 @@
 
 <img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="80" height="80" />
 
-## THE ELITE DIGITAL STRONGHOLD
 **Dismantling Monoliths • Mastering Frameworks • Claiming the Digital Throne**
-
----
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-F1C40F?style=flat-square&logo=gitbook&logoColor=white)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
