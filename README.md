@@ -4,14 +4,16 @@
 
 <img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="80" height="80" />
 
-<h3> The elite digital stronghold for Tech Assassins</h3>
-<p><em>Dismantling monoliths, mastering frameworks, and claiming the digital throne</em></p>
+## THE ELITE DIGITAL STRONGHOLD
+**Dismantling Monoliths • Mastering Frameworks • Claiming the Digital Throne**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791)](https://www.postgresql.org/)
+---
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-F1C40F?style=flat-square&logo=gitbook&logoColor=white)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Tech Stack](#tech-stack) • [Contributing](#contributing)
 
