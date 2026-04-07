@@ -3,13 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Index from "./pages/Index";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import ForgotPassword from "./pages/ForgotPassword";
 import MagicLink from "./pages/MagicLink";
 import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
-
+import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Events from "./pages/Events";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/dashboard" element={<Profile />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/@:username" element={<Profile />} />
@@ -45,6 +47,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <SpeedInsights />
     </TooltipProvider>
   </QueryClientProvider>
 );
