@@ -206,16 +206,28 @@ const TechAssassinApp = () => {
       
       {activeScreen === "Home" && renderHomeScreen()}
       {activeScreen !== "Home" && (
-        <SafeAreaView style={styles.safeContainer}>
-          <View style={styles.headerBar}>
-            <View>
-              <Text style={styles.headerLabel}>Tech Assassin</Text>
+        <View style={styles.headerWrapperFixed}>
+          <LinearGradient
+            colors={["rgba(36, 38, 43, 0.98)", "rgba(13, 15, 18, 1)"]}
+            style={styles.headerBackgroundFlat}
+          />
+          <View style={styles.headerIconsRowFlat}>
+            <View style={styles.headerTitlesRow}>
+              <Text style={styles.headerLabel}>TECH ASSASSIN</Text>
+              <View style={styles.headerDivider} />
               <Text style={styles.headerTitle}>{activeScreen}</Text>
             </View>
-            <TouchableOpacity style={styles.profileCircle}>
-              <User color={COLORS.foreground} size={20} />
+            <TouchableOpacity style={styles.profileCircleCompact} activeOpacity={0.8}>
+              <View style={styles.profileInnerCircle}>
+                <User color={COLORS.primary} size={20} strokeWidth={2.5} />
+              </View>
             </TouchableOpacity>
           </View>
+        </View>
+      )}
+
+      {activeScreen !== "Home" && (
+        <SafeAreaView style={styles.safeContainer}>
           {activeScreen === "Missions" && renderMissionsScreen()}
           {/* Add other screen renders as needed */}
         </SafeAreaView>
@@ -262,12 +274,16 @@ const TechAssassinApp = () => {
 };
 
 const NavBtn = ({ icon, label, active, onPress }: any) => (
-  <TouchableOpacity style={styles.navItem} onPress={onPress} activeOpacity={0.7}>
+  <TouchableOpacity 
+    style={[styles.navItem, active && { paddingBottom: 0 }]} 
+    onPress={onPress} 
+    activeOpacity={0.7}
+  >
     <View style={active ? styles.activeIconGlow : null}>
       {React.cloneElement(icon, { 
         size: 24, 
         color: active ? COLORS.primary : COLORS.textMuted,
-        fill: active ? COLORS.primary : "transparent",
+        fill: "transparent",
         strokeWidth: active ? 2.5 : 2
       })}
     </View>
@@ -275,12 +291,16 @@ const NavBtn = ({ icon, label, active, onPress }: any) => (
       styles.navLabel, 
       { 
         color: active ? COLORS.primary : COLORS.textMuted,
+        fontWeight: active ? "700" : "400",
         textShadowColor: active ? "rgba(199, 18, 49, 0.4)" : "transparent",
-        textShadowRadius: active ? 4 : 0
+        textShadowRadius: active ? 10 : 0
       }
     ]}>
       {label}
     </Text>
+    <View style={styles.indicatorContainer}>
+      {active && <View style={styles.activeIndicator} />}
+    </View>
   </TouchableOpacity>
 );
 
@@ -415,27 +435,46 @@ const styles = StyleSheet.create({
     color: "white",
     letterSpacing: 1,
   },
-  headerBar: {
+  headerWrapperFixed: {
+    width: "100%",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 50,
+    backgroundColor: COLORS.background,
+    zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
+  },
+  headerBackgroundFlat: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  headerIconsRowFlat: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    paddingTop: 20,
-    paddingBottom: 20,
+    height: 70,
+  },
+  headerTitlesRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerDivider: {
+    width: 1,
+    height: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   headerLabel: {
-    fontFamily: "Inter-Regular",
-    fontSize: moderateScale(12),
-    color: COLORS.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    fontFamily: "Inter-Bold",
+    fontSize: moderateScale(11),
+    color: COLORS.primary,
+    letterSpacing: 1.5,
   },
   headerTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: moderateScale(28),
+    fontSize: moderateScale(22),
     color: "white",
   },
-  profileCircle: {
+  profileCircleCompact: {
     width: 45,
     height: 45,
     borderRadius: 25,
@@ -443,7 +482,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  profileCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.card,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  profileInnerCircle: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(199, 18, 49, 0.05)",
   },
   screenScroll: {
     flex: 1,
@@ -533,26 +595,45 @@ const styles = StyleSheet.create({
     left: Platform.OS === "web" ? "5%" : 20,
     right: Platform.OS === "web" ? "5%" : 20,
     height: 80,
+    justifyContent: "center",
     alignItems: "center",
   },
   navInnerContainer: {
     width: "100%",
-    height: "100%",
-    borderRadius: 30,
+    height: 70, // Slightly shorter than wrapper for better shadow breathing
+    borderRadius: 35,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.15)",
     elevation: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 }, // Perfectly uniform glow
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+  },
+  navItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 65,
+    height: "100%",
+  },
+  indicatorContainer: {
+    height: 6,
+    marginTop: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeIndicator: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
   },
   activeIconGlow: {
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
+    shadowOpacity: 1,
+    shadowRadius: 12,
   },
   navBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -564,33 +645,28 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingHorizontal: 10,
   },
-  navItem: {
-    alignItems: "center",
-    gap: 4,
-    width: 60,
-  },
   navLabel: {
     fontFamily: "Inter-Bold",
     fontSize: moderateScale(10),
   },
   centerFabPosition: {
     position: "absolute",
-    top: -40,
+    top: -35, // Perfectly centered vertically relative to the bar top
     alignSelf: "center",
   },
   centerFab: {
-    width: 80,
-    height: 80,
+    width: 75,
+    height: 75,
     borderRadius: 40,
     backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
-    padding: 8,
-    elevation: 10,
+    padding: 6,
+    elevation: 15,
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
   },
   fabGradient: {
     width: "100%",
