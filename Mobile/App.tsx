@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { 
   StyleSheet, 
   Text, 
@@ -7,8 +7,9 @@ import {
   TouchableOpacity, 
   StatusBar,
   Dimensions,
-  ImageBackground,
-  SafeAreaView
+  SafeAreaView,
+  Animated,
+  Easing
 } from "react-native";
 import { 
   useFonts, 
@@ -33,18 +34,6 @@ import {
   ChevronRight, 
   Play
 } from "lucide-react-native";
-import Animated, { 
-  FadeInUp, 
-  FadeInDown, 
-  Layout, 
-  SlideInRight, 
-  withSpring, 
-  useAnimatedStyle, 
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence
-} from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
 
@@ -58,27 +47,69 @@ const TechAssassinApp = () => {
     "Inter-Bold": Inter_700Bold,
   });
 
-  const pulse = useSharedValue(1);
+  // Animation values
+  const fadeAnimHeader = useRef(new Animated.Value(0)).current;
+  const fadeAnimHero = useRef(new Animated.Value(0)).current;
+  const fadeAnimFeed = useRef(new Animated.Value(0)).current;
+  const slideAnimMissions = useRef(new Animated.Value(width)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     async function prepare() {
       await SplashScreen.preventAutoHideAsync();
     }
     prepare();
-    
-    pulse.value = withRepeat(
-      withSequence(
-        withSpring(1.05),
-        withSpring(1)
-      ),
-      -1,
-      true
-    );
-  }, []);
 
-  const animatedPulse = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-  }));
+    if (fontsLoaded) {
+      // Sequence of entrance animations
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.parallel([
+          Animated.timing(fadeAnimHeader, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnimHero, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.spring(slideAnimMissions, {
+            toValue: 0,
+            friction: 8,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnimFeed, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+
+      // Loop pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
 
@@ -103,8 +134,16 @@ const TechAssassinApp = () => {
         >
           {/* Header */}
           <Animated.View 
-            entering={FadeInDown.delay(200).duration(800)}
-            style={styles.header}
+            style={[
+              styles.header, 
+              { 
+                opacity: fadeAnimHeader,
+                transform: [{ translateY: fadeAnimHeader.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0]
+                })}]
+              }
+            ]}
           >
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
@@ -118,8 +157,16 @@ const TechAssassinApp = () => {
 
           {/* Hero Section Card */}
           <Animated.View 
-            entering={FadeInUp.delay(400).duration(1000)}
-            style={styles.heroCard}
+            style={[
+              styles.heroCard,
+              {
+                opacity: fadeAnimHero,
+                transform: [{ translateY: fadeAnimHero.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0]
+                })}]
+              }
+            ]}
           >
             <View style={styles.heroOverlay}>
               <View style={styles.badgeContainer}>
@@ -174,8 +221,12 @@ const TechAssassinApp = () => {
             ].map((mission, index) => (
               <Animated.View 
                 key={mission.id}
-                entering={SlideInRight.delay(600 + (index * 100))}
-                style={styles.missionCard}
+                style={[
+                  styles.missionCard,
+                  {
+                    transform: [{ translateX: slideAnimMissions }]
+                  }
+                ]}
               >
                 <View style={styles.missionIcon}>{mission.icon}</View>
                 <Text style={styles.missionTitle}>{mission.title}</Text>
@@ -193,8 +244,16 @@ const TechAssassinApp = () => {
           </View>
 
           <Animated.View 
-            entering={FadeInUp.delay(800)}
-            style={styles.feedCard}
+            style={[
+              styles.feedCard,
+              {
+                opacity: fadeAnimFeed,
+                transform: [{ translateY: fadeAnimFeed.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [30, 0]
+                })}]
+              }
+            ]}
           >
             <View style={styles.feedHeader}>
               <View style={styles.avatarPlaceholder}>
@@ -228,7 +287,7 @@ const TechAssassinApp = () => {
           <Search color={COLORS.textMuted} size={24} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItemCenter}>
-          <Animated.View style={[styles.fab, animatedPulse]}>
+          <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }] }]}>
             <Zap color={COLORS.foreground} size={28} />
           </Animated.View>
         </TouchableOpacity>
@@ -435,7 +494,7 @@ const styles = StyleSheet.create({
   },
   xpText: {
     fontFamily: "Inter-Regular",
-    color: COLORS.success,
+    color: "#4ade80",
     fontSize: 10,
   },
   feedCard: {
