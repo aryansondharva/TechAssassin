@@ -41,8 +41,9 @@ import {
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
+import { moderateScale, SCREEN_WIDTH } from "./src/theme/responsive";
 
-const { width, height } = Dimensions.get("window");
+const MAX_WIDTH = 480; // Standard mobile width limit
 
 const TechAssassinApp = () => {
   const [fontsLoaded] = useFonts({
@@ -199,7 +200,8 @@ const TechAssassinApp = () => {
   );
 
   return (
-    <View style={styles.mainContainer} onLayout={onLayoutRootView}>
+    <View style={styles.rootWrapper}>
+      <View style={styles.mainContainer} onLayout={onLayoutRootView}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
       {activeScreen === "Home" && renderHomeScreen()}
@@ -219,38 +221,66 @@ const TechAssassinApp = () => {
         </SafeAreaView>
       )}
 
-      {/* Glossy Translucent Bottom Navigation */}
+      {/* Refined Premium Bottom Navigation */}
       <View style={styles.navWrapper}>
-        <LinearGradient
-          colors={["rgba(26, 28, 33, 0.95)", "rgba(13, 15, 18, 1)"]}
-          style={styles.navBackground}
-        />
-        <View style={styles.navIconsRow}>
-          <NavBtn icon={<Flame />} label="Home" active={activeScreen === "Home"} onPress={() => setActiveScreen("Home")} />
-          <NavBtn icon={<Target />} label="Missions" active={activeScreen === "Missions"} onPress={() => setActiveScreen("Missions")} />
+        <View style={styles.navInnerContainer}>
+          <LinearGradient
+            colors={["rgba(36, 38, 43, 0.98)", "rgba(13, 15, 18, 1)"]}
+            style={styles.navBackground}
+          />
           
-          <TouchableOpacity style={styles.centerFabContainer} onPress={() => setActiveScreen("Home")}>
-            <Animated.View style={[styles.centerFab, { transform: [{ scale: pulseAnim }] }]}>
-              <Zap color="white" fill="white" size={32} />
-            </Animated.View>
-          </TouchableOpacity>
+          <View style={styles.navIconsRow}>
+            <NavBtn icon={<Flame />} label="Home" active={activeScreen === "Home"} onPress={() => setActiveScreen("Home")} />
+            <NavBtn icon={<Target />} label="Missions" active={activeScreen === "Missions"} onPress={() => setActiveScreen("Missions")} />
+            
+            <View style={{ width: 80 }} /> {/* Spacer for central FAB */}
 
-          <NavBtn icon={<Users />} label="Team" active={activeScreen === "Team"} onPress={() => setActiveScreen("Team")} />
-          <NavBtn icon={<Shield />} label="Vault" active={activeScreen === "Vault"} onPress={() => setActiveScreen("Vault")} />
+            <NavBtn icon={<Users />} label="Team" active={activeScreen === "Team"} onPress={() => setActiveScreen("Team")} />
+            <NavBtn icon={<Shield />} label="Vault" active={activeScreen === "Vault"} onPress={() => setActiveScreen("Vault")} />
+          </View>
         </View>
+
+        {/* Central Popping FAB */}
+        <TouchableOpacity 
+          style={styles.centerFabPosition} 
+          onPress={() => setActiveScreen("Home")}
+          activeOpacity={0.9}
+        >
+          <Animated.View style={[styles.centerFab, { transform: [{ scale: pulseAnim }] }]}>
+            <LinearGradient
+              colors={[COLORS.primary, COLORS.primaryLight]}
+              style={styles.fabGradient}
+            >
+              <Zap color="white" fill="white" size={32} />
+            </LinearGradient>
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
       </View>
     </View>
   );
 };
 
-const NavBtn = ({ icon, label, active, onPress }) => (
-  <TouchableOpacity style={styles.navItem} onPress={onPress}>
-    {React.cloneElement(icon, { 
-      size: 24, 
-      color: active ? COLORS.primary : COLORS.textMuted,
-      fill: active ? COLORS.primary + "22" : "transparent"
-    })}
-    <Text style={[styles.navLabel, { color: active ? COLORS.primary : COLORS.textMuted }]}>{label}</Text>
+const NavBtn = ({ icon, label, active, onPress }: any) => (
+  <TouchableOpacity style={styles.navItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={active ? styles.activeIconGlow : null}>
+      {React.cloneElement(icon, { 
+        size: 24, 
+        color: active ? COLORS.primary : COLORS.textMuted,
+        fill: active ? COLORS.primary : "transparent",
+        strokeWidth: active ? 2.5 : 2
+      })}
+    </View>
+    <Text style={[
+      styles.navLabel, 
+      { 
+        color: active ? COLORS.primary : COLORS.textMuted,
+        textShadowColor: active ? "rgba(199, 18, 49, 0.4)" : "transparent",
+        textShadowRadius: active ? 4 : 0
+      }
+    ]}>
+      {label}
+    </Text>
   </TouchableOpacity>
 );
 
@@ -261,9 +291,19 @@ const ArrowRightIcon = () => (
 );
 
 const styles = StyleSheet.create({
+  rootWrapper: {
+    flex: 1,
+    backgroundColor: "#000", // Background color for larger screens
+    alignItems: "center",
+    justifyContent: "center",
+  },
   mainContainer: {
     flex: 1,
+    width: Platform.OS === "web" ? Math.min(SCREEN_WIDTH, MAX_WIDTH) : "100%",
+    maxWidth: Platform.OS === "web" ? MAX_WIDTH : undefined,
     backgroundColor: COLORS.background,
+    overflow: "hidden",
+    alignSelf: "center",
   },
   safeContainer: {
     flex: 1,
@@ -277,8 +317,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   heroContent: {
-    paddingHorizontal: 30,
-    paddingBottom: 120,
+    paddingHorizontal: moderateScale(30),
+    paddingBottom: moderateScale(120),
   },
   heroBadge: {
     alignSelf: "flex-start",
@@ -292,15 +332,15 @@ const styles = StyleSheet.create({
   },
   heroBadgeText: {
     fontFamily: "Inter-Bold",
-    fontSize: 10,
+    fontSize: moderateScale(10),
     color: "white",
     letterSpacing: 2,
   },
   heroMainTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 54,
+    fontSize: moderateScale(54),
     color: "white",
-    lineHeight: 60,
+    lineHeight: moderateScale(60),
     marginBottom: 4,
   },
   heroSubtitleRow: {
@@ -311,7 +351,7 @@ const styles = StyleSheet.create({
   },
   heroSubtitleText: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 20,
+    fontSize: moderateScale(20),
     color: COLORS.primary,
   },
   heroStatsBox: {
@@ -332,7 +372,7 @@ const styles = StyleSheet.create({
   },
   heroStatValue: {
     fontFamily: "Inter-Regular",
-    fontSize: 12,
+    fontSize: moderateScale(12),
     color: "rgba(255, 255, 255, 0.7)",
   },
   heroStatDivider: {
@@ -357,7 +397,7 @@ const styles = StyleSheet.create({
   },
   heroPrimaryBtnText: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 16,
+    fontSize: moderateScale(16),
     color: "black",
     letterSpacing: 1,
   },
@@ -385,14 +425,14 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontFamily: "Inter-Regular",
-    fontSize: 12,
+    fontSize: moderateScale(12),
     color: COLORS.textMuted,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   headerTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 28,
+    fontSize: moderateScale(28),
     color: "white",
   },
   profileCircle: {
@@ -419,7 +459,7 @@ const styles = StyleSheet.create({
   },
   subtitleText: {
     fontFamily: "Inter-Regular",
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: COLORS.textMuted,
     marginTop: 4,
   },
@@ -448,7 +488,7 @@ const styles = StyleSheet.create({
   },
   missionCardTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 18,
+    fontSize: moderateScale(18),
     color: "white",
     flex: 1,
     marginRight: 10,
@@ -476,7 +516,7 @@ const styles = StyleSheet.create({
   },
   rewardText: {
     fontFamily: "Inter-Bold",
-    fontSize: 13,
+    fontSize: moderateScale(13),
     color: "white",
   },
   arrowIconCircle: {
@@ -489,17 +529,30 @@ const styles = StyleSheet.create({
   },
   navWrapper: {
     position: "absolute",
-    bottom: 35,
-    left: 20,
-    right: 20,
-    height: 85,
+    bottom: moderateScale(30),
+    left: Platform.OS === "web" ? "5%" : 20,
+    right: Platform.OS === "web" ? "5%" : 20,
+    height: 80,
+    alignItems: "center",
+  },
+  navInnerContainer: {
+    width: "100%",
+    height: "100%",
     borderRadius: 30,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
     elevation: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
+  },
+  activeIconGlow: {
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
   },
   navBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -518,21 +571,35 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontFamily: "Inter-Bold",
-    fontSize: 10,
+    fontSize: moderateScale(10),
   },
-  centerFabContainer: {
-    marginTop: -45,
+  centerFabPosition: {
+    position: "absolute",
+    top: -40,
+    alignSelf: "center",
   },
   centerFab: {
-    width: 75,
-    height: 75,
+    width: 80,
+    height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 6,
-    borderColor: "#0d0f12",
-    elevation: 8,
+    padding: 8,
+    elevation: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+  },
+  fabGradient: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 35,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
 });
 
