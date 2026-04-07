@@ -9,7 +9,9 @@ import {
   Dimensions,
   SafeAreaView,
   Animated,
-  Easing
+  Easing,
+  ImageBackground,
+  Platform
 } from "react-native";
 import { 
   useFonts, 
@@ -32,12 +34,15 @@ import {
   Search, 
   User, 
   ChevronRight, 
-  Play
+  Play,
+  Share2,
+  Trophy,
+  Shield
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const TechAssassinApp = () => {
   const [fontsLoaded] = useFonts({
@@ -47,11 +52,10 @@ const TechAssassinApp = () => {
     "Inter-Bold": Inter_700Bold,
   });
 
-  // Animation values
-  const fadeAnimHeader = useRef(new Animated.Value(0)).current;
-  const fadeAnimHero = useRef(new Animated.Value(0)).current;
-  const fadeAnimFeed = useRef(new Animated.Value(0)).current;
-  const slideAnimMissions = useRef(new Animated.Value(width)).current;
+  const [activeScreen, setActiveScreen] = useState("Home");
+  
+  // Entrance animation values
+  const entranceAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -61,48 +65,24 @@ const TechAssassinApp = () => {
     prepare();
 
     if (fontsLoaded) {
-      // Sequence of entrance animations
-      Animated.sequence([
-        Animated.delay(200),
-        Animated.parallel([
-          Animated.timing(fadeAnimHeader, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnimHero, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.spring(slideAnimMissions, {
-            toValue: 0,
-            friction: 8,
-            tension: 40,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnimFeed, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start();
+      Animated.timing(entranceAnim, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: true,
+      }).start();
 
-      // Loop pulse animation
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.1,
-            duration: 1000,
+            toValue: 1.05,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -117,500 +97,443 @@ const TechAssassinApp = () => {
     await SplashScreen.hideAsync();
   };
 
-  return (
-    <View style={styles.container} onLayout={onLayoutRootView}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={[COLORS.background, "#1a1616", COLORS.background]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Header */}
-          <Animated.View 
-            style={[
-              styles.header, 
-              { 
-                opacity: fadeAnimHeader,
-                transform: [{ translateY: fadeAnimHeader.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0]
-                })}]
-              }
-            ]}
-          >
-            <View>
-              <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.userName}>Operative Aryan</Text>
+  const renderHomeScreen = () => (
+    <View style={styles.screenContainer}>
+      <ImageBackground 
+        source={require("./assets/hero-bg.png")} 
+        style={styles.heroBackground}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(13, 15, 18, 0.8)", COLORS.background]}
+          style={StyleSheet.absoluteFill}
+        />
+        
+        <View style={styles.heroContent}>
+          <Animated.View style={{ 
+            opacity: entranceAnim,
+            transform: [{ translateY: entranceAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [50, 0]
+            })}]
+          }}>
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>HACKATHON COMMUNITY</Text>
             </View>
-            <TouchableOpacity style={styles.iconButton}>
-              <Bell color={COLORS.foreground} size={24} />
-              <View style={styles.notificationDot} />
+            
+            <Text style={styles.heroMainTitle}>
+              Tech<Text style={{ color: COLORS.primary }}> Assassin</Text>
+            </Text>
+            
+            <View style={styles.heroSubtitleRow}>
+              <Zap size={22} color={COLORS.primary} fill={COLORS.primary} />
+              <Text style={styles.heroSubtitleText}>Active Hackathon Community</Text>
+            </View>
+
+            <View style={styles.heroStatsBox}>
+              <View style={styles.heroStatItem}>
+                <MapPin size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>Global</Text>
+              </View>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStatItem}>
+                <CalendarDays size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>Missions</Text>
+              </View>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStatItem}>
+                <Users size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>1.8k+</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.heroPrimaryBtn}>
+              <Text style={styles.heroPrimaryBtnText}>JOIN THE SQUAD</Text>
+              <ChevronRight color="black" size={20} strokeWidth={3} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.heroSecondaryBtn}>
+              <Text style={styles.heroSecondaryBtnText}>EXPLORE MISSIONS</Text>
             </TouchableOpacity>
           </Animated.View>
+        </View>
+      </ImageBackground>
+    </View>
+  );
 
-          {/* Hero Section Card */}
-          <Animated.View 
-            style={[
-              styles.heroCard,
-              {
-                opacity: fadeAnimHero,
-                transform: [{ translateY: fadeAnimHero.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0]
-                })}]
-              }
-            ]}
-          >
-            <View style={styles.heroOverlay}>
-              <View style={styles.badgeContainer}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>HACKATHON COMMUNITY</Text>
-                </View>
-              </View>
-              
-              <Text style={styles.heroTitle}>
-                Tech<Text style={styles.heroTitleHighlight}> Assassin</Text>
-              </Text>
-              
-              <View style={styles.heroSubtitleContainer}>
-                <Flame size={18} color={COLORS.primary} style={styles.heroIcon} />
-                <Text style={styles.heroSubtitle}>Active Missions Available</Text>
-              </View>
+  const renderMissionsScreen = () => (
+    <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
+      <View style={styles.missionListHeader}>
+        <Text style={styles.titleText}>Available Missions</Text>
+        <Text style={styles.subtitleText}>High priority bounties for elite operatives.</Text>
+      </View>
 
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Users size={16} color={COLORS.primary} />
-                  <Text style={styles.statText}>1.8k+ Squad</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Target size={16} color={COLORS.primary} />
-                  <Text style={styles.statText}>12 Active</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <MapPin size={16} color={COLORS.primary} />
-                  <Text style={styles.statText}>Global</Text>
-                </View>
+      {[
+        { id: 1, title: "Neural Link Override", reward: "4,500 XP", complexity: "High", color: "#facc15" },
+        { id: 2, title: "Ghost Protocol", reward: "2,200 XP", complexity: "Mid", color: "#f87171" },
+        { id: 3, title: "Crypto Citadel", reward: "8,000 XP", complexity: "Elite", color: "#c084fc" },
+      ].map((mission, index) => (
+        <TouchableOpacity key={mission.id} style={styles.missionCardRich}>
+          <View style={[styles.missionIndicator, { backgroundColor: mission.color }]} />
+          <View style={styles.missionCardBody}>
+            <View style={styles.missionCardTop}>
+              <Text style={styles.missionCardTitle}>{mission.title}</Text>
+              <View style={styles.complexityBadge}>
+                <Text style={styles.complexityText}>{mission.complexity}</Text>
               </View>
-
-              <TouchableOpacity style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>JOIN THE SQUAD</Text>
-                <ChevronRight color={COLORS.foreground} size={18} />
+            </View>
+            <View style={styles.missionCardBottom}>
+              <View style={styles.rewardBox}>
+                <Trophy size={14} color={COLORS.textMuted} />
+                <Text style={styles.rewardText}>{mission.reward}</Text>
+              </View>
+              <TouchableOpacity>
+                <ArrowRightIcon />
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
+        </TouchableOpacity>
+      ))}
+      <View style={{ height: 120 }} />
+    </ScrollView>
+  );
 
-          {/* Quick Actions */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Missions</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
+  return (
+    <View style={styles.mainContainer} onLayout={onLayoutRootView}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      {activeScreen === "Home" && renderHomeScreen()}
+      {activeScreen !== "Home" && (
+        <SafeAreaView style={styles.safeContainer}>
+          <View style={styles.headerBar}>
+            <View>
+              <Text style={styles.headerLabel}>Tech Assassin</Text>
+              <Text style={styles.headerTitle}>{activeScreen}</Text>
+            </View>
+            <TouchableOpacity style={styles.profileCircle}>
+              <User color={COLORS.foreground} size={20} />
             </TouchableOpacity>
           </View>
+          {activeScreen === "Missions" && renderMissionsScreen()}
+          {/* Add other screen renders as needed */}
+        </SafeAreaView>
+      )}
 
-          <View style={styles.missionsGrid}>
-            {[
-              { id: 1, title: 'AI Overlord', rank: 'A', xp: 500, icon: <Zap size={24} color="#facc15" /> },
-              { id: 2, title: 'Block Hunter', rank: 'S', xp: 1200, icon: <Target size={24} color="#f87171" /> },
-            ].map((mission, index) => (
-              <Animated.View 
-                key={mission.id}
-                style={[
-                  styles.missionCard,
-                  {
-                    transform: [{ translateX: slideAnimMissions }]
-                  }
-                ]}
-              >
-                <View style={styles.missionIcon}>{mission.icon}</View>
-                <Text style={styles.missionTitle}>{mission.title}</Text>
-                <View style={styles.missionFooter}>
-                  <Text style={styles.rankText}>Rank {mission.rank}</Text>
-                  <Text style={styles.xpText}>+{mission.xp} XP</Text>
-                </View>
-              </Animated.View>
-            ))}
-          </View>
+      {/* Glossy Translucent Bottom Navigation */}
+      <View style={styles.navWrapper}>
+        <LinearGradient
+          colors={["rgba(26, 28, 33, 0.95)", "rgba(13, 15, 18, 1)"]}
+          style={styles.navBackground}
+        />
+        <View style={styles.navIconsRow}>
+          <NavBtn icon={<Flame />} label="Home" active={activeScreen === "Home"} onPress={() => setActiveScreen("Home")} />
+          <NavBtn icon={<Target />} label="Missions" active={activeScreen === "Missions"} onPress={() => setActiveScreen("Missions")} />
+          
+          <TouchableOpacity style={styles.centerFabContainer} onPress={() => setActiveScreen("Home")}>
+            <Animated.View style={[styles.centerFab, { transform: [{ scale: pulseAnim }] }]}>
+              <Zap color="white" fill="white" size={32} />
+            </Animated.View>
+          </TouchableOpacity>
 
-          {/* Community Feed Highlight */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Global Feed</Text>
-          </View>
-
-          <Animated.View 
-            style={[
-              styles.feedCard,
-              {
-                opacity: fadeAnimFeed,
-                transform: [{ translateY: fadeAnimFeed.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0]
-                })}]
-              }
-            ]}
-          >
-            <View style={styles.feedHeader}>
-              <View style={styles.avatarPlaceholder}>
-                <User color={COLORS.foreground} size={20} />
-              </View>
-              <View>
-                <Text style={styles.feedUserName}>Zephyr Assassin</Text>
-                <Text style={styles.feedTime}>2 hours ago</Text>
-              </View>
-            </View>
-            <Text style={styles.feedContent}>
-              Just completed the "Cloud Breaker" bounty! The rewards are insane. Best of luck squad! 🚀
-            </Text>
-            <View style={styles.feedImagePlaceholder}>
-              <Play color={COLORS.primary} size={40} />
-              <Text style={styles.feedImageText}>Tech Talk - Cloud Security</Text>
-            </View>
-          </Animated.View>
-
-          <View style={{ height: 100 }} />
-        </ScrollView>
-      </SafeAreaView>
-
-      {/* Modern Bottom Tab Bar */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItemActive}>
-          <Target color={COLORS.primary} size={24} />
-          <Text style={styles.navTextActive}>Missions</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Search color={COLORS.textMuted} size={24} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItemCenter}>
-          <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }] }]}>
-            <Zap color={COLORS.foreground} size={28} />
-          </Animated.View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Users color={COLORS.textMuted} size={24} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <User color={COLORS.textMuted} size={24} />
-        </TouchableOpacity>
+          <NavBtn icon={<Users />} label="Team" active={activeScreen === "Team"} onPress={() => setActiveScreen("Team")} />
+          <NavBtn icon={<Shield />} label="Vault" active={activeScreen === "Vault"} onPress={() => setActiveScreen("Vault")} />
+        </View>
       </View>
     </View>
   );
 };
 
+const NavBtn = ({ icon, label, active, onPress }) => (
+  <TouchableOpacity style={styles.navItem} onPress={onPress}>
+    {React.cloneElement(icon, { 
+      size: 24, 
+      color: active ? COLORS.primary : COLORS.textMuted,
+      fill: active ? COLORS.primary + "22" : "transparent"
+    })}
+    <Text style={[styles.navLabel, { color: active ? COLORS.primary : COLORS.textMuted }]}>{label}</Text>
+  </TouchableOpacity>
+);
+
+const ArrowRightIcon = () => (
+  <View style={styles.arrowIconCircle}>
+    <ChevronRight size={16} color={COLORS.primary} strokeWidth={3} />
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  safeContainer: {
     flex: 1,
   },
-  safeArea: {
+  screenContainer: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
+  heroBackground: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "flex-end",
   },
-  header: {
+  heroContent: {
+    paddingHorizontal: 30,
+    paddingBottom: 120,
+  },
+  heroBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 50,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.4)",
+    marginBottom: 16,
+  },
+  heroBadgeText: {
+    fontFamily: "Inter-Bold",
+    fontSize: 10,
+    color: "white",
+    letterSpacing: 2,
+  },
+  heroMainTitle: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 54,
+    color: "white",
+    lineHeight: 60,
+    marginBottom: 4,
+  },
+  heroSubtitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 24,
+  },
+  heroSubtitleText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 20,
+    color: COLORS.primary,
+  },
+  heroStatsBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    marginBottom: 30,
+  },
+  heroStatItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  heroStatValue: {
+    fontFamily: "Inter-Regular",
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.7)",
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  heroPrimaryBtn: {
+    backgroundColor: COLORS.primary,
+    height: 60,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  heroPrimaryBtnText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 16,
+    color: "black",
+    letterSpacing: 1,
+  },
+  heroSecondaryBtn: {
+    height: 60,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  heroSecondaryBtnText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 16,
+    color: "white",
+    letterSpacing: 1,
+  },
+  headerBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
-  welcomeText: {
+  headerLabel: {
     fontFamily: "Inter-Regular",
+    fontSize: 12,
     color: COLORS.textMuted,
-    fontSize: 14,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
-  userName: {
+  headerTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    color: COLORS.foreground,
-    fontSize: 24,
-    marginTop: 4,
+    fontSize: 28,
+    color: "white",
   },
-  iconButton: {
+  profileCircle: {
     width: 45,
     height: 45,
-    borderRadius: 12,
+    borderRadius: 25,
     backgroundColor: COLORS.card,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  notificationDot: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.primary,
-  },
-  heroCard: {
-    width: '100%',
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: 'rgba(199, 18, 49, 0.3)',
-    marginBottom: 30,
-    elevation: 10,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-  },
-  heroOverlay: {
-    padding: 24,
-  },
-  badgeContainer: {
-    marginBottom: 16,
-  },
-  badge: {
-    backgroundColor: 'rgba(199, 18, 49, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(199, 18, 49, 0.4)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 50,
-    alignSelf: 'flex-start',
-  },
-  badgeText: {
-    fontFamily: "Inter-Bold",
-    fontSize: 10,
-    color: COLORS.primary,
-    letterSpacing: 1,
-  },
-  heroTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
-    fontSize: 38,
-    color: COLORS.foreground,
-    lineHeight: 44,
-  },
-  heroTitleHighlight: {
-    color: COLORS.primary,
-  },
-  heroSubtitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  heroIcon: {
-    marginRight: 8,
-  },
-  heroSubtitle: {
-    fontFamily: "Inter-Bold",
-    fontSize: 18,
-    color: COLORS.primary,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    marginTop: 24,
-    gap: 16,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statText: {
-    fontFamily: "Inter-Regular",
-    color: COLORS.textMuted,
-    fontSize: 12,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 8,
-  },
-  primaryButtonText: {
-    fontFamily: "SpaceGrotesk-Bold",
-    color: COLORS.foreground,
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontFamily: "SpaceGrotesk-Bold",
-    color: COLORS.foreground,
-    fontSize: 20,
-  },
-  seeAll: {
-    fontFamily: "Inter-Regular",
-    color: COLORS.primary,
-    fontSize: 14,
-  },
-  missionsGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 30,
-  },
-  missionCard: {
+  screenScroll: {
     flex: 1,
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    paddingHorizontal: 25,
   },
-  missionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
+  missionListHeader: {
+    marginBottom: 25,
   },
-  missionTitle: {
+  titleText: {
     fontFamily: "SpaceGrotesk-Bold",
-    color: COLORS.foreground,
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: 22,
+    color: "white",
   },
-  missionFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  subtitleText: {
+    fontFamily: "Inter-Regular",
+    fontSize: 14,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
-  rankText: {
-    fontFamily: "Inter-Bold",
-    color: COLORS.primary,
-    fontSize: 12,
-  },
-  xpText: {
-    fontFamily: "Inter-Regular",
-    color: "#4ade80",
-    fontSize: 10,
-  },
-  feedCard: {
+  missionCardRich: {
     backgroundColor: COLORS.card,
     borderRadius: 20,
-    padding: 16,
+    flexDirection: "row",
+    overflow: "hidden",
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  feedHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  missionIndicator: {
+    width: 6,
+    height: "100%",
+  },
+  missionCardBody: {
+    flex: 1,
+    padding: 20,
+  },
+  missionCardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  feedUserName: {
-    fontFamily: "Inter-Bold",
-    color: COLORS.foreground,
-    fontSize: 15,
-  },
-  feedTime: {
-    fontFamily: "Inter-Regular",
-    color: COLORS.textMuted,
-    fontSize: 12,
-  },
-  feedContent: {
-    fontFamily: "Inter-Regular",
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  feedImagePlaceholder: {
-    width: '100%',
-    height: 180,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 12,
-  },
-  feedImageText: {
+  missionCardTitle: {
     fontFamily: "SpaceGrotesk-Bold",
-    color: COLORS.foreground,
-    fontSize: 14,
+    fontSize: 18,
+    color: "white",
+    flex: 1,
+    marginRight: 10,
   },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 30,
+  complexityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+  },
+  complexityText: {
+    fontFamily: "Inter-Bold",
+    fontSize: 10,
+    color: COLORS.textMuted,
+  },
+  missionCardBottom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  rewardBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  rewardText: {
+    fontFamily: "Inter-Bold",
+    fontSize: 13,
+    color: "white",
+  },
+  arrowIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(199, 18, 49, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navWrapper: {
+    position: "absolute",
+    bottom: 35,
     left: 20,
     right: 20,
-    height: 70,
-    backgroundColor: 'rgba(26, 28, 33, 0.95)',
-    borderRadius: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
-    paddingBottom: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    shadowColor: '#000',
+    height: 85,
+    borderRadius: 30,
+    overflow: "hidden",
+    elevation: 20,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+  },
+  navBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  navIconsRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingHorizontal: 10,
   },
   navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 45,
-    height: 45,
+    alignItems: "center",
+    gap: 4,
+    width: 60,
   },
-  navItemActive: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(199, 18, 49, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 15,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  navTextActive: {
+  navLabel: {
     fontFamily: "Inter-Bold",
-    color: COLORS.primary,
-    fontSize: 12,
+    fontSize: 10,
   },
-  navItemCenter: {
-    marginTop: -40,
+  centerFabContainer: {
+    marginTop: -45,
   },
-  fab: {
-    width: 65,
-    height: 65,
-    borderRadius: 35,
+  centerFab: {
+    width: 75,
+    height: 75,
+    borderRadius: 40,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 6,
+    borderColor: "#0d0f12",
     elevation: 8,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    borderWidth: 4,
-    borderColor: COLORS.background,
-  }
+  },
 });
 
 export default TechAssassinApp;
