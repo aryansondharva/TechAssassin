@@ -1,15 +1,23 @@
 const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
 const { Pool } = require('pg');
+require('dotenv').config({ path: '.env.local' });
+
+if (!process.env.DATABASE_URL) {
+  console.error('❌ Error: DATABASE_URL not found in .env.local');
+  process.exit(1);
+}
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://techassassin:2301@localhost:5432/techassassin',
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
 async function runMigrations() {
   console.log('🚀 Starting database migrations...\n');
+  console.log('Connection URL:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@'));
 
-  const migrationsDir = join(__dirname, '../supabase/migrations');
+  const migrationsDir = join(__dirname, '../../SQL');
   const migrationFiles = readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort(); // Run in order

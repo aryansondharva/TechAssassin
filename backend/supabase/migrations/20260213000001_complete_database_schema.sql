@@ -463,14 +463,36 @@ CREATE POLICY "Public read access for sponsor logos" ON storage.objects
 -- ==============================================================================
 
 -- Enable realtime on core tables
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.events;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.leaderboard;
+DO $$
+BEGIN
+  -- Ensure publication exists
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    CREATE PUBLICATION supabase_realtime;
+  END IF;
+
+  -- Add tables safely
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+  EXCEPTION WHEN others THEN RAISE NOTICE '%', SQLERRM; END;
+  
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.events;
+  EXCEPTION WHEN others THEN RAISE NOTICE '%', SQLERRM; END;
+  
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
+  EXCEPTION WHEN others THEN RAISE NOTICE '%', SQLERRM; END;
+  
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+  EXCEPTION WHEN others THEN RAISE NOTICE '%', SQLERRM; END;
+  
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.leaderboard;
+  EXCEPTION WHEN others THEN RAISE NOTICE '%', SQLERRM; END;
+END $$;
 
 -- Grant publication permissions
-GRANT ALL ON PUBLICATION supabase_realtime TO authenticated;
 GRANT SELECT ON ALL TABLES IN PUBLICATION supabase_realtime TO authenticated;
 
 -- ==============================================================================
