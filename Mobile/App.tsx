@@ -211,7 +211,7 @@ const TechAssassinApp = () => {
             <View style={styles.feedImagePlaceholder}>
               <Play color={COLORS.primary} size={40} />
               <Text style={styles.feedImageText}>Tech Talk - Cloud Security</Text>
-            </Animated.View>
+            </View>
           </Animated.View>
 
           <View style={{ height: 100 }} />
