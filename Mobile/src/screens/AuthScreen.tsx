@@ -10,12 +10,13 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../theme/colors';
 import { moderateScale } from '../theme/responsive';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react-native';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, Contact } from 'lucide-react-native';
 
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,6 +24,7 @@ const AuthScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -30,29 +32,44 @@ const AuthScreen = () => {
       return;
     }
 
+    if (!isLogin && (!username || !fullName)) {
+      Alert.alert('Error', 'Username and Full Name are required for registration');
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
+        // Direct login via Supabase
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
+        // Direct signup via Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
           password,
           options: {
             data: {
-              username: username || email.split('@')[0],
+              username: username.trim().toLowerCase(),
+              full_name: fullName.trim(),
             },
           },
         });
+        
         if (error) throw error;
-        Alert.alert('Success', 'Check your email for the confirmation link');
+        
+        if (data?.session) {
+          Alert.alert('Success', 'Account created successfully!');
+        } else {
+          Alert.alert('Success', 'Verification email sent! Please check your inbox.');
+        }
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      console.error('Auth error:', error);
+      Alert.alert('Authentication Failed', error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -67,91 +84,114 @@ const AuthScreen = () => {
         colors={[COLORS.background, '#0f0f12']}
         style={styles.gradient}
       >
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <ShieldCheck size={48} color={COLORS.primary} />
-          </View>
-          <Text style={styles.title}>
-            {isLogin ? 'Mission Check-in' : 'New Operative'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isLogin 
-              ? 'Enter your credentials to access the grid' 
-              : 'Register your identity in the system'}
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          {!isLogin && (
-            <View style={styles.inputWrapper}>
-              <User size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Username"
-                placeholderTextColor={COLORS.textMuted}
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-              />
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <ShieldCheck size={48} color={COLORS.primary} />
             </View>
-          )}
-
-          <View style={styles.inputWrapper}>
-            <Mail size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              placeholderTextColor={COLORS.textMuted}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
+            <Text style={styles.title}>
+              {isLogin ? 'Mission Check-in' : 'New Operative'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isLogin 
+                ? 'Enter your credentials to access the grid' 
+                : 'Initialize your identity with Tech Assassin'}
+            </Text>
           </View>
 
-          <View style={styles.inputWrapper}>
-            <Lock size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor={COLORS.textMuted}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.authButton}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
+          <View style={styles.form}>
+            {!isLogin && (
               <>
-                <Text style={styles.authButtonText}>
-                  {isLogin ? 'AUTHENTICATE' : 'INITIALIZE'}
-                </Text>
-                <ArrowRight size={20} color="#000" strokeWidth={3} />
+                <View style={styles.inputWrapper}>
+                  <Contact size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Full Name"
+                    placeholderTextColor={COLORS.textMuted}
+                    value={fullName}
+                    onChangeText={setFullName}
+                  />
+                </View>
+
+                <View style={styles.inputWrapper}>
+                  <User size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    placeholderTextColor={COLORS.textMuted}
+                    value={username}
+                    onChangeText={(text) => setUsername(text.replace(/\s/g, ''))}
+                    autoCapitalize="none"
+                  />
+                </View>
               </>
             )}
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.toggleContainer}
-            onPress={() => setIsLogin(!isLogin)}
-          >
-            <Text style={styles.toggleText}>
-              {isLogin 
-                ? "Don't have an ID? " 
-                : "Already registered? "}
-              <Text style={styles.toggleTextHighlight}>
-                {isLogin ? 'Request Access' : 'Sign In'}
+            <View style={styles.inputWrapper}>
+              <Mail size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                placeholderTextColor={COLORS.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Lock size={20} color={COLORS.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={COLORS.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.authButton, loading && styles.authButtonDisabled]}
+              onPress={handleAuth}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <>
+                  <Text style={styles.authButtonText}>
+                    {isLogin ? 'AUTHENTICATE' : 'INITIALIZE'}
+                  </Text>
+                  <ArrowRight size={20} color="#000" strokeWidth={3} />
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.toggleContainer}
+              onPress={() => {
+                setIsLogin(!isLogin);
+                // Reset inputs when toggling
+                setFullName('');
+                setUsername('');
+              }}
+            >
+              <Text style={styles.toggleText}>
+                {isLogin 
+                  ? "Don't have an ID? " 
+                  : "Already registered? "}
+                <Text style={styles.toggleTextHighlight}>
+                  {isLogin ? 'Request Access' : 'Sign In'}
+                </Text>
               </Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </KeyboardAvoidingView>
   );
@@ -164,7 +204,11 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
     paddingHorizontal: 30,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: 50,
   },
   header: {
     alignItems: 'center',
@@ -186,12 +230,14 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(32),
     color: 'white',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: moderateScale(14),
     color: COLORS.textMuted,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   form: {
     gap: 16,
@@ -229,6 +275,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 8,
+  },
+  authButtonDisabled: {
+    opacity: 0.7,
   },
   authButtonText: {
     fontFamily: 'SpaceGrotesk-Bold',

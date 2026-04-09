@@ -11,7 +11,8 @@ import {
   Animated,
   Easing,
   ImageBackground,
-  Platform
+  Platform,
+  ActivityIndicator
 } from "react-native";
 import { 
   useFonts, 
@@ -68,6 +69,9 @@ const TechAssassinApp = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthLoading(false);
+    }).catch(err => {
+      console.error('Session fetch error:', err);
+      setIsAuthLoading(false);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -108,22 +112,37 @@ const TechAssassinApp = () => {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded || isAuthLoading) return null;
+
+  const onLayoutRootView = async () => {
+    console.log('Layout triggered - hiding splash screen');
+    await SplashScreen.hideAsync();
+  };
+
+  // Only return null if fonts aren't even ready
+  if (!fontsLoaded) return null;
+
+  // Handle Initial Loading State inside the app structure
+  if (isAuthLoading) {
+    return (
+      <View style={styles.rootWrapper} onLayout={onLayoutRootView}>
+        <View style={[styles.mainContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={{ color: 'white', marginTop: 20 }}>INITIALIZING SYSTEM...</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!session) {
     return (
       <View style={styles.rootWrapper}>
-        <View style={styles.mainContainer}>
+        <View style={styles.mainContainer} onLayout={onLayoutRootView}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
           <AuthScreen />
         </View>
       </View>
     );
   }
-
-  const onLayoutRootView = async () => {
-    await SplashScreen.hideAsync();
-  };
 
   const renderHomeScreen = () => (
     <View style={styles.screenContainer}>
