@@ -129,7 +129,7 @@ const TechAssassinApp = () => {
         <View style={[styles.mainContainer, { justifyContent: 'center', alignItems: 'center' }]}>
           <Image 
             source={require('./assets/favicon.png')} 
-            style={{ width: 80, height: 80, marginBottom: 30 }}
+            style={{ width: 120, height: 120, marginBottom: 30 }}
             resizeMode="contain"
           />
           <ActivityIndicator size="large" color={COLORS.primary} />
