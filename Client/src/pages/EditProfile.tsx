@@ -138,6 +138,19 @@ export default function EditProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+
+    // Client-side validation
+    if (!formData.username || formData.username.length < 3) {
+      toast({ title: 'Invalid Username', description: 'Callsign must be at least 3 characters.', variant: 'destructive' });
+      setIsSaving(false);
+      return;
+    }
+    if (!formData.full_name) {
+      toast({ title: 'Name Required', description: 'Please enter your full operational name.', variant: 'destructive' });
+      setIsSaving(false);
+      return;
+    }
+
     try {
       // Clean up data before sending
       const submissionData = {

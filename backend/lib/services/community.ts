@@ -51,43 +51,27 @@ export async function getCommunityStats() {
 export async function getGlobalLeaderboard() {
   const supabase = await createClient()
 
+  // Use the materialized view for optimized performance
   const { data, error } = await supabase
-    .from('leaderboard')
-    .select(`
-      score,
-      user:profiles!leaderboard_user_id_fkey (
-        id,
-        username,
-        avatar_url,
-        full_name
-      )
-    `)
+    .from('leaderboard_all_time')
+    .select('*')
+    .limit(50)
   
   if (error) throw error
 
-  // Aggregate scores by user
-  const userScores: Record<string, any> = {}
-  data.forEach((entry: any) => {
-    const userId = entry.user.id
-    if (!userScores[userId]) {
-      userScores[userId] = {
-        id: userId,
-        name: entry.user.full_name || entry.user.username,
-        username: entry.user.username,
-        avatar: entry.user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.user.username}`,
-        score: 0,
-        events: 0,
-        badges: ['🏅', '🚀'],
-        trend: 'up' as const
-      }
-    }
-    userScores[userId].score += entry.score
-    userScores[userId].events += 1
-  })
-
-  return Object.values(userScores)
-    .sort((a, b) => b.score - a.score)
-    .map((user, index) => ({ ...user, rank: index + 1 }))
+  return data.map((user: any) => ({
+    id: user.id,
+    name: user.username,
+    username: user.username,
+    avatar: user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+    score: user.total_xp,
+    rank: user.rank,
+    rankName: user.rank_name,
+    rankIcon: user.rank_icon,
+    events: Math.floor(user.total_xp / 500), // Heuristic: 1 event = 500 XP
+    badges: ['🏅', '🚀', '🔥'].slice(0, Math.min(3, Math.floor(user.total_xp / 1000) + 1)),
+    trend: Math.random() > 0.7 ? 'up' : (Math.random() > 0.1 ? 'same' : 'down')
+  }))
 }
 
 /**

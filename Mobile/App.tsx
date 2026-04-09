@@ -39,7 +39,8 @@ import {
   Play,
   Share2,
   Trophy,
-  Shield
+  Shield,
+  Clock
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
@@ -119,6 +120,72 @@ const TechAssassinApp = () => {
     await SplashScreen.hideAsync();
   };
 
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [missions, setMissions] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchProfile = async () => {
+    if (!session?.user) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*, rank:rank_tiers(name, icon_url)')
+      .eq('id', session.user.id)
+      .single();
+    if (data) setProfile(data);
+  };
+
+  const fetchLeaderboard = async () => {
+    const { data, error } = await supabase
+      .from('leaderboard_all_time')
+      .select('*')
+      .limit(20);
+    if (data) setLeaderboard(data);
+  };
+
+  const fetchMissions = async () => {
+    if (!session?.user) return;
+    setIsLoading(true);
+    const { data, error } = await supabase.rpc('get_available_missions', {
+      p_user_id: session.user.id
+    });
+    if (data) setMissions(data);
+    setIsLoading(false);
+  };
+
+  const joinMission = async (missionId: string, requirementType: string) => {
+    if (!session?.user) return;
+    
+    setIsLoading(true);
+    
+    // For now, we simulate immediate completion for mobile
+    const { data, error } = await supabase
+      .from('user_missions')
+      .upsert({
+        user_id: session.user.id,
+        mission_id: missionId,
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      });
+    
+    if (error) {
+      console.error('Join failed:', error);
+    } else {
+      fetchProfile();
+      fetchLeaderboard();
+      fetchMissions();
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (session) {
+      fetchLeaderboard();
+      fetchMissions();
+      fetchProfile();
+    }
+  }, [session]);
+
   // Only return null if fonts aren't even ready
   if (!fontsLoaded) return null;
 
@@ -150,6 +217,7 @@ const TechAssassinApp = () => {
     );
   }
 
+
   const renderHomeScreen = () => (
     <View style={styles.screenContainer}>
       <ImageBackground 
@@ -171,7 +239,7 @@ const TechAssassinApp = () => {
             })}]
           }}>
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>HACKATHON COMMUNITY</Text>
+              <Text style={styles.heroBadgeText}>OPERATIVE: {session?.user?.email?.split('@')[0] || 'GUEST'}</Text>
             </View>
             
             <Text style={styles.heroMainTitle}>
@@ -180,33 +248,33 @@ const TechAssassinApp = () => {
             
             <View style={styles.heroSubtitleRow}>
               <Zap size={22} color={COLORS.primary} fill={COLORS.primary} />
-              <Text style={styles.heroSubtitleText}>Active Hackathon Community</Text>
+              <Text style={styles.heroSubtitleText}>Level: {Math.floor((profile?.total_xp || 0) / 1000) + 1}</Text>
             </View>
 
             <View style={styles.heroStatsBox}>
               <View style={styles.heroStatItem}>
-                <MapPin size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>Global</Text>
+                <Trophy size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>{profile?.total_xp || 0} XP</Text>
               </View>
               <View style={styles.heroStatDivider} />
               <View style={styles.heroStatItem}>
-                <CalendarDays size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>Missions</Text>
+                <Flame size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>{profile?.current_streak || 0} DAYS</Text>
               </View>
               <View style={styles.heroStatDivider} />
               <View style={styles.heroStatItem}>
-                <Users size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>1.8k+</Text>
+                <Shield size={18} color={COLORS.primary} />
+                <Text style={styles.heroStatValue}>{profile?.rank?.name || 'TRAINEE'}</Text>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.heroPrimaryBtn}>
-              <Text style={styles.heroPrimaryBtnText}>JOIN THE SQUAD</Text>
+            <TouchableOpacity style={styles.heroPrimaryBtn} onPress={() => setActiveScreen("Missions")}>
+              <Text style={styles.heroPrimaryBtnText}>DEPLOY TO MISSION</Text>
               <ChevronRight color="black" size={20} strokeWidth={3} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.heroSecondaryBtn}>
-              <Text style={styles.heroSecondaryBtnText}>EXPLORE MISSIONS</Text>
+            <TouchableOpacity style={styles.heroSecondaryBtn} onPress={() => setActiveScreen("Leaderboard")}>
+              <Text style={styles.heroSecondaryBtnText}>VIEW LEADERBOARD</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -221,32 +289,129 @@ const TechAssassinApp = () => {
         <Text style={styles.subtitleText}>High priority bounties for elite operatives.</Text>
       </View>
 
-      {[
-        { id: 1, title: "Neural Link Override", reward: "4,500 XP", complexity: "High", color: "#facc15" },
-        { id: 2, title: "Ghost Protocol", reward: "2,200 XP", complexity: "Mid", color: "#f87171" },
-        { id: 3, title: "Crypto Citadel", reward: "8,000 XP", complexity: "Elite", color: "#c084fc" },
-      ].map((mission, index) => (
-        <TouchableOpacity key={mission.id} style={styles.missionCardRich}>
-          <View style={[styles.missionIndicator, { backgroundColor: mission.color }]} />
-          <View style={styles.missionCardBody}>
-            <View style={styles.missionCardTop}>
-              <Text style={styles.missionCardTitle}>{mission.title}</Text>
-              <View style={styles.complexityBadge}>
-                <Text style={styles.complexityText}>{mission.complexity}</Text>
+      {isLoading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      ) : (
+        missions.map((mission, index) => (
+          <TouchableOpacity key={mission.id} style={styles.missionCardRich}>
+            <View style={[styles.missionIndicator, { 
+              backgroundColor: mission.frequency === 'daily' ? '#3B82F6' : (mission.frequency === 'weekly' ? '#F97316' : '#A855F7') 
+            }]} />
+            <View style={styles.missionCardBody}>
+              <View style={styles.missionCardTop}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.missionCardTitle}>{mission.title}</Text>
+                  <Text style={{ color: COLORS.textMuted, fontSize: 10, marginTop: 2, textTransform: 'uppercase' }}>
+                    {mission.frequency} • {mission.difficulty}
+                  </Text>
+                </View>
+                <View style={styles.complexityBadge}>
+                  <Text style={styles.complexityText}>+{mission.xp_reward} XP</Text>
+                </View>
+              </View>
+              <Text style={{ color: COLORS.textMuted, fontSize: 12, marginBottom: 12 }} numberOfLines={2}>{mission.description}</Text>
+              <View style={styles.missionCardBottom}>
+                <View style={styles.rewardBox}>
+                  {mission.status === 'completed' ? (
+                    <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 12 }}>MISSION SECURED</Text>
+                  ) : (
+                    <>
+                      <Clock size={14} color={COLORS.textMuted} />
+                      <Text style={styles.rewardText}>
+                        {mission.time_remaining_ms > 0 ? `${Math.floor(mission.time_remaining_ms / 3600000)}h left` : 'LIMITED TIME'}
+                      </Text>
+                    </>
+                  )}
+                </View>
+                {mission.status !== 'completed' && (
+                  <TouchableOpacity 
+                     style={styles.joinBtnSmall} 
+                     onPress={() => joinMission(mission.id, mission.requirement_type)}
+                     disabled={isLoading}
+                  >
+                    <Text style={styles.joinBtnText}>EXECUTE</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
-            <View style={styles.missionCardBottom}>
-              <View style={styles.rewardBox}>
-                <Trophy size={14} color={COLORS.textMuted} />
-                <Text style={styles.rewardText}>{mission.reward}</Text>
-              </View>
-              <TouchableOpacity>
-                <ArrowRightIcon />
-              </TouchableOpacity>
-            </View>
+          </TouchableOpacity>
+        ))
+      )}
+      <View style={{ height: 120 }} />
+    </ScrollView>
+  );
+
+  const renderLeaderboardScreen = () => (
+    <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
+      <View style={styles.missionListHeader}>
+        <Text style={styles.titleText}>Global Rankings</Text>
+        <Text style={styles.subtitleText}>Top operatives in the neural network.</Text>
+      </View>
+
+      {leaderboard.map((item, index) => (
+        <View key={item.id} style={styles.leaderboardItem}>
+          <Text style={styles.rankText}>{item.rank}</Text>
+          <View style={styles.leaderboardAvatar}>
+            {item.avatar_url ? (
+              <Image source={{ uri: item.avatar_url }} style={styles.avatarImg} />
+            ) : (
+              <User color={COLORS.textMuted} size={20} />
+            )}
           </View>
-        </TouchableOpacity>
+          <View style={styles.leaderboardInfo}>
+            <Text style={styles.leaderboardName}>{item.username}</Text>
+            <Text style={styles.leaderboardRankName}>{item.rank_name || 'Operative'}</Text>
+          </View>
+          <Text style={styles.xpText}>{item.total_xp} XP</Text>
+        </View>
       ))}
+      <View style={{ height: 120 }} />
+    </ScrollView>
+  );
+
+  const renderProfileScreen = () => (
+    <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
+      <View style={styles.profileHeader}>
+        <View style={styles.profileAvatarBig}>
+          <User color={COLORS.primary} size={60} strokeWidth={1} />
+        </View>
+        <Text style={styles.profileName}>{profile?.username || 'AGENT'}</Text>
+        <Text style={styles.profileStatus}>{profile?.rank?.name || 'Initiate'}</Text>
+      </View>
+
+      <View style={styles.profileStatsRow}>
+        <View style={styles.pStatItem}>
+          <Text style={styles.pStatVal}>{profile?.total_xp || 0}</Text>
+          <Text style={styles.pStatLabel}>XP</Text>
+        </View>
+        <View style={styles.pStatItem}>
+          <Text style={styles.pStatVal}>{profile?.current_streak || 0}</Text>
+          <Text style={styles.pStatLabel}>STREAK</Text>
+        </View>
+        <View style={styles.pStatItem}>
+          <Text style={styles.pStatVal}>#{profile?.rank_value || '?'}</Text>
+          <Text style={styles.pStatLabel}>RANK</Text>
+        </View>
+      </View>
+
+      <View style={styles.sectionTitleRow}>
+        <Text style={styles.sectionTitle}>UNLOCKED BADGES</Text>
+      </View>
+      <View style={styles.badgesGrid}>
+         {['🏅', '🚀', '🔥', '⚡', '🛡️'].map((emoji, i) => (
+           <View key={i} style={styles.badgeItem}>
+             <Text style={{ fontSize: 30 }}>{emoji}</Text>
+           </View>
+         ))}
+      </View>
+
+      <TouchableOpacity 
+        style={styles.signOutBtn}
+        onPress={() => supabase.auth.signOut()}
+      >
+        <Text style={styles.signOutText}>TERMINATE SESSION</Text>
+      </TouchableOpacity>
+      
       <View style={{ height: 120 }} />
     </ScrollView>
   );
@@ -272,7 +437,7 @@ const TechAssassinApp = () => {
             <TouchableOpacity 
               style={styles.profileCircleCompact} 
               activeOpacity={0.8}
-              onPress={() => supabase.auth.signOut()}
+              onPress={() => setActiveScreen("Profile")}
             >
               <View style={styles.profileInnerCircle}>
                 <User color={COLORS.primary} size={20} strokeWidth={2.5} />
@@ -285,6 +450,8 @@ const TechAssassinApp = () => {
       {activeScreen !== "Home" && (
         <SafeAreaView style={styles.safeContainer}>
           {activeScreen === "Missions" && renderMissionsScreen()}
+          {activeScreen === "Leaderboard" && renderLeaderboardScreen()}
+          {activeScreen === "Profile" && renderProfileScreen()}
           {/* Add other screen renders as needed */}
         </SafeAreaView>
       )}
@@ -303,8 +470,8 @@ const TechAssassinApp = () => {
             
             <View style={{ width: 80 }} /> {/* Spacer for central FAB */}
 
-            <NavBtn icon={<Users />} label="Team" active={activeScreen === "Team"} onPress={() => setActiveScreen("Team")} />
-            <NavBtn icon={<Shield />} label="Vault" active={activeScreen === "Vault"} onPress={() => setActiveScreen("Vault")} />
+            <NavBtn icon={<Trophy />} label="Ranks" active={activeScreen === "Leaderboard"} onPress={() => setActiveScreen("Leaderboard")} />
+            <NavBtn icon={<User />} label="Profile" active={activeScreen === "Profile"} onPress={() => setActiveScreen("Profile")} />
           </View>
         </View>
 
@@ -732,6 +899,157 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  leaderboardItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.card,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  rankText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 18,
+    color: COLORS.primary,
+    width: 30,
+  },
+  leaderboardAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    marginHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+  },
+  leaderboardInfo: {
+    flex: 1,
+  },
+  leaderboardName: {
+    fontFamily: "Inter-Bold",
+    fontSize: 14,
+    color: "white",
+  },
+  leaderboardRankName: {
+    fontFamily: "Inter-Regular",
+    fontSize: 10,
+    color: COLORS.textMuted,
+    textTransform: "uppercase",
+  },
+  xpText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  profileHeader: {
+    alignItems: "center",
+    marginVertical: 30,
+  },
+  profileAvatarBig: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.card,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  profileName: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 28,
+    color: "white",
+  },
+  profileStatus: {
+    fontFamily: "Inter-Bold",
+    fontSize: 14,
+    color: COLORS.primary,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  profileStatsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: COLORS.card,
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 30,
+  },
+  pStatItem: {
+    alignItems: "center",
+  },
+  pStatVal: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 20,
+    color: "white",
+  },
+  pStatLabel: {
+    fontFamily: "Inter-Bold",
+    fontSize: 10,
+    color: COLORS.textMuted,
+    marginTop: 4,
+  },
+  sectionTitleRow: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 14,
+    color: COLORS.textMuted,
+    letterSpacing: 2,
+  },
+  badgesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 30,
+  },
+  badgeItem: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: COLORS.card,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  signOutBtn: {
+    height: 60,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(199, 18, 49, 0.3)",
+    marginTop: 20,
+  },
+  signOutText: {
+    fontFamily: "SpaceGrotesk-Bold",
+    fontSize: 14,
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  joinBtnSmall: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  joinBtnText: {
+    fontFamily: "Inter-Bold",
+    fontSize: 12,
+    color: "black",
   },
 });
 

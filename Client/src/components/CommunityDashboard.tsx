@@ -25,6 +25,7 @@ import {
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api-client';
+import MissionsHub from './MissionsHub';
 
 interface LeaderboardEntry {
   id: string;
@@ -71,7 +72,7 @@ interface Contributor {
 }
 
 const CommunityDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'events' | 'contributors'>('leaderboard');
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'missions' | 'contributors'>('missions');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -84,24 +85,28 @@ const CommunityDashboard = () => {
   ]);
   const [stats, setStats] = useState([
     { label: 'Active Operatives', value: '450+', change: '+12', icon: Users, color: 'text-red-500' },
-    { label: 'Total Missions', value: '18', change: '+2', icon: Calendar, color: 'text-blue-500' },
+    { label: 'Live Now', value: '0', change: 'Online', icon: Activity, color: 'text-red-600' },
     { label: 'Bounty Pool', value: '₹5L+', change: '+50K', icon: Award, color: 'text-yellow-500' },
-    { label: 'Squads Formed', value: '96', change: '+5', icon: Target, color: 'text-green-500' }
+    { label: 'Total Operatives', value: '24', change: 'Github', icon: Github, color: 'text-green-500' }
   ]);
+  const [presence, setPresence] = useState({ onlineCount: 0, activities: [] });
 
   useEffect(() => {
     loadDashboardData();
+    const presenceInterval = setInterval(fetchPresence, 10000); // Update every 10s
+    return () => clearInterval(presenceInterval);
   }, []);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [leaderboardData, activitiesData, eventsData, statsData, contributorsData] = await Promise.all([
+      const [leaderboardData, activitiesData, eventsData, statsData, contributorsData, presenceData] = await Promise.all([
         fetchLeaderboard(),
         fetchActivities(),
         fetchUpcomingEvents(),
         fetchStats(),
-        fetchContributors()
+        fetchContributors(),
+        fetchPresence()
       ]);
 
       setLeaderboard(leaderboardData);
@@ -110,11 +115,30 @@ const CommunityDashboard = () => {
       if (contributorsData && contributorsData.length > 0) {
         setContributors(contributorsData);
       }
-      if (statsData.length > 0) setStats(statsData);
+      if (statsData.length > 0) {
+        // Merge presence count into stats
+        const updatedStats = [...statsData];
+        if (presenceData) {
+          updatedStats[1] = { ...updatedStats[1], value: `${presenceData.onlineCount || 0}` };
+        }
+        setStats(updatedStats);
+      }
+      if (presenceData) setPresence(presenceData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setTimeout(() => setLoading(false), 800);
+    }
+  };
+
+  const fetchPresence = async () => {
+    try {
+      const data = await api.get<any>('/community/presence');
+      setPresence(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch presence:', error);
+      return null;
     }
   };
 
@@ -159,9 +183,9 @@ const CommunityDashboard = () => {
       const data = await api.get<any>('/community/stats');
       return [
         { label: 'Active Operatives', value: `${data.activeHackers || 0}+`, change: `+${data.newHackers || 0}`, icon: Users, color: 'text-red-500' },
-        { label: 'Total Missions', value: `${data.totalEvents || 0}`, change: `+${data.newEvents || 0}`, icon: Calendar, color: 'text-blue-500' },
+        { label: 'Live Now', value: '...', change: 'Online', icon: Activity, color: 'text-red-600' },
         { label: 'Total Bounty Pool', value: `₹${data.totalPrizePool || 0}L+`, change: `+${data.newPrizePool || 0}K`, icon: Award, color: 'text-yellow-500' },
-        { label: 'Total Operatives', value: `${data.totalContributors || 0}`, change: `+${data.newContributors || 0}`, icon: Github, color: 'text-green-500' }
+        { label: 'Total Contributors', value: `${data.totalContributors || 0}`, change: `+${data.newContributors || 0}`, icon: Github, color: 'text-green-500' }
       ];
     } catch (error) {
       return [];
@@ -274,6 +298,46 @@ const CommunityDashboard = () => {
 
 
 
+
+        {/* Real-time Activity Ticker */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md overflow-hidden relative">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/20 border border-red-600/30">
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Live Feed</span>
+              </div>
+              <div className="flex-1 overflow-hidden h-6 relative">
+                 <AnimatePresence mode="wait">
+                    {presence.activities.length > 0 ? (
+                      <motion.div
+                        key={presence.activities[0]?.id || 'static'}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="flex items-center gap-3"
+                      >
+                         <img 
+                           src={presence.activities[0]?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${presence.activities[0]?.user}`} 
+                           className="w-5 h-5 rounded-full border border-white/10" 
+                           alt="" 
+                         />
+                         <span className="text-sm font-mono text-white/70">
+                           <span className="text-red-500 font-bold uppercase italic">@{presence.activities[0]?.user}</span> 
+                           {" "}{presence.activities[0]?.message}
+                         </span>
+                         <span className="text-[10px] text-white/20 uppercase font-black ml-auto">
+                           {new Date(presence.activities[0]?.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                         </span>
+                      </motion.div>
+                    ) : (
+                      <div className="text-sm font-mono text-white/30 uppercase tracking-widest">Scanning network for operative activity...</div>
+                    )}
+                 </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Dashboard Content */}
         <div className="max-w-6xl mx-auto">
@@ -446,81 +510,8 @@ const CommunityDashboard = () => {
                 </div>
               )}
 
-              {activeTab === 'events' && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {upcomingEvents.map((event, idx) => (
-                    <motion.div
-                      key={event.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="group relative bg-[#0d0d0e] border border-white/10 rounded-3xl overflow-hidden hover:border-red-600/50 transition-all duration-500 shadow-2xl"
-                    >
-                      {/* Event Card Header */}
-                      <div className="h-48 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-red-900/40 group-hover:scale-110 transition-transform duration-1000" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0e] via-transparent to-black/40" />
-                        <div className="absolute top-4 left-4">
-                          <div className="px-3 py-1 rounded-lg bg-red-600 text-[10px] font-black uppercase tracking-[0.2em] italic">
-                            {event.status.replace('_', ' ')}
-                          </div>
-                        </div>
-                        <div className="absolute bottom-4 left-6">
-                          <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white group-hover:text-red-500 transition-colors">{event.name}</h3>
-                        </div>
-                      </div>
-
-                      {/* Event Details */}
-                      <div className="p-8">
-                        <div className="grid grid-cols-2 gap-8 mb-8">
-                          <div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Timeline</div>
-                            <div className="flex items-center gap-2 text-sm font-bold">
-                              <Calendar className="w-4 h-4 text-red-500" />
-                              {event.date}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Location</div>
-                            <div className="flex items-center gap-2 text-sm font-bold">
-                              <Monitor className="w-4 h-4 text-blue-500" />
-                              {event.location}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-6">
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30">Operative Deployment</div>
-                              <div className="text-xs font-bold text-white/70">{event.participants} / {event.maxParticipants}</div>
-                            </div>
-                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
-                                className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Strategic Bounty</div>
-                              <div className="text-xl font-black text-red-600 italic leading-none">{event.prize}</div>
-                            </div>
-                            <Link
-                              to={`/events/${event.id}`}
-                              className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-                            >
-                              Briefing
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+              {activeTab === 'missions' && (
+                <MissionsHub />
               )}
 
               {activeTab === 'contributors' && (

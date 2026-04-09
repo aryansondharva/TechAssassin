@@ -323,12 +323,107 @@ export default function Profile() {
                </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-8">
-               <Section title="Operational Biography" onEdit={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
-                  <p className="text-lg text-gray-600 leading-relaxed font-medium italic">
-                    "{identity.bio || 'This operative has not yet transmitted an identity bio...'}"
-                  </p>
-               </Section>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+               <div className="md:col-span-2 space-y-8">
+                  <Section title="Gamification Dossier">
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
+                           <div className="w-12 h-12 rounded-2xl bg-red-600/10 flex items-center justify-center text-red-600 mb-4 group-hover:scale-110 transition-transform">
+                              <Trophy className="w-6 h-6" />
+                           </div>
+                           <div className="text-3xl font-black text-gray-900 italic tracking-tighter">{identity.total_xp || 0}</div>
+                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Total XP</div>
+                        </div>
+                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
+                           <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                              <Shield className="w-6 h-6" />
+                           </div>
+                           <div className="text-2xl font-black text-gray-900 italic tracking-tighter uppercase">{identity.rank?.name || 'INITIATE'}</div>
+                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Global Rank</div>
+                        </div>
+                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
+                           <div className="w-12 h-12 rounded-2xl bg-orange-600/10 flex items-center justify-center text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+                              <Zap className="w-6 h-6" />
+                           </div>
+                           <div className="text-3xl font-black text-gray-900 italic tracking-tighter">{identity.current_streak || 0}</div>
+                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Day Streak</div>
+                        </div>
+                     </div>
+
+                     <div className="mt-8">
+                        <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-4">Earned Badges</h4>
+                        <div className="flex flex-wrap gap-4">
+                           {(identity.badges || []).length > 0 ? (identity.badges || []).map((b: any, index: number) => (
+                             <div key={index} title={b.badge.description} className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl hover:scale-110 hover:shadow-md transition-all cursor-pointer">
+                                {b.badge.icon_url ? <img src={b.badge.icon_url} className="w-8 h-8 object-contain" /> : '🏅'}
+                             </div>
+                           )) : (
+                             <div className="text-xs text-gray-300 italic">No badges earned in this cycle.</div>
+                           )}
+                        </div>
+                     </div>
+                  </Section>
+
+                  <Section title="Operational Biography" onEdit={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
+                     <p className="text-lg text-gray-600 leading-relaxed font-medium italic">
+                       "{identity.bio || 'This operative has not yet transmitted an identity bio...'}"
+                     </p>
+                  </Section>
+               </div>
+
+               <div className="space-y-8">
+                  <Section title="Neural Activity">
+                      <div className="bg-gray-900 rounded-3xl p-6 text-white overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                           <Github className="w-20 h-20" />
+                        </div>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-red-500 mb-6">Github Contribution Graph</h4>
+                        <div className="space-y-4">
+                           {identity.github_url ? (
+                             <div className="flex flex-col items-center">
+                                <img 
+                                  src={`https://ghchart.rshah.org/DC2626/${identity.github_url.split('/').pop()}`} 
+                                  className="w-full opacity-90 hover:opacity-100 transition-opacity invert brightness-200"
+                                  alt="Github Chart" 
+                                />
+                                <p className="text-[10px] font-mono text-gray-500 mt-4 uppercase tracking-tighter">Live data fetch: {identity.github_url.split('/').pop()}</p>
+                             </div>
+                           ) : (
+                             <div className="text-center py-8 border border-white/10 rounded-2xl border-dashed">
+                                <p className="text-xs text-white/30 font-black uppercase tracking-widest">Github Link Required</p>
+                             </div>
+                           )}
+                        </div>
+                      </div>
+                  </Section>
+
+                  <Section title="System Status">
+                     <div className="space-y-6">
+                        <div>
+                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                              <span>Profile Integrity</span>
+                              <span>{identity.profile_completion_percentage || 0}%</span>
+                           </div>
+                           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div 
+                                 className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.3)] transition-all duration-1000" 
+                                 style={{ width: `${identity.profile_completion_percentage || 0}%` }}
+                              />
+                           </div>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-gray-50">
+                           <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest">
+                              <span className="text-gray-400">Terminal Access</span>
+                              <span className="text-green-500 flex items-center gap-1">
+                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Authorized
+                              </span>
+                           </div>
+                        </div>
+                     </div>
+                  </Section>
+               </div>
+            </div>
 
                <Section title="Active Initiatives" onAdd={isOwnProfile ? () => navigate('/events') : undefined}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -406,8 +501,7 @@ export default function Profile() {
                  )}
             </div>
           </div>
-        </div>
-      </main>
+        </main>
       <Footer />
     </div>
   );

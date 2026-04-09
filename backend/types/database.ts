@@ -16,6 +16,11 @@ export interface Profile {
   university: string | null
   graduation_year: number | null
   is_admin: boolean
+  total_xp: number
+  current_rank_id: string | null
+  current_streak: number
+  longest_streak: number
+  profile_completion_percentage: number
   created_at: string
   updated_at: string
 }

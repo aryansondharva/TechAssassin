@@ -19,10 +19,16 @@ export async function GET(
     // Get Supabase client
     const supabase = await createClient()
     
-    // Fetch user profile
+    // Fetch user profile with rank details
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        rank:rank_tiers(name, icon_url),
+        badges:user_badges(
+          badge:badges(name, icon_url, description)
+        )
+      `)
       .eq('id', id)
       .single()
     
@@ -35,10 +41,10 @@ export async function GET(
     
     // If viewing own profile, return all fields
     if (user && user.id === id) {
-      return NextResponse.json(profile as Profile)
+      return NextResponse.json(profile)
     }
     
-    // For other users, return public fields only (exclude is_admin)
+    // For other users, return public fields only
     const publicProfile = {
       id: profile.id,
       username: profile.username,
@@ -46,6 +52,10 @@ export async function GET(
       avatar_url: profile.avatar_url,
       github_url: profile.github_url,
       skills: profile.skills,
+      total_xp: profile.total_xp,
+      rank: profile.rank,
+      badges: profile.badges,
+      current_streak: profile.current_streak,
       created_at: profile.created_at
     }
     
