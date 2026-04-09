@@ -42,6 +42,7 @@ export interface Registration {
   team_name: string
   project_idea: string
   status: 'pending' | 'confirmed' | 'waitlisted'
+  checked_in_at: string | null
   created_at: string
 }
 
