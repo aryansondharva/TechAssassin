@@ -131,9 +131,16 @@ export default function EditProfile() {
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // For now we'll simulate banner upload success or use the same endpoint if supported
-    toast({ title: "Note", description: "Banner feature requires storage setup. URL updated in state." });
-    // setFormData(prev => ({ ...prev, banner_url: '...' }));
+    setIsUploadingBanner(true);
+    try {
+      const response = await profileService.uploadBanner(file);
+      setFormData(prev => ({ ...prev, banner_url: response.banner_url }));
+      toast({ title: 'Success', description: 'Banner uploaded!' });
+    } catch (error: any) {
+      toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

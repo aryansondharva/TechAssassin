@@ -183,6 +183,28 @@ const TechAssassinApp = () => {
       fetchLeaderboard();
       fetchMissions();
       fetchProfile();
+
+      // Set up real-time subscription for profile updates
+      const profileSubscription = supabase
+        .channel(`profile-${session.user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log('Real-time profile update received:', payload.new);
+            setProfile((prev: any) => ({ ...prev, ...payload.new }));
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(profileSubscription);
+      };
     }
   }, [session]);
 
@@ -373,9 +395,16 @@ const TechAssassinApp = () => {
     <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
       <View style={styles.profileHeader}>
         <View style={styles.profileAvatarBig}>
-          <User color={COLORS.primary} size={60} strokeWidth={1} />
+          {profile?.avatar_url ? (
+            <Image 
+              source={{ uri: profile.avatar_url }} 
+              style={{ width: '100%', height: '100%', borderRadius: 50 }} 
+            />
+          ) : (
+            <User color={COLORS.primary} size={60} strokeWidth={1} />
+          )}
         </View>
-        <Text style={styles.profileName}>{profile?.username || 'AGENT'}</Text>
+        <Text style={styles.profileName}>{profile?.full_name || profile?.username || 'AGENT'}</Text>
         <Text style={styles.profileStatus}>{profile?.rank?.name || 'Initiate'}</Text>
       </View>
 
