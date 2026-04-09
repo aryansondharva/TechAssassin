@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../theme/colors';
@@ -90,7 +91,11 @@ const AuthScreen = () => {
         >
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <ShieldCheck size={48} color={COLORS.primary} />
+              <Image 
+                source={require('../../assets/favicon.png')} 
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>
               {isLogin ? 'Mission Check-in' : 'New Operative'}
@@ -224,6 +229,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: 'rgba(199, 18, 49, 0.3)',
+    overflow: 'hidden',
+  },
+  logoImage: {
+    width: 50,
+    height: 50,
   },
   title: {
     fontFamily: 'SpaceGrotesk-Bold',

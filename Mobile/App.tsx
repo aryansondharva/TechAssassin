@@ -12,7 +12,8 @@ import {
   Easing,
   ImageBackground,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from "react-native";
 import { 
   useFonts, 
@@ -126,8 +127,13 @@ const TechAssassinApp = () => {
     return (
       <View style={styles.rootWrapper} onLayout={onLayoutRootView}>
         <View style={[styles.mainContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Image 
+            source={require('./assets/favicon.png')} 
+            style={{ width: 80, height: 80, marginBottom: 30 }}
+            resizeMode="contain"
+          />
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={{ color: 'white', marginTop: 20 }}>INITIALIZING SYSTEM...</Text>
+          <Text style={{ color: 'white', marginTop: 20, fontFamily: 'SpaceGrotesk-Bold', letterSpacing: 2 }}>INITIALIZING SYSTEM...</Text>
         </View>
       </View>
     );
