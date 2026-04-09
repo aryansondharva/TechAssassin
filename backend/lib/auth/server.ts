@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { createClient } from '../supabase/server';
 import jwt from 'jsonwebtoken';
 import { ConflictError } from '../errors';
+import { AuthenticationError } from '../middleware/auth';
 import { EmailService } from '../email.service';
 
 // Database connection (Local PostgreSQL)
@@ -187,7 +188,7 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
     
     if (!authData.user) {
       console.error('[AUTH] No user data returned from Supabase');
-      throw new Error('Invalid credentials');
+      throw new AuthenticationError('Invalid email or password');
     }
 
     // 2. CONNECT TO DATABASE
@@ -541,7 +542,7 @@ export async function resetPasswordWithOTP(email: string, otp: string, password:
     // 1. Verify OTP one last time
     const isValid = await verifyPasswordResetOTP(email, otp);
     if (!isValid) {
-      throw new Error('Invalid or expired verification code');
+      throw new AuthenticationError('Invalid or expired verification code');
     }
 
     // 2. Get User ID from profile

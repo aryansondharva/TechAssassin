@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
 import { signinSchema } from '../../../../lib/validations/auth'
 import { handleApiError } from '../../../../lib/errors'
+import { AuthenticationError } from '../../../../lib/middleware/auth'
 
 /**
  * POST /api/auth/signin
@@ -26,16 +27,16 @@ export async function POST(request: Request) {
     if (error) {
       // Handle specific Supabase Auth errors
       if (error.message.includes('Invalid login credentials')) {
-        throw new Error('Invalid email or password')
+        throw new AuthenticationError('Invalid email or password')
       }
       if (error.message.includes('Email not confirmed')) {
-        throw new Error('Please verify your email before signing in')
+        throw new AuthenticationError('Please verify your email before signing in')
       }
-      throw new Error(`Signin failed: ${error.message}`)
+      throw error // Let handleApiError handle other Supabase errors
     }
     
     if (!data.user || !data.session) {
-      throw new Error('Signin failed: No user or session data returned')
+      throw new AuthenticationError('Signin failed: No user or session data returned')
     }
     
     // Fetch user's profile from database

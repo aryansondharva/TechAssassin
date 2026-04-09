@@ -106,7 +106,9 @@ export function getStatusCode(error: unknown): number {
       return 404
     }
     if (error.message.toLowerCase().includes('unauthorized') || 
-        error.message.toLowerCase().includes('authentication required')) {
+        error.message.toLowerCase().includes('authentication required') ||
+        error.message.toLowerCase().includes('invalid email or password') ||
+        error.message.toLowerCase().includes('invalid login')) {
       return 401
     }
     if (error.message.toLowerCase().includes('forbidden') || 
@@ -283,6 +285,17 @@ export function handleApiError(error: unknown, logError: boolean = true): NextRe
   // Log server errors (500) and unexpected errors
   if (logError && statusCode >= 500) {
     console.error('API Error:', error)
+    
+    // Attempt to log to a file for easier retrieval
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const logFile = path.join(process.cwd(), 'api_error.log');
+      const logMessage = `[${new Date().toISOString()}] ${statusCode} - ${error instanceof Error ? error.stack : JSON.stringify(error)}\n`;
+      fs.appendFileSync(logFile, logMessage);
+    } catch (e) {
+      // Ignore logging errors
+    }
     
     // Log stack trace in development
     if (process.env.NODE_ENV === 'development' && error instanceof Error) {

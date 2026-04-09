@@ -42,6 +42,9 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
 import { moderateScale, SCREEN_WIDTH } from "./src/theme/responsive";
+import { supabase } from "./src/lib/supabase";
+import AuthScreen from "./src/screens/AuthScreen";
+import { Session } from "@supabase/supabase-js";
 
 const MAX_WIDTH = 480; // Standard mobile width limit
 
@@ -54,10 +57,23 @@ const TechAssassinApp = () => {
   });
 
   const [activeScreen, setActiveScreen] = useState("Home");
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   
   // Entrance animation values
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsAuthLoading(false);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -92,7 +108,18 @@ const TechAssassinApp = () => {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || isAuthLoading) return null;
+
+  if (!session) {
+    return (
+      <View style={styles.rootWrapper}>
+        <View style={styles.mainContainer}>
+          <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+          <AuthScreen />
+        </View>
+      </View>
+    );
+  }
 
   const onLayoutRootView = async () => {
     await SplashScreen.hideAsync();
@@ -217,7 +244,11 @@ const TechAssassinApp = () => {
               <View style={styles.headerDivider} />
               <Text style={styles.headerTitle}>{activeScreen}</Text>
             </View>
-            <TouchableOpacity style={styles.profileCircleCompact} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.profileCircleCompact} 
+              activeOpacity={0.8}
+              onPress={() => supabase.auth.signOut()}
+            >
               <View style={styles.profileInnerCircle}>
                 <User color={COLORS.primary} size={20} strokeWidth={2.5} />
               </View>
