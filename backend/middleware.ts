@@ -21,18 +21,16 @@ export function middleware(request: NextRequest) {
   // TODO: Update these with your actual production domains
   const allowedOrigins = [
     // Production domains
-    process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com',
-    'https://www.yourdomain.com',
-    
-    // Staging/Preview domains (if applicable)
-    // 'https://staging.yourdomain.com',
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://tech-assassin.vercel.app',
+    'https://www.tech-assassin.vercel.app',
     
     // Development domains
     'http://localhost:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
-  ].filter(Boolean) // Remove any undefined values
+  ].filter((o): o is string => !!o) // Remove any undefined values
   
   // Check if the request origin is in the allowed list
   const isAllowedOrigin = origin && allowedOrigins.includes(origin)
