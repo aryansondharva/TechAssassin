@@ -61,7 +61,7 @@ export default function Events() {
         {/* Page Header */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-             <div className="flex items-center gap-2 text-[#3770FF] font-bold text-xs uppercase tracking-[0.2em] mb-3">
+             <div className="flex items-center gap-2 text-red-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
                 <Target className="w-4 h-4" />
                 <span>Active Deployment Zone</span>
              </div>
@@ -70,10 +70,10 @@ export default function Events() {
           </div>
           
           <div className="relative w-full md:w-80 group">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#3770FF] transition-colors" />
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-red-600 transition-colors" />
              <Input 
                 placeholder="Search missions..." 
-                className="h-12 pl-12 rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-[#3770FF]/20"
+                className="h-12 pl-12 rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-red-600/10"
              />
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function Events() {
         {/* Events Grid */}
         {isLoading ? (
           <div className="flex justify-center py-32">
-            <Loader2 className="h-10 w-10 animate-spin text-[#3770FF]" />
+            <Loader2 className="h-10 w-10 animate-spin text-red-600" />
           </div>
         ) : events.length === 0 ? (
           <div className="py-32 text-center bg-white rounded-[2.5rem] border border-dashed border-slate-200">
@@ -115,7 +115,7 @@ function FilterButton({ active, onClick, label, count }: any) {
       className={`
         h-11 px-6 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3
         ${active 
-          ? 'bg-[#3770FF] text-white shadow-lg shadow-[#3770FF]/20' 
+          ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' 
           : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-300'
         }
       `}
@@ -140,7 +140,7 @@ function MissionCard({ event }: { event: EventWithParticipants }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
         <div className="absolute top-6 left-6">
-           <Badge className="bg-[#3770FF] text-white border-none rounded-lg text-[10px] font-black uppercase py-1.5 px-3 tracking-widest shadow-lg">
+           <Badge className="bg-red-600 text-white border-none rounded-lg text-[10px] font-black uppercase py-1.5 px-3 tracking-widest shadow-lg">
              {event.status}
            </Badge>
         </div>
@@ -148,7 +148,7 @@ function MissionCard({ event }: { event: EventWithParticipants }) {
       </div>
 
       <CardHeader className="p-8 pb-4">
-        <CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-[#3770FF] transition-colors line-clamp-1 uppercase italic">
+        <CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-red-600 transition-colors line-clamp-1 uppercase italic">
           {event.title}
         </CardTitle>
         <CardDescription className="text-slate-500 font-medium line-clamp-2 mt-2">
@@ -158,11 +158,11 @@ function MissionCard({ event }: { event: EventWithParticipants }) {
 
       <CardContent className="p-8 pt-0 space-y-4">
         <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
-          <Calendar className="w-4 h-4 text-[#3770FF]" />
+          <Calendar className="w-4 h-4 text-red-600" />
           <span>{new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
         <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
-          <MapPin className="w-4 h-4 text-[#3770FF]" />
+          <MapPin className="w-4 h-4 text-red-600" />
           <span className="truncate">{event.location}</span>
         </div>
         
@@ -172,7 +172,7 @@ function MissionCard({ event }: { event: EventWithParticipants }) {
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{event.participant_count}/{event.max_participants} Units</span>
            </div>
            {event.prizes && (
-              <div className="flex items-center gap-2 text-[#3770FF]">
+              <div className="flex items-center gap-2 text-red-600">
                  <Trophy className="w-4 h-4" />
                  <span className="text-xs font-black uppercase tracking-widest italic">{event.prizes['1st']} Bounty</span>
               </div>
@@ -181,7 +181,7 @@ function MissionCard({ event }: { event: EventWithParticipants }) {
       </CardContent>
 
       <CardFooter className="p-8 pt-0">
-          <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-[#3770FF] text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all group-hover:scale-[1.02] active:scale-[0.98]">
+          <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all group-hover:scale-[1.02] active:scale-[0.98]">
              Mission Briefing <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
       </CardFooter>

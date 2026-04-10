@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader2 className="h-10 w-10 animate-spin text-[#3770FF]" />
+      <Loader2 className="h-10 w-10 animate-spin text-red-600" />
     </div>
   );
 
@@ -57,7 +57,7 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 pt-32 pb-20">
         {/* Welcome Section */}
         <div className="mb-12">
-           <div className="flex items-center gap-2 text-[#3770FF] font-bold text-xs uppercase tracking-[0.2em] mb-3">
+           <div className="flex items-center gap-2 text-red-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
               <Shield className="w-4 h-4" />
               <span>Session Active</span>
            </div>
@@ -67,7 +67,7 @@ export default function Dashboard() {
 
         {/* Global Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-           <StatCard icon={Activity} label="XP Earned" value="2.4k" color="text-blue-600" />
+           <StatCard icon={Activity} label="XP Earned" value="2.4k" color="text-red-600" />
            <StatCard icon={Target} label="Missions" value="08" color="text-red-600" />
            <StatCard icon={Award} label="Elite Rank" value="#42" color="text-amber-600" />
            <StatCard icon={Layers} label="Commits" value="156" color="text-emerald-600" />
@@ -81,7 +81,7 @@ export default function Dashboard() {
             title="Mission Briefings"
             desc="Explore upcoming deployments, hackathons, and community-led operations."
             icon={Calendar}
-            color="blue"
+            color="red"
             onClick={() => navigate('/events')}
             tag="Active Sector"
           />
@@ -101,7 +101,7 @@ export default function Dashboard() {
         <div className="mt-16 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-10">
            <div className="flex items-center justify-between mb-10">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Intelligence Feed</h2>
-              <button className="text-xs font-bold text-[#3770FF] hover:underline uppercase tracking-widest">View Archives</button>
+              <button className="text-xs font-bold text-red-600 hover:underline uppercase tracking-widest">View Archives</button>
            </div>
            
            <div className="space-y-6">
@@ -110,7 +110,7 @@ export default function Dashboard() {
                  title="System Uplink Established" 
                  time="3m ago" 
                  desc="A new mission 'Code4Cause' has been added to your sector." 
-                 color="text-[#3770FF] bg-[#3770FF]/5"
+                 color="text-red-600 bg-red-50"
               />
               <FeedItem 
                  icon={Award} 
@@ -153,8 +153,8 @@ function StatCard({ icon: Icon, label, value, color }: any) {
 }
 
 function ActionCard({ title, desc, icon: Icon, color, onClick, tag }: any) {
-   const colorClasses = {
-      blue: 'bg-[#3770FF] text-white shadow-[#3770FF]/20',
+   const colorClasses: any = {
+      red: 'bg-red-600 text-white shadow-red-600/20',
       slate: 'bg-slate-900 text-white shadow-slate-900/20'
    };
 
@@ -166,16 +166,16 @@ function ActionCard({ title, desc, icon: Icon, color, onClick, tag }: any) {
         <div>
            <div className="flex items-center justify-between mb-8">
               <div className="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-400">{tag}</div>
-              <div className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-[#3770FF] shadow-sm transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+              <div className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-red-600 shadow-sm transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                  <Icon className="w-6 h-6" />
               </div>
            </div>
-           <h3 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 mb-4 group-hover:text-[#3770FF] transition-colors">{title}</h3>
+           <h3 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 mb-4 group-hover:text-red-600 transition-colors">{title}</h3>
            <p className="text-slate-500 font-medium leading-relaxed italic opacity-80">{desc}</p>
         </div>
         <div className="flex items-center gap-3 pt-8 group-hover:translate-x-2 transition-transform duration-500">
            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-900">Execute Protocol</span>
-           <ChevronRight className="w-4 h-4 text-[#3770FF]" />
+           <ChevronRight className="w-4 h-4 text-red-600" />
         </div>
       </Card>
    );

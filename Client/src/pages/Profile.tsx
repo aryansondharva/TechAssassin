@@ -73,7 +73,7 @@ export default function Profile() {
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader2 className="h-10 w-10 animate-spin text-[#3770FF]" />
+      <Loader2 className="h-10 w-10 animate-spin text-red-600" />
     </div>
   );
 
@@ -98,7 +98,7 @@ export default function Profile() {
                   </Avatar>
                </div>
                {isOwnProfile && (
-                 <button className="absolute bottom-1 right-1 p-2.5 bg-white shadow-lg rounded-full text-slate-400 hover:text-[#3770FF] transition-all border border-slate-100">
+                 <button className="absolute bottom-1 right-1 p-2.5 bg-white shadow-lg rounded-full text-slate-400 hover:text-red-600 transition-all border border-slate-100">
                     <Camera className="w-4 h-4" />
                  </button>
                )}
@@ -109,11 +109,11 @@ export default function Profile() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{user.full_name || user.username}</h1>
-                  <p className="text-[#3770FF] font-semibold text-sm mt-1">@{user.username}</p>
+                  <p className="text-red-600 font-semibold text-sm mt-1">@{user.username}</p>
                 </div>
                 {isOwnProfile && (
                   <Link to="/edit-profile">
-                    <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold px-6 hover:bg-slate-50">
+                    <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold px-6 hover:bg-slate-50 hover:text-red-600 hover:border-red-200">
                        Edit Profile
                     </Button>
                   </Link>
@@ -150,9 +150,9 @@ export default function Profile() {
           <div className="mt-12">
             <Tabs defaultValue="home" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="bg-transparent border-b border-slate-100 w-full justify-center gap-8 rounded-none h-auto p-0">
-                <TabsTrigger value="home" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Home</TabsTrigger>
-                <TabsTrigger value="projects" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Projects</TabsTrigger>
-                <TabsTrigger value="readme" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">README.md</TabsTrigger>
+                <TabsTrigger value="home" className="data-[state=active]:border-red-600 data-[state=active]:text-red-600 border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="projects" className="data-[state=active]:border-red-600 data-[state=active]:text-red-600 border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Projects</TabsTrigger>
+                <TabsTrigger value="readme" className="data-[state=active]:border-red-600 data-[state=active]:text-red-600 border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">README.md</TabsTrigger>
               </TabsList>
 
               <div className="py-12">
@@ -174,7 +174,7 @@ export default function Profile() {
                              
                              <div className="flex-1 w-full overflow-hidden">
                                 <img 
-                                  src={`https://ghchart.rshah.org/3770FF/${user.github_url?.split('/').pop() || 'aryansondharva'}`} 
+                                  src={`https://ghchart.rshah.org/DC2626/${user.github_url?.split('/').pop() || 'aryansondharva'}`} 
                                   className="w-full h-auto opacity-90 rounded-xl"
                                   alt="Github Chart" 
                                 />
@@ -248,7 +248,7 @@ export default function Profile() {
                          </p>
                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 mt-8">
                             <li className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#3770FF]">
+                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-600">
                                   <Code className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -257,7 +257,7 @@ export default function Profile() {
                                 </div>
                             </li>
                             <li className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-500">
+                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-600">
                                   <Trophy className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -280,9 +280,9 @@ export default function Profile() {
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 Tech Assassin • Powered by NSB Classic</p>
            <div className="flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
-              <a href="#" className="hover:text-[#3770FF] transition-colors">About</a>
-              <a href="#" className="hover:text-[#3770FF] transition-colors">Contact</a>
-              <a href="#" className="hover:text-[#3770FF] transition-colors">Privacy</a>
+              <a href="#" className="hover:text-red-600 transition-colors">About</a>
+              <a href="#" className="hover:text-red-600 transition-colors">Contact</a>
+              <a href="#" className="hover:text-red-600 transition-colors">Privacy</a>
            </div>
         </div>
       </footer>
@@ -296,7 +296,7 @@ function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
       href={href || "#"} 
       target="_blank" 
       rel="noreferrer" 
-      className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-[#3770FF] hover:bg-white hover:shadow-md transition-all border border-slate-100/50"
+      className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-md transition-all border border-slate-100/50"
     >
       <Icon className="w-5 h-5" />
     </a>
@@ -305,16 +305,16 @@ function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
 
 function RepoCard({ title, desc, lang, stars, forks }: any) {
   return (
-    <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-[#3770FF]/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group">
+    <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-red-600/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group">
        <div className="flex-1 space-y-3">
-          <h4 className="text-lg font-black text-slate-900 group-hover:text-[#3770FF] transition-colors">{title}</h4>
+          <h4 className="text-lg font-black text-slate-900 group-hover:text-red-600 transition-colors">{title}</h4>
           <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2 italic">{desc}</p>
        </div>
        <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
           <div className="flex items-center gap-4">
              <div className="flex items-center gap-1.5">
                 <div 
-                  className={`w-2 h-2 rounded-full ${lang === 'JavaScript' ? 'bg-yellow-400' : 'bg-[#3770FF]'}`} 
+                   className={`w-2 h-2 rounded-full ${lang === 'TypeScript' ? 'bg-red-600' : 'bg-yellow-400'}`} 
                 />
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang}</span>
              </div>
