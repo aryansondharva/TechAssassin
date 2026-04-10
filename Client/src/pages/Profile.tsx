@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { authService, profileService, murfService } from "@/services";
+import { authService, profileService } from "@/services";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -12,9 +12,6 @@ import {
   Code, 
   ExternalLink,
   Share2,
-  Terminal,
-  Shield,
-  Zap,
   Globe,
   Camera,
   Loader2,
@@ -22,36 +19,27 @@ import {
   Mail,
   Phone,
   GraduationCap,
-  Sparkles,
-  Award,
-  BookOpen,
-  Plus,
-  Layout,
-  Instagram,
-  Twitter,
-  Settings as SettingsIcon,
   MessageCircle,
-  Briefcase,
-  Image as ImageIcon
+  Twitter,
+  ChevronRight,
+  Star,
+  GitFork,
+  BookOpen
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
-import Footer from "@/components/Footer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState("home");
   
   const { username } = useParams<{ username: string }>();
-  // If no username param, it's the own logged in profile
   const isOwnProfile = !username;
 
   useEffect(() => {
@@ -75,7 +63,7 @@ export default function Profile() {
     } catch (error) {
       console.error("Failed to load profile", error);
       if (!isOwnProfile) {
-        toast({ title: "Not Found", description: "Operative dossier not found in the network.", variant: "destructive" });
+        toast({ title: "Not Found", description: "Operative dossier not found.", variant: "destructive" });
         navigate('/community');
       }
     } finally {
@@ -83,491 +71,264 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader2 className="h-10 w-10 animate-spin text-[#3770FF]" />
+    </div>
+  );
 
-  const handleBannerClick = () => {
-    bannerInputRef.current?.click();
-  };
-
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "Error", description: "Image size must be under 2MB", variant: "destructive" });
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-       const response = await profileService.uploadAvatar(file);
-       setProfile((prev: any) => ({ ...prev, avatar_url: response.avatar_url }));
-       
-       const currentUser = authService.getUser();
-       if (currentUser) {
-         currentUser.avatar_url = response.avatar_url;
-         localStorage.setItem('auth_user', JSON.stringify(currentUser));
-       }
-       toast({ title: "Success", description: "Profile photo updated!" });
-    } catch (error) {
-       toast({ title: "Error", description: "Update failed", variant: "destructive" });
-    } finally {
-       setIsUploading(false);
-    }
-  };
-
-  const handleBannerChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 3 * 1024 * 1024) {
-      toast({ title: "Error", description: "Banner size must be under 3MB", variant: "destructive" });
-      return;
-    }
-
-    setIsUploadingBanner(true);
-    try {
-       // Re-using the same generic upload if it exists, or update profile with a mock/direct path
-       // Assuming profileService has a method or we can just use update
-       // For now, let's assume we can update the profile directly with a URL if we had one
-       // In a real scenario, we'd have a separate endpoint for banners.
-       // I'll simulate it by updating the profile field.
-       
-       // Just as a demonstration, let's toast and update the state
-       // Ideally we'd upload to Supabase storage first.
-       toast({ title: "Feature Pending", description: "Banner upload logic requires storage bucket for banners." });
-    } catch (error) {
-       toast({ title: "Error", description: "Update failed", variant: "destructive" });
-    } finally {
-       setIsUploadingBanner(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const identity = profile || {};
+  const user = profile || {};
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6]">
-      <Navbar />
+    <div className="min-h-screen bg-[#F7F9FC] font-sans">
+      <Navbar dark={false} />
       
-      <main className="max-w-7xl mx-auto px-4 pt-24 pb-12">
-        <div className="flex items-center gap-2 text-[12px] text-gray-500 mb-6 uppercase tracking-wider font-bold">
-           <Link to="/" className="hover:text-red-600 transition-colors">Home</Link>
-           <span>/</span>
-           <span className="text-gray-900">User Profile</span>
-        </div>
-
-        <div className="w-full space-y-8">
-          <div className="space-y-8">
-            <div className="bg-white rounded-[2rem] overflow-hidden shadow-md border border-gray-100 relative transition-all hover:shadow-lg">
-               <div className="h-56 md:h-72 bg-[#0c0c0c] relative overflow-hidden group">
-                  {identity.banner_url ? (
-                    <img src={identity.banner_url} className="w-full h-full object-cover opacity-60" alt="Banner" />
-                  ) : (
-                    <div className="absolute inset-0 opacity-20" style={{ 
-                      backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
-                      backgroundSize: '40px 40px'
-                    }}></div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 top-0 flex items-center justify-center pointer-events-none">
-                     <h1 className="text-white text-5xl md:text-8xl font-black italic tracking-tighter opacity-10 select-none uppercase">
-                        {identity.full_name || identity.username || 'NEW OPERATIVE'}
-                     </h1>
-                  </div>
-                   {isOwnProfile && (
-                    <>
-                      <button 
-                        onClick={handleBannerClick}
-                        className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-xl text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
-                      >
-                        <ImageIcon className="w-5 h-5" />
-                      </button>
-                      <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" accept="image/*" />
-                    </>
-                  )}
+      {/* Devfolio Style Header */}
+      <header className="bg-white border-b border-slate-100 pt-32 pb-12">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            {/* Profile Picture */}
+            <div className="relative group shrink-0">
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-50">
+                  <Avatar className="w-full h-full rounded-none">
+                    <AvatarImage src={user.avatar_url || ''} className="object-cover" />
+                    <AvatarFallback className="bg-slate-100 text-3xl font-bold text-slate-300">
+                       {user.username?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                </div>
-
-               <div className="px-10 pb-10 relative">
-                  <div className="relative inline-block -mt-24 md:-mt-32 mb-6 group">
-                    <div className="p-2 bg-white rounded-full shadow-2xl">
-                      <Avatar className="h-40 w-40 md:h-52 md:w-52 border-8 border-white">
-                        <AvatarImage src={identity.avatar_url} className="object-cover" />
-                        <AvatarFallback className="bg-blue-50 text-5xl font-black text-blue-200">
-                          {(identity.username?.charAt(0) || 'U')?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                     {isOwnProfile && (
-                      <>
-                        <button 
-                          onClick={handleAvatarClick}
-                          disabled={isUploading}
-                          className="absolute bottom-4 right-4 p-3 bg-red-600 text-white rounded-full shadow-2xl border-4 border-white hover:bg-red-700 transition-all z-20"
-                        >
-                          {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
-                        </button>
-                        <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
-                      </>
-                    )}
-                  </div>
-
-                   {isOwnProfile && (
-                    <div className="absolute top-6 right-10 flex gap-4">
-                       <Link to="/edit-profile">
-                          <Button className="rounded-xl h-12 px-6 bg-red-600 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">
-                             <Edit3 className="w-4 h-4 mr-2" /> Edit Identity
-                          </Button>
-                       </Link>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
-                     <div className="space-y-5">
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-4xl font-black text-gray-900 uppercase italic tracking-tighter">{identity.full_name || identity.username || 'NEW OPERATIVE'}</h2>
-                        </div>
-                        
-                        <div className="space-y-3 text-[14px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
-                           {(isOwnProfile || !!identity.is_address_public) && (
-                             <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-red-600" /> <span className="text-gray-600">{identity.address || 'UNDEFINED LOCATION'}</span></div>
-                           )}
-                           <div className="flex items-center gap-3"><span className="text-red-600 font-black">@</span> <span className="text-gray-800 lowercase">{identity.username}</span></div>
-                           <div className="flex items-start gap-3 italic normal-case font-bold text-gray-500 text-lg">
-                             {identity.education || 'No active academic mission identified...'}
-                           </div>
-                        </div>
-
-                        <div className="pt-4 space-y-3">
-                           {(isOwnProfile || !!identity.is_email_public) && (
-                             <div className="flex items-center gap-3 text-sm font-black text-blue-600">
-                                <Mail className="w-4 h-4 text-gray-400" /> 
-                                <span className="hover:underline cursor-pointer lowercase">{identity.email}</span>
-                             </div>
-                           )}
-                           <div className="flex items-center gap-8 text-[13px] font-black text-gray-900">
-                              {(isOwnProfile || !!identity.is_phone_public) && (
-                                <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-gray-400" /> {identity.phone || 'UNKNOWN'}</div>
-                              )}
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className="space-y-8 bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
-                        <div className="space-y-3">
-                           <div className="flex items-center justify-between">
-                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Skillset Matrix</span>
-                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
-                           </div>
-                            <div className="flex flex-wrap gap-3">
-                               {(identity.skills || []).length > 0 ? (identity.skills || []).map((s: string) => (
-                                 <Badge key={s} variant="secondary" className="bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest px-5 py-2 border-none transition-all hover:bg-red-600 shadow-md">
-                                   {s}
-                                 </Badge>
-                               )) : <span className="text-[12px] text-gray-300 italic font-bold">Waiting for skill transmission...</span>}
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                           <div className="flex items-center justify-between">
-                              <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Combat Interests</span>
-                              <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>
-                           </div>
-                           <div className="flex flex-wrap gap-3">
-                               {(identity.interests || []).length > 0 ? (identity.interests || []).map((it: string) => (
-                                 <Badge key={it} variant="outline" className="border-gray-300 text-gray-700 rounded-xl text-[11px] uppercase font-black px-5 py-2 hover:border-red-500 hover:text-red-500 transition-all">
-                                   {it}
-                                 </Badge>
-                               )) : (
-                                 <div className="flex flex-wrap gap-2 opacity-40">
-                                    <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">Cybersecurity</Badge>
-                                    <Badge variant="outline" className="rounded-xl px-4 py-2 border-dashed">BlockChain</Badge>
-                                 </div>
-                               )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                           <div className="flex items-center justify-between">
-                               <span className="text-[12px] font-black uppercase text-gray-400 tracking-[0.3em]">Social Neural-Link</span>
-                               {isOwnProfile && <Link to="/edit-profile"><Edit3 className="w-4 h-4 text-gray-300 hover:text-red-600 transition-all" /></Link>}
-                            </div>
-                           <div className="flex items-center gap-5">
-                              {identity.linkedin_url && (
-                                <a href={identity.linkedin_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:scale-125 transition-all drop-shadow-md">
-                                  <Linkedin className="w-7 h-7 fill-current" />
-                                </a>
-                              )}
-                              {identity.github_url && (
-                                <a href={identity.github_url} target="_blank" rel="noreferrer" className="text-gray-900 hover:scale-125 transition-all drop-shadow-md">
-                                  <Github className="w-7 h-7" />
-                                </a>
-                              )}
-                              {identity.portfolio_url && (
-                                <a href={identity.portfolio_url} target="_blank" rel="noreferrer" className="text-red-600 hover:scale-125 transition-all drop-shadow-md">
-                                  <Globe className="w-7 h-7" />
-                                </a>
-                              )}
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+               {isOwnProfile && (
+                 <button className="absolute bottom-1 right-1 p-2.5 bg-white shadow-lg rounded-full text-slate-400 hover:text-[#3770FF] transition-all border border-slate-100">
+                    <Camera className="w-4 h-4" />
+                 </button>
+               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               <div className="md:col-span-2 space-y-8">
-                  <Section title="Gamification Dossier">
-                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
-                           <div className="w-12 h-12 rounded-2xl bg-red-600/10 flex items-center justify-center text-red-600 mb-4 group-hover:scale-110 transition-transform">
-                              <Trophy className="w-6 h-6" />
-                           </div>
-                           <div className="text-3xl font-black text-gray-900 italic tracking-tighter">{identity.total_xp || 0}</div>
-                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Total XP</div>
-                        </div>
-                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
-                           <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
-                              <Shield className="w-6 h-6" />
-                           </div>
-                           <div className="text-2xl font-black text-gray-900 italic tracking-tighter uppercase">{identity.rank?.name || 'INITIATE'}</div>
-                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Global Rank</div>
-                        </div>
-                        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col items-center text-center group hover:border-red-500/30 transition-all">
-                           <div className="w-12 h-12 rounded-2xl bg-orange-600/10 flex items-center justify-center text-orange-600 mb-4 group-hover:scale-110 transition-transform">
-                              <Zap className="w-6 h-6" />
-                           </div>
-                           <div className="text-3xl font-black text-gray-900 italic tracking-tighter">{identity.current_streak || 0}</div>
-                           <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Day Streak</div>
-                        </div>
-                     </div>
-
-                     <div className="mt-8">
-                        <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-4">Earned Badges</h4>
-                        <div className="flex flex-wrap gap-4">
-                           {(identity.badges || []).length > 0 ? (identity.badges || []).map((b: any, index: number) => (
-                             <div key={index} title={b.badge.description} className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl hover:scale-110 hover:shadow-md transition-all cursor-pointer">
-                                {b.badge.icon_url ? <img src={b.badge.icon_url} className="w-8 h-8 object-contain" /> : '🏅'}
-                             </div>
-                           )) : (
-                             <div className="text-xs text-gray-300 italic">No badges earned in this cycle.</div>
-                           )}
-                        </div>
-                     </div>
-                  </Section>
-
-                  <Section title="Operational Biography" onEdit={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
-                     <p className="text-lg text-gray-600 leading-relaxed font-medium italic">
-                       "{identity.bio || 'This operative has not yet transmitted an identity bio...'}"
-                     </p>
-                  </Section>
-               </div>
-
-               <div className="space-y-8">
-                  <Section title="Neural Activity">
-                      <div className="bg-gray-900 rounded-3xl p-6 text-white overflow-hidden relative group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                           <Github className="w-20 h-20" />
-                        </div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-red-500 mb-6">Github Contribution Graph</h4>
-                        <div className="space-y-4">
-                           {identity.github_url ? (
-                             <div className="flex flex-col items-center">
-                                <img 
-                                  src={`https://ghchart.rshah.org/DC2626/${identity.github_url.split('/').pop()}`} 
-                                  className="w-full opacity-90 hover:opacity-100 transition-opacity invert brightness-200"
-                                  alt="Github Chart" 
-                                />
-                                <p className="text-[10px] font-mono text-gray-500 mt-4 uppercase tracking-tighter">Live data fetch: {identity.github_url.split('/').pop()}</p>
-                             </div>
-                           ) : (
-                             <div className="text-center py-8 border border-white/10 rounded-2xl border-dashed">
-                                <p className="text-xs text-white/30 font-black uppercase tracking-widest">Github Link Required</p>
-                             </div>
-                           )}
-                        </div>
-                      </div>
-                  </Section>
-
-                  <Section title="System Status">
-                     <div className="space-y-6">
-                        <div>
-                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                              <span>Profile Integrity</span>
-                              <span>{identity.profile_completion_percentage || 0}%</span>
-                           </div>
-                           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div 
-                                 className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.3)] transition-all duration-1000" 
-                                 style={{ width: `${identity.profile_completion_percentage || 0}%` }}
-                              />
-                           </div>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-gray-50">
-                           <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest">
-                              <span className="text-gray-400">Terminal Access</span>
-                              <span className="text-green-500 flex items-center gap-1">
-                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Authorized
-                              </span>
-                           </div>
-                        </div>
-                     </div>
-                  </Section>
-               </div>
-            </div>
-
-               <Section title="Active Initiatives" onAdd={isOwnProfile ? () => navigate('/events') : undefined}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <InitiativeCard 
-                        title="AMD Slingshot" 
-                        org="AMD OPERATIONS" 
-                        image="https://tech-assassin.vercel.app/favicon.ico" 
-                     />
-                     <InitiativeCard 
-                        title="Gen AI Academy APAC" 
-                        org="GOOGLE CLOUD" 
-                        image="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Logos_Search.png" 
-                     />
-                  </div>
-               </Section>
-
-                <Section title="Academic Foundation" onAdd={isOwnProfile ? () => navigate('/edit-profile') : undefined}>
-                  <Card className="border-gray-100 shadow-sm bg-white p-8 rounded-3xl transition-all hover:border-red-100">
-                     <div className="flex gap-8">
-                        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
-                           <GraduationCap className="h-8 w-8 text-blue-600" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                           <div className="flex justify-between items-start">
-                              <h4 className="text-xl font-black text-gray-900 uppercase italic tracking-tight">{identity.university || 'UNSPECIFIED ACADEMY'}</h4>
-                              {isOwnProfile && <Link to="/edit-profile" className="text-gray-300 hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></Link>}
-                           </div>
-                           <p className="text-sm font-black text-red-600 uppercase tracking-widest italic">{identity.education || 'DEGREE NOT TRANSMITTED'}</p>
-                           <div className="flex items-center gap-3 pt-4">
-                              <Badge className="bg-gray-100 text-gray-600 border-none rounded-lg text-xs font-black uppercase px-4 py-2">Computer Intelligence</Badge>
-                           </div>
-                           <div className="flex justify-between items-center text-xs pt-6 text-gray-400 font-black uppercase tracking-widest">
-                              <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-red-500" /> Class of {identity.graduation_year || '20XX'}</div>
-                              <div className="bg-gray-50 px-4 py-1 rounded-full text-[10px] border border-gray-100">Grade: ELITE</div>
-                           </div>
-                        </div>
-                     </div>
-                  </Card>
-               </Section>
-
-               <Section title="Combat Projects" onAdd={isOwnProfile ? () => navigate('/community') : undefined}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <ProjectCard 
-                        title="Tech Assassins" 
-                        date="July 25, 2024 - Active" 
-                        authors={["ARYAN"]} 
-                        description="Dismantling tech, mastering code, and weaponizing creativity in the digital hunt. A high-performance community engine."
-                        isOwnProfile={isOwnProfile}
-                     />
-                     <ProjectCard 
-                        title="Neural Portfolio" 
-                        date="Jan 20, 2024 - Active" 
-                        authors={[]}
-                        description="A cinematic operative dashboard showcasing tactical development skills and lethal UI components."
-                        isOwnProfile={isOwnProfile}
-                     />
-                  </div>
-               </Section>
-
+            {/* Info Section */}
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{user.full_name || user.username}</h1>
+                  <p className="text-[#3770FF] font-semibold text-sm mt-1">@{user.username}</p>
+                </div>
                 {isOwnProfile && (
-                   <>
-                     <Section title="Experience Ledger" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.experience} />
-                     <Section title="Certifications" onAdd={() => navigate('/edit-profile')} isEmpty={!identity.licenses} />
+                  <Link to="/edit-profile">
+                    <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold px-6 hover:bg-slate-50">
+                       Edit Profile
+                    </Button>
+                  </Link>
+                )}
+              </div>
 
-                     <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:shadow-xl">
-                        <div className="text-center md:text-left">
-                           <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">Tactical Settings</h3>
-                           <p className="text-sm text-gray-500 mt-2 font-bold uppercase tracking-widest">Control your operative privacy and manage deployment notifications.</p>
-                        </div>
-                        <Link to="/edit-profile">
-                           <Button className="rounded-2xl h-14 bg-black text-white px-10 font-black uppercase text-xs tracking-[0.3em] hover:bg-gray-800 transition-all shadow-xl shadow-black/10">Configure System</Button>
-                        </Link>
-                     </div>
-                   </>
-                 )}
+              <p className="text-slate-600 text-lg leading-relaxed font-medium italic opacity-80 uppercase tracking-tight">
+                {user.bio || "Si vis pacem, para bellum"}
+              </p>
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                {(user.skills || ["React", "Data Analysis", "Machine Learning", "Data Science"]).map((skill: string) => (
+                  <Badge key={skill} variant="secondary" className="bg-white border border-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-6 pt-4 text-slate-400">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <MapPin className="w-4 h-4" />
+                  <span>{user.address || "Surat, India"}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <SocialIcon icon={Github} href={user.github_url} />
+                  <SocialIcon icon={Linkedin} href={user.linkedin_url} />
+                  <SocialIcon icon={Twitter} />
+                </div>
+              </div>
             </div>
           </div>
-        </main>
-      <Footer />
+
+          {/* Tab Navigation */}
+          <div className="mt-12">
+            <Tabs defaultValue="home" className="w-full" onValueChange={setActiveTab}>
+              <TabsList className="bg-transparent border-b border-slate-100 w-full justify-center gap-8 rounded-none h-auto p-0">
+                <TabsTrigger value="home" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="projects" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">Projects</TabsTrigger>
+                <TabsTrigger value="readme" className="data-[state=active]:border-[#3770FF] data-[state=active]:text-[#3770FF] border-b-4 border-transparent rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-400 transition-all bg-transparent shadow-none">README.md</TabsTrigger>
+              </TabsList>
+
+              <div className="py-12">
+                <TabsContent value="home" className="m-0 focus-visible:ring-0">
+                   <div className="space-y-12">
+                      {/* GitHub Activity Section */}
+                      <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                        <div className="p-8">
+                          <div className="flex items-center justify-between mb-8">
+                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Github Activity</h3>
+                             <button className="text-slate-300"><ChevronRight className="w-5 h-5" /></button>
+                          </div>
+                          
+                          <div className="flex flex-col md:flex-row items-center gap-12">
+                             <div className="text-center md:text-left shrink-0">
+                                <p className="text-5xl font-black text-slate-900 tracking-tighter">908</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Contributions in last year</p>
+                             </div>
+                             
+                             <div className="flex-1 w-full overflow-hidden">
+                                <img 
+                                  src={`https://ghchart.rshah.org/3770FF/${user.github_url?.split('/').pop() || 'aryansondharva'}`} 
+                                  className="w-full h-auto opacity-90 rounded-xl"
+                                  alt="Github Chart" 
+                                />
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-8 mt-12 pt-8 border-t border-slate-50">
+                             <div className="text-center">
+                                <p className="text-2xl font-black text-slate-900">13</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Stars Earned</p>
+                             </div>
+                             <div className="text-center">
+                                <p className="text-2xl font-black text-slate-900">17</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Repositories</p>
+                             </div>
+                             <div className="text-center">
+                                <p className="text-2xl font-black text-slate-900">04</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Followers</p>
+                             </div>
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* Projects Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <RepoCard 
+                          title="college-management" 
+                          desc="A unified, real-time ecosystem connecting students, teachers, and administrators." 
+                          lang="JavaScript"
+                          stars={0}
+                          forks={0}
+                         />
+                         <RepoCard 
+                          title="Aura" 
+                          desc="AURA: powered spaced repetition platform that helps students retain information through..." 
+                          lang="JavaScript"
+                          stars={2}
+                          forks={0}
+                         />
+                         <RepoCard 
+                          title="TechAssassin" 
+                          desc="We are the TechAssassins: The hunt for bugs sharpens our blades. Dismantling tech,..." 
+                          lang="TypeScript"
+                          stars={2}
+                          forks={2}
+                         />
+                         <RepoCard 
+                          title="AuraXpress" 
+                          desc="AuraXpress - E-commerce Platform A full-stack e-commerce platform built with React, Node.js,..." 
+                          lang="TypeScript"
+                          stars={0}
+                          forks={1}
+                         />
+                      </div>
+                   </div>
+                </TabsContent>
+                
+                <TabsContent value="projects">
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Project cards could go here */}
+                      <RepoCard title="Coming Soon" desc="Strategic initiatives currently in development..." lang="In Progress" stars={0} forks={0} />
+                   </div>
+                </TabsContent>
+
+                <TabsContent value="readme">
+                   <Card className="border-none shadow-sm rounded-3xl bg-white p-10">
+                      <article className="prose prose-slate max-w-none">
+                         <h2 className="text-slate-900 font-extrabold tracking-tight">Expertise & Vision</h2>
+                         <p className="text-slate-600 font-medium leading-relaxed italic">
+                           Highly motivated and detail-oriented computer science student with a strong passion for software development and artificial intelligence.
+                         </p>
+                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 mt-8">
+                            <li className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center gap-4">
+                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#3770FF]">
+                                  <Code className="w-5 h-5" />
+                                </div>
+                                <div>
+                                   <p className="text-sm font-black text-slate-900 uppercase">Architecture</p>
+                                   <p className="text-xs text-slate-500">MERN, Next.js, Python</p>
+                                </div>
+                            </li>
+                            <li className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center gap-4">
+                               <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-500">
+                                  <Trophy className="w-5 h-5" />
+                                </div>
+                                <div>
+                                   <p className="text-sm font-black text-slate-900 uppercase">Performance</p>
+                                   <p className="text-xs text-slate-500">Optimized Deployment</p>
+                                </div>
+                            </li>
+                         </ul>
+                      </article>
+                   </Card>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+        </div>
+      </header>
+
+      {/* Simplified Footer */}
+      <footer className="bg-white border-t border-slate-100 py-12">
+        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 Tech Assassin • Powered by NSB Classic</p>
+           <div className="flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
+              <a href="#" className="hover:text-[#3770FF] transition-colors">About</a>
+              <a href="#" className="hover:text-[#3770FF] transition-colors">Contact</a>
+              <a href="#" className="hover:text-[#3770FF] transition-colors">Privacy</a>
+           </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
-// --- SUB-COMPONENTS ---
-
-function Section({ title, onAdd, onEdit, children, isEmpty }: any) {
-   return (
-      <div className="bg-white rounded-[2.5rem] p-10 shadow-md border border-gray-100 space-y-6 transition-all hover:border-red-100/30">
-         <div className="flex items-center justify-between border-b-2 border-gray-50 pb-5 mb-4">
-            <h3 className="text-lg font-black text-gray-900 uppercase italic tracking-widest border-l-4 border-red-600 pl-4">{title}</h3>
-            <div className="flex gap-4">
-               {onAdd && (
-                  <Button variant="outline" className="h-9 px-5 rounded-xl border-gray-200 text-gray-900 font-black text-[10px] uppercase tracking-widest hover:bg-gray-50" onClick={onAdd}>
-                     <Plus className="w-4 h-4 mr-2" /> Deploy
-                  </Button>
-               )}
-               {onEdit && (
-                  <button onClick={onEdit} className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Edit3 className="w-5 h-5" /></button>
-               )}
-            </div>
-         </div>
-         {isEmpty ? (
-            <div className="py-8 text-center border-2 border-dashed border-gray-100 rounded-3xl">
-               <Shield className="w-12 h-12 text-gray-100 mx-auto mb-3" />
-               <p className="text-xs text-gray-300 font-black uppercase italic tracking-[0.3em]">No data records existing in the database...</p>
-            </div>
-         ) : children}
-      </div>
-   );
+function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
+  return (
+    <a 
+      href={href || "#"} 
+      target="_blank" 
+      rel="noreferrer" 
+      className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-[#3770FF] hover:bg-white hover:shadow-md transition-all border border-slate-100/50"
+    >
+      <Icon className="w-5 h-5" />
+    </a>
+  );
 }
 
-function InitiativeCard({ title, org, image }: any) {
-   return (
-      <div className="flex items-center gap-6 p-6 bg-white rounded-3xl border border-gray-100 hover:border-red-500/20 hover:shadow-lg transition-all group cursor-pointer">
-         <div className="w-16 h-16 rounded-2xl bg-gray-50 p-3 shadow-inner border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
-            <img src={image} alt={org} className="max-w-full max-h-full object-contain grayscale group-hover:grayscale-0 transition-all" />
-         </div>
-         <div className="flex-1 min-w-0">
-            <h4 className="text-lg font-black text-gray-900 uppercase italic tracking-tighter truncate group-hover:text-red-600 transition-colors">{title}</h4>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Initiative: <span className="text-gray-900">{org}</span></p>
-         </div>
-      </div>
-   );
-}
-
-function ProjectCard({ title, date, authors, description, isOwnProfile }: any) {
-   return (
-      <Card className="border-gray-100 shadow-none bg-white hover:shadow-xl transition-all group p-8 rounded-3xl border-r-8 border-r-red-600/10 hover:border-r-red-600 transition-all">
-         <div className="flex justify-between items-start mb-4">
-            <div>
-               <div className="flex items-center gap-3">
-                  <h4 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">{title}</h4>
-                  <Badge className="bg-blue-600 text-white border-none rounded-lg text-[10px] font-black uppercase px-3 py-1">Mission</Badge>
-               </div>
-               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-black uppercase tracking-widest mt-2">
-                  <Calendar className="w-4 h-4 text-red-500" /> {date}
-               </div>
-            </div>
-            {isOwnProfile && <button className="p-2 text-gray-200 group-hover:text-red-600 transition-all"><Edit3 className="w-5 h-5" /></button>}
-         </div>
-         
-         <p className="text-sm text-gray-500 leading-relaxed font-bold italic border-l-2 border-gray-100 pl-4">
-            {description}
-         </p>
-      </Card>
-   );
+function RepoCard({ title, desc, lang, stars, forks }: any) {
+  return (
+    <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-[#3770FF]/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group">
+       <div className="flex-1 space-y-3">
+          <h4 className="text-lg font-black text-slate-900 group-hover:text-[#3770FF] transition-colors">{title}</h4>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2 italic">{desc}</p>
+       </div>
+       <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
+          <div className="flex items-center gap-4">
+             <div className="flex items-center gap-1.5">
+                <div 
+                  className={`w-2 h-2 rounded-full ${lang === 'JavaScript' ? 'bg-yellow-400' : 'bg-[#3770FF]'}`} 
+                />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang}</span>
+             </div>
+             <div className="flex items-center gap-1.5 text-slate-400">
+                <Star className="w-3 h-3" />
+                <span className="text-[10px] font-bold">{stars}</span>
+             </div>
+             <div className="flex items-center gap-1.5 text-slate-400">
+                <GitFork className="w-3 h-3" />
+                <span className="text-[10px] font-bold">{forks}</span>
+             </div>
+          </div>
+          <button className="text-slate-300 group-hover:text-slate-600 transition-colors"><ExternalLink className="w-4 h-4" /></button>
+       </div>
+    </Card>
+  );
 }

@@ -9,6 +9,7 @@ import type {
   Profile,
   ProfileUpdateRequest,
   AvatarUploadResponse,
+  BannerUploadResponse,
 } from '@/types/api';
 
 export const profileService = {

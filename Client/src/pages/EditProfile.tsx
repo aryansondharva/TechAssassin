@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { profileService, authService } from '@/services';
-import { ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,11 +10,6 @@ import { toast } from '@/hooks/use-toast';
 import { 
   Loader2, 
   ArrowLeft, 
-  Save, 
-  Camera, 
-  Github, 
-  Linkedin, 
-  Globe, 
   User, 
   Mail, 
   Phone, 
@@ -23,50 +17,38 @@ import {
   GraduationCap,
   Plus,
   X,
-  ShieldCheck,
   Target,
-  Image as ImageIcon
+  Briefcase,
+  Globe,
+  Github,
+  Linkedin,
+  Twitter,
+  Settings,
+  ShieldCheck,
+  ChevronRight,
+  FileText,
+  Clock,
+  Shirt,
+  Heart,
+  Links,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import type { Profile } from '@/types/api';
 import Navbar from '@/components/Navbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { motion } from 'framer-motion';
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-  
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    bio: '',
-    skills: [] as string[],
-    interests: [] as string[],
-    github_url: '',
-    linkedin_url: '',
-    portfolio_url: '',
-    phone: '',
-    address: '',
-    university: '',
-    education: '',
-    graduation_year: '',
-    avatar_url: '',
-    banner_url: '',
-    is_email_public: false,
-    is_phone_public: false,
-    is_address_public: false,
-  });
-
-  const [skillInput, setSkillInput] = useState('');
-  const [interestInput, setInterestInput] = useState('');
+  const [activeSection, setActiveSection] = useState('about');
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -81,327 +63,468 @@ export default function EditProfile() {
     try {
       const data = await profileService.getMyProfile();
       setProfile(data);
-      setFormData({
-        username: data.username || '',
-        full_name: data.full_name || '',
-        bio: data.bio || '',
-        skills: data.skills || [],
-        interests: data.interests || [],
-        github_url: data.github_url || '',
-        linkedin_url: data.linkedin_url || '',
-        portfolio_url: data.portfolio_url || '',
-        phone: data.phone || '',
-        address: data.address || '',
-        university: data.university || '',
-        education: data.education || '',
-        graduation_year: data.graduation_year?.toString() || '',
-        avatar_url: data.avatar_url || '',
-        banner_url: data.banner_url || '',
-        is_email_public: data.is_email_public || false,
-        is_phone_public: data.is_phone_public || false,
-        is_address_public: data.is_address_public || false,
-      });
     } catch (error) {
-      if (error instanceof ApiError && error.status !== 404) {
-        toast({ title: 'Error', description: 'Failed to load profile data', variant: 'destructive' });
-      }
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAvatarClick = () => fileInputRef.current?.click();
-  const handleBannerClick = () => bannerInputRef.current?.click();
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const response = await profileService.uploadAvatar(file);
-      setFormData(prev => ({ ...prev, avatar_url: response.avatar_url }));
-      toast({ title: 'Success', description: 'Avatar uploaded!' });
-    } catch (error: any) {
-      toast({ title: 'Failed', description: error.message, variant: 'destructive' });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploadingBanner(true);
-    try {
-      const response = await profileService.uploadBanner(file);
-      setFormData(prev => ({ ...prev, banner_url: response.banner_url }));
-      toast({ title: 'Success', description: 'Banner uploaded!' });
-    } catch (error: any) {
-      toast({ title: 'Failed', description: error.message, variant: 'destructive' });
-    } finally {
-      setIsUploadingBanner(false);
-    }
-  };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    // Client-side validation
-    if (!formData.username || formData.username.length < 3) {
-      toast({ title: 'Invalid Username', description: 'Callsign must be at least 3 characters.', variant: 'destructive' });
-      setIsSaving(false);
-      return;
-    }
-    if (!formData.full_name) {
-      toast({ title: 'Name Required', description: 'Please enter your full operational name.', variant: 'destructive' });
-      setIsSaving(false);
-      return;
-    }
-
-    try {
-      // Clean up data before sending
-      const submissionData = {
-        ...formData,
-        graduation_year: formData.graduation_year ? parseInt(formData.graduation_year) : null,
-        skills: formData.skills.length > 0 ? formData.skills : [],
-        interests: formData.interests.length > 0 ? formData.interests : [],
-      };
-
-      await profileService.update(submissionData);
-      toast({ title: 'Success', description: 'Profile updated! 🔥' });
-      navigate('/profile');
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleAddSkill = () => {
-    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
-      setFormData(prev => ({ ...prev, skills: [...prev.skills, skillInput.trim()] }));
-      setSkillInput('');
-    }
-  };
-
-  const handleAddInterest = () => {
-    if (interestInput.trim() && !formData.interests.includes(interestInput.trim())) {
-      setFormData(prev => ({ ...prev, interests: [...prev.interests, interestInput.trim()] }));
-      setInterestInput('');
-    }
-  };
-
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-12 w-12 animate-spin text-red-600" /></div>;
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader2 className="h-10 w-10 animate-spin text-[#3770FF]" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6]">
-      <Navbar />
-      <div className="max-w-6xl mx-auto px-4 pt-28 pb-20">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-4xl font-black text-gray-900 uppercase italic tracking-tighter">Edit Operative Profile</h1>
-            <p className="text-gray-500 mt-1 font-bold uppercase text-xs tracking-widest">Modify your tactical identity and combat project history</p>
-          </div>
-          <Link to="/profile">
-            <Button variant="outline" className="border-gray-300 font-bold uppercase text-[10px] tracking-widest">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
-            </Button>
-          </Link>
+    <div className="min-h-screen bg-[#F7F9FC]">
+      <Navbar dark={false} />
+      
+      <div className="max-w-6xl mx-auto px-6 pt-32 pb-20">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
+          
+          {/* Left Sticky Sidebar */}
+          <aside className="w-full lg:w-64 lg:sticky lg:top-32 space-y-2">
+            <SidebarLink 
+              active={activeSection === 'about'} 
+              onClick={() => setActiveSection('about')} 
+              icon={User} 
+              label="About" 
+            />
+            <SidebarLink 
+              active={activeSection === 'education'} 
+              onClick={() => setActiveSection('education')} 
+              icon={GraduationCap} 
+              label="Education" 
+            />
+            <SidebarLink 
+              active={activeSection === 'experience'} 
+              onClick={() => setActiveSection('experience')} 
+              icon={Briefcase} 
+              label="Experience" 
+            />
+             <SidebarLink 
+              active={activeSection === 'links'} 
+              onClick={() => setActiveSection('links')} 
+              icon={Globe} 
+              label="Links" 
+            />
+            <SidebarLink 
+              active={activeSection === 'contact'} 
+              onClick={() => setActiveSection('contact')} 
+              icon={Phone} 
+              label="Contact" 
+            />
+            
+            <div className="pt-8 border-t border-slate-200 mt-8">
+               <Link to="/profile" className="flex items-center gap-3 px-6 py-3 text-slate-400 hover:text-slate-600 font-bold uppercase tracking-widest text-[11px] transition-all">
+                  <Target className="w-4 h-4" /> My Assassin
+               </Link>
+            </div>
+          </aside>
+
+          {/* Main Form Area */}
+          <main className="flex-1 space-y-10">
+            
+            {/* Dynamic Sections Based on Active Sidebar Selection */}
+            {activeSection === 'about' && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <SectionCard title="Basic Info" subtitle="Just the essentials.">
+                  <div className="grid grid-cols-2 gap-6">
+                    <Field label="First name" placeholder="E.g. Aryan" />
+                    <Field label="Last name" placeholder="E.g. Sondharva" />
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">I identify as</Label>
+                      <Select>
+                        <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                          <SelectValue placeholder="Choose your preference" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-2">Choose prefer not to say if you are not comfortable sharing</p>
+                    </div>
+
+                    <div>
+                      <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">T-shirt size</Label>
+                      <Select>
+                        <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                          <SelectValue placeholder="Pick a T-shirt size" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                          <SelectItem value="s">Small (S)</SelectItem>
+                          <SelectItem value="m">Medium (M)</SelectItem>
+                          <SelectItem value="l">Large (L)</SelectItem>
+                          <SelectItem value="xl">XL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Field label="City" placeholder="E.g. Surat" />
+                  </div>
+                </SectionCard>
+
+                <SectionCard title="About You" subtitle="Tell your story.">
+                   <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest block">Bio</Label>
+                        <Textarea placeholder="Add a bio." className="min-h-[100px] bg-slate-50 border-none rounded-xl font-medium p-6 resize-none" />
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest block">Readme.md</Label>
+                        <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                           <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex items-center justify-between">
+                              <div className="flex gap-4">
+                                 <button className="text-[10px] font-black uppercase text-[#3770FF] border-b-2 border-[#3770FF]">Write</button>
+                                 <button className="text-[10px] font-black uppercase text-slate-400">Preview</button>
+                              </div>
+                              <div className="flex gap-4 text-slate-300">
+                                 <FileText className="w-3.5 h-3.5" />
+                                 <Plus className="w-3.5 h-3.5" />
+                              </div>
+                           </div>
+                           <Textarea 
+                              className="min-h-[200px] border-none bg-white p-8 font-mono text-sm leading-relaxed focus-visible:ring-0" 
+                              placeholder="This is your chance to tell us more about yourself! Things you're good at, what drives you and interesting projects you've built."
+                           />
+                           <div className="bg-slate-50/50 px-6 py-3 text-[10px] text-slate-400 font-bold uppercase italic">
+                              Attach images by dragging & dropping, selecting or pasting them
+                           </div>
+                        </div>
+                      </div>
+                   </div>
+                </SectionCard>
+
+                <SectionCard title="Dietary Preferences" subtitle="Optional, but useful.">
+                   <div className="space-y-8">
+                      <RadioGroup defaultValue="non-vegetarian" className="space-y-3">
+                        <div className="flex items-center space-x-3 p-5 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-all">
+                          <RadioGroupItem value="vegetarian" id="veg" className="text-[#3770FF]" />
+                          <Label htmlFor="veg" className="flex-1 font-bold text-sm text-slate-700">Vegetarian</Label>
+                        </div>
+                        <div className="flex items-center space-x-3 p-5 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-all">
+                          <RadioGroupItem value="non-vegetarian" id="non-veg" className="text-[#3770FF]" />
+                          <Label htmlFor="non-veg" className="flex-1 font-bold text-sm text-slate-700">Non-Vegetarian</Label>
+                        </div>
+                        <div className="flex items-center space-x-3 p-5 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-all">
+                          <RadioGroupItem value="jain" id="jain" className="text-[#3770FF]" />
+                          <Label htmlFor="jain" className="flex-1 font-bold text-sm text-slate-700">Jain</Label>
+                        </div>
+                      </RadioGroup>
+                      
+                      <Field label="Allergies" placeholder="Add allergies." />
+                   </div>
+                </SectionCard>
+              </motion.div>
+            )}
+
+            {activeSection === 'education' && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <SectionCard title="Education" subtitle="All journeys count.">
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-4 p-6 rounded-2xl border border-dashed border-slate-200 bg-white group cursor-pointer hover:border-[#3770FF]/30 transition-all">
+                       <Checkbox id="no-edu" />
+                       <Label htmlFor="no-edu" className="font-bold text-slate-500 cursor-pointer">I don't have a formal education</Label>
+                    </div>
+
+                    <div>
+                      <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">Degree type</Label>
+                      <Select defaultValue="bachelors">
+                        <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                          <SelectValue placeholder="Select degree" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                          <SelectItem value="bachelors">Bachelors</SelectItem>
+                          <SelectItem value="masters">Masters</SelectItem>
+                          <SelectItem value="phd">PhD</SelectItem>
+                          <SelectItem value="high-school">High School</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Field label="Educational Institution" placeholder="E.g. GIDC Degree Engineering College" />
+
+                    <div className="flex items-center space-x-3 p-2">
+                       <Checkbox id="current" defaultChecked />
+                       <Label htmlFor="current" className="font-bold text-slate-700 text-sm">I currently study here</Label>
+                    </div>
+
+                    <Field label="Field of study" placeholder="E.g. Computer Science & Engineering" />
+
+                    <div className="grid grid-cols-2 gap-6">
+                       <div>
+                          <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">Expected year of graduation</Label>
+                          <Select defaultValue="2029">
+                            <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                              <SelectValue placeholder="2024" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                              <SelectItem value="2024">2024</SelectItem>
+                              <SelectItem value="2025">2025</SelectItem>
+                              <SelectItem value="2028">2028</SelectItem>
+                              <SelectItem value="2029">2029</SelectItem>
+                            </SelectContent>
+                          </Select>
+                       </div>
+                       <div>
+                          <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">Expected month of graduation</Label>
+                          <Select defaultValue="april">
+                            <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                              <SelectValue placeholder="May" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                               <SelectItem value="april">April</SelectItem>
+                               <SelectItem value="may">May</SelectItem>
+                               <SelectItem value="june">June</SelectItem>
+                            </SelectContent>
+                          </Select>
+                       </div>
+                    </div>
+                  </div>
+                </SectionCard>
+              </motion.div>
+            )}
+
+            {activeSection === 'experience' && (
+               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+                  <SectionCard title="What Describes You Best?" subtitle="Choose all that fit">
+                     <div className="grid grid-cols-2 gap-4">
+                        <RoleToggle label="Designer" active />
+                        <RoleToggle label="Frontend Developer" active />
+                        <RoleToggle label="Backend Developer" active />
+                        <RoleToggle label="Mobile Developer" />
+                        <RoleToggle label="Blockchain Developer" />
+                        <RoleToggle label="Other" />
+                     </div>
+                  </SectionCard>
+
+                  <SectionCard title="Top Tech Skills" subtitle="What you're best at">
+                     <div className="space-y-4">
+                        <Label className="text-[12px] font-bold text-slate-400 uppercase tracking-[0.2em] block">Add upto 5 skills</Label>
+                        <Input placeholder="E.g. React" className="h-14 bg-slate-50 border-none rounded-xl px-5 font-bold" />
+                        <div className="flex flex-wrap gap-2 pt-2">
+                           <SkillBadge label="React" />
+                           <SkillBadge label="Data Analysis" />
+                           <SkillBadge label="Machine Learning" />
+                           <SkillBadge label="Data Science" />
+                           <SkillBadge label="Natural Language Processing" />
+                        </div>
+                     </div>
+                  </SectionCard>
+
+                  <SectionCard title="Resume" subtitle="Your latest resume, here.">
+                     <div className="border-2 border-dashed border-[#3770FF]/20 rounded-3xl p-12 bg-[#3770FF]/5 flex flex-col items-center justify-center text-center">
+                        <div className="bg-[#3770FF] text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#3770FF]/10 mb-4">
+                           RESUME_ARYANSONDHARVA
+                        </div>
+                        <Button variant="outline" className="mt-4 border-slate-200 rounded-xl h-11 px-8 font-bold text-slate-500 hover:text-slate-700">Update</Button>
+                     </div>
+                  </SectionCard>
+
+                  <SectionCard title="Work Experience" subtitle="Roles you've taken on.">
+                     <div className="p-8 border border-slate-100 bg-white rounded-3xl flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                           <Checkbox id="no-work" defaultChecked />
+                           <Label htmlFor="no-work" className="font-bold text-slate-500">I am yet to find my first work opportunity</Label>
+                        </div>
+                        <Button variant="ghost" className="text-slate-300 hover:text-[#3770FF] font-bold uppercase tracking-widest text-[10px] items-center gap-2">
+                           <Plus className="w-4 h-4" /> Add an experience
+                        </Button>
+                     </div>
+                  </SectionCard>
+               </motion.div>
+            )}
+
+            {activeSection === 'links' && (
+               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                  <SectionCard title="Links" subtitle="Links that speak for you.">
+                     <div className="space-y-4">
+                        <SocialLinkInput icon={Github} value="https://github.com/aryansondharva" />
+                        <SocialLinkInput icon={Linkedin} value="https://linkedin.com/in/aryan-sondharva" color="text-blue-600" />
+                        <SocialLinkInput icon={Twitter} value="https://x.com/aryansondharva" />
+                        
+                        <div className="flex justify-center pt-8">
+                           <Button variant="outline" className="rounded-full h-12 px-8 border-slate-200 text-slate-500 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-slate-50">
+                              <Plus className="w-4 h-4" /> Add new link
+                           </Button>
+                        </div>
+                     </div>
+                  </SectionCard>
+               </motion.div>
+            )}
+
+            {activeSection === 'contact' && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+                   <SectionCard title="How Can We Reach You?" subtitle="For updates and communication.">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                           <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest block mb-2">Email address</Label>
+                           <div className="flex gap-4">
+                              <Input defaultValue="aryansondharva25@gmail.com" readOnly className="flex-1 h-14 bg-slate-50 border-none rounded-xl px-6 font-bold text-slate-400" />
+                              <Button variant="outline" className="h-14 px-8 border-slate-200 rounded-xl font-bold text-slate-600">Verify email</Button>
+                           </div>
+                        </div>
+
+                        <div>
+                           <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest block mb-2">Phone number</Label>
+                           <div className="flex gap-4">
+                              <div className="w-40">
+                                 <Select defaultValue="india">
+                                    <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                                       <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-slate-100">
+                                       <SelectItem value="india">India</SelectItem>
+                                       <SelectItem value="usa">USA</SelectItem>
+                                    </SelectContent>
+                                 </Select>
+                              </div>
+                              <div className="flex-1 relative">
+                                 <Input defaultValue="+91 9913386244" className="h-14 bg-slate-50 border-none rounded-xl px-6 font-bold pl-12" />
+                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                     <div className="w-5 h-3.5 bg-green-700 rounded-sm" title="India" />
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                   </SectionCard>
+
+                   <SectionCard title="Emergency Contact" subtitle="For emergencies during events.">
+                      <div className="space-y-6">
+                        <Field label="Emergency contact name" placeholder="" />
+                        <div>
+                           <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest block mb-2">Emergency contact number</Label>
+                           <div className="flex gap-4">
+                              <div className="w-40">
+                                 <Select defaultValue="india">
+                                    <SelectTrigger className="h-14 bg-slate-50 border-none rounded-xl font-medium px-5">
+                                       <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-slate-100">
+                                       <SelectItem value="india">India</SelectItem>
+                                    </SelectContent>
+                                 </Select>
+                              </div>
+                              <Input defaultValue="+91" className="flex-1 h-14 bg-slate-50 border-none rounded-xl px-6 font-bold" />
+                           </div>
+                        </div>
+                      </div>
+                   </SectionCard>
+                </motion.div>
+            )}
+          </main>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-1 space-y-8">
-            <Card className="border-none shadow-md rounded-[2.5rem] overflow-hidden bg-white">
-              <div className="h-32 bg-gray-900 relative group cursor-pointer" onClick={handleBannerClick}>
-                {formData.banner_url ? (
-                   <img src={formData.banner_url} className="w-full h-full object-cover opacity-50" />
-                ) : (
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                )}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                   <ImageIcon className="text-white w-8 h-8" />
-                </div>
-                <input type="file" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" />
-              </div>
-              <CardContent className="relative pt-0 pb-10 text-center">
-                <div className="relative inline-block -mt-16 mb-4 group">
-                  <Avatar className="h-32 w-32 border-8 border-white shadow-2xl">
-                    <AvatarImage src={formData.avatar_url} />
-                    <AvatarFallback className="bg-red-50 text-3xl font-black text-red-200 uppercase">{formData.username?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <button type="button" onClick={handleAvatarClick} className="absolute bottom-2 right-2 p-3 bg-red-600 text-white rounded-full shadow-xl border-4 border-white hover:scale-110 transition-all font-black">
-                    <Camera className="h-4 w-4" />
-                  </button>
-                  <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
-                </div>
-                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{formData.full_name || 'NEW OPERATIVE'}</h3>
-                <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-2">Rank: Senior Contributor</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-md rounded-[2rem] bg-white p-8 space-y-4">
-                <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white h-14 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-red-500/20" disabled={isSaving}>
-                  {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />} Save Identity
-                </Button>
-                <Link to="/profile" className="block"><Button type="button" variant="ghost" className="w-full font-black uppercase text-[10px] tracking-widest text-gray-400">Abort Changes</Button></Link>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-2 space-y-10">
-            <EditSection icon={User} title="Core Identity" description="Basic identification and operational bio">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Full Operational Name</Label>
-                    <Input value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="h-12 rounded-xl border-gray-100 bg-gray-50 focus:bg-white transition-all font-bold" />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Digital Callsign (Username)</Label>
-                    <Input value={formData.username} onChange={e => setFormData({...formData, username: e.target.value.toLowerCase()})} className="h-12 rounded-xl border-gray-100 bg-gray-50 focus:bg-white transition-all font-bold text-red-600 lowercase" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Operational Biography</Label>
-                  <Textarea value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} className="min-h-[120px] rounded-2xl border-gray-100 bg-gray-50 focus:bg-white transition-all p-4 font-bold text-sm italic" />
-                </div>
-            </EditSection>
-
-            <EditSection icon={Target} title="Capability Matrix" description="Technical skills and combat interests">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Skillset Tags</Label>
-                    <div className="flex gap-2">
-                      <Input placeholder="Weaponize new skill..." value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())} className="h-12 rounded-xl" />
-                      <Button type="button" onClick={handleAddSkill} className="bg-gray-900 h-12 w-12 rounded-xl"><Plus /></Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                      {formData.skills.map(s => (
-                        <Badge key={s} className="bg-white text-gray-900 border-gray-200 pl-4 pr-2 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-sm">
-                          {s} <button type="button" onClick={() => setFormData(prev => ({...prev, skills: prev.skills.filter(x => x !== s)}))} className="ml-2 text-red-500 hover:scale-125 transition-all"><X className="w-3 h-3" /></button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-gray-100">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Interests / Focus Areas</Label>
-                    <div className="flex gap-2">
-                      <Input placeholder="Define interest..." value={interestInput} onChange={e => setInterestInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddInterest())} className="h-12 rounded-xl" />
-                      <Button type="button" onClick={handleAddInterest} className="bg-gray-900 h-12 w-12 rounded-xl"><Target className="w-4 h-4" /></Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                      {formData.interests.map(it => (
-                        <Badge key={it} variant="outline" className="bg-white border-gray-300 text-gray-600 pl-4 pr-2 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest">
-                          {it} <button type="button" onClick={() => setFormData(prev => ({...prev, interests: prev.interests.filter(x => x !== it)}))} className="ml-2 text-red-500"><X className="w-3 h-3" /></button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-            </EditSection>
-
-            <EditSection icon={GraduationCap} title="Academic Record" description="Educational background and degree info">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Academy / University</Label>
-                      <Input value={formData.university} onChange={e => setFormData({...formData, university: e.target.value})} className="h-12 rounded-xl" />
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                         <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Degree</Label>
-                         <Input value={formData.education} onChange={e => setFormData({...formData, education: e.target.value})} className="h-12 rounded-xl" />
-                      </div>
-                      <div className="space-y-3">
-                         <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Grad Year</Label>
-                         <Input type="number" value={formData.graduation_year} onChange={e => setFormData({...formData, graduation_year: e.target.value})} className="h-12 rounded-xl" />
-                      </div>
-                   </div>
-                </div>
-            </EditSection>
-
-            <EditSection icon={Mail} title="Network Connectivity" description="Contact methods and social neural-links">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Comms Number (Phone)</Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Public</span>
-                        <Switch 
-                          checked={formData.is_phone_public} 
-                          onCheckedChange={checked => setFormData({...formData, is_phone_public: checked})} 
-                        />
-                      </div>
-                    </div>
-                    <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-12 rounded-xl" />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Sector (Address)</Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Public</span>
-                        <Switch 
-                          checked={formData.is_address_public} 
-                          onCheckedChange={checked => setFormData({...formData, is_address_public: checked})} 
-                        />
-                      </div>
-                    </div>
-                    <Input value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-12 rounded-xl" />
-                  </div>
-                </div>
-                
-                <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-between bg-red-50/30 p-4 rounded-2xl">
-                  <div>
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-gray-900">Privacy Cloak: Email Visibility</Label>
-                    <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase">Hide or reveal your primary comms address to the public network.</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{formData.is_email_public ? 'VISIBLE' : 'HIDDEN'}</span>
-                    <Switch 
-                      checked={formData.is_email_public} 
-                      onCheckedChange={checked => setFormData({...formData, is_email_public: checked})} 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-6 pt-6">
-                  <SocialLinkInput icon={Github} label="GitHub Nexus" value={formData.github_url} onChange={v => setFormData({...formData, github_url: v})} />
-                  <SocialLinkInput icon={Linkedin} label="LinkedIn Network" value={formData.linkedin_url} onChange={v => setFormData({...formData, linkedin_url: v})} />
-                  <SocialLinkInput icon={Globe} label="Neural Portfolio" value={formData.portfolio_url} onChange={v => setFormData({...formData, portfolio_url: v})} />
-                </div>
-            </EditSection>
-          </div>
-        </form>
+        {/* Footer Navigation */}
+        <footer className="mt-32 pt-12 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+           <p>© 2026, NSB CLASSIC PTE LTD</p>
+           <div className="flex gap-8">
+              <a href="#" className="hover:text-slate-600 transition-colors">Terms</a>
+              <a href="#" className="hover:text-slate-600 transition-colors">Privacy</a>
+           </div>
+           <div className="flex gap-8">
+              <a href="#" className="hover:text-slate-600 transition-colors">About</a>
+              <a href="#" className="hover:text-slate-600 transition-colors">Contact us</a>
+           </div>
+        </footer>
       </div>
     </div>
   );
 }
 
-function EditSection({ icon: Icon, title, description, children }: any) {
+// --- SUB-COMPONENTS ---
+
+function SidebarLink({ active, onClick, icon: Icon, label }: any) {
   return (
-    <Card className="border-none shadow-md rounded-[2.5rem] bg-white overflow-hidden p-10">
-      <CardHeader className="p-0 mb-8 pb-6 border-b border-gray-50">
-        <div className="flex items-center gap-4 mb-2">
-          <div className="p-3 bg-red-50 rounded-2xl text-red-600"><Icon className="w-6 h-6" /></div>
-          <div>
-            <CardTitle className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter">{title}</CardTitle>
-            <CardDescription className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">{description}</CardDescription>
-          </div>
+    <button 
+      onClick={onClick}
+      className={`
+        flex items-center gap-4 w-full px-6 py-4 rounded-xl transition-all font-bold text-xs uppercase tracking-[0.2em] group
+        ${active 
+          ? 'bg-[#3770FF] text-white shadow-lg shadow-[#3770FF]/20' 
+          : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
+        }
+      `}
+    >
+      <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${active ? 'text-white' : 'text-inherit'}`} />
+      <span>{label}</span>
+      {active && <div className="ml-auto w-1 h-4 bg-white/30 rounded-full" />}
+    </button>
+  );
+}
+
+function SectionCard({ title, subtitle, children }: any) {
+  return (
+    <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden">
+      <div className="p-10">
+        <div className="mb-10">
+           <h3 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h3>
+           <p className="text-sm text-slate-400 mt-1 font-medium">{subtitle}</p>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 space-y-8">
-        {children}
-      </CardContent>
+        <div className="space-y-8">
+          {children}
+        </div>
+        <div className="flex justify-end pt-10 border-t border-slate-50 mt-10">
+           <Button className="rounded-xl h-11 px-8 bg-[#3770FF] hover:bg-[#2F60E0] text-white font-bold text-xs pb-0.5 shadow-md">
+             Save
+           </Button>
+        </div>
+      </div>
     </Card>
   );
 }
 
-function SocialLinkInput({ icon: Icon, label, value, onChange }: any) {
+function Field({ label, placeholder, value }: any) {
   return (
-    <div className="flex items-center gap-6 group">
-      <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-500 transition-all border border-gray-100"><Icon className="w-5 h-5" /></div>
-      <div className="flex-1 space-y-1">
-        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
-        <Input value={value} onChange={e => onChange(e.target.value)} placeholder="https://..." className="h-11 rounded-xl border-gray-100 bg-gray-50 focus:bg-white text-xs font-bold" />
-      </div>
+    <div className="space-y-2">
+      <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">{label}</Label>
+      <Input 
+        placeholder={placeholder} 
+        value={value}
+        className="h-14 bg-slate-50 border-none rounded-xl px-5 font-medium focus-visible:ring-[#3770FF]/20 transition-all"
+      />
     </div>
   );
+}
+
+function RoleToggle({ label, active = false }: { label: string, active?: boolean }) {
+  return (
+     <div className={`p-5 rounded-xl border flex items-center gap-4 cursor-pointer transition-all ${active ? 'bg-[#3770FF]/5 border-[#3770FF]/30' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+        <Checkbox id={label} defaultChecked={active} />
+        <Label htmlFor={label} className={`font-bold text-sm cursor-pointer ${active ? 'text-[#3770FF]' : 'text-slate-600'}`}>{label}</Label>
+     </div>
+  );
+}
+
+function SkillBadge({ label }: { label: string }) {
+   return (
+      <div className="px-4 py-2 rounded-xl bg-white border border-slate-100 text-slate-600 text-xs font-bold uppercase tracking-tight flex items-center gap-3 group hover:border-[#3770FF]/30 transition-all">
+         {label}
+         <X className="w-3.5 h-3.5 text-slate-300 group-hover:text-red-500 cursor-pointer" />
+      </div>
+   );
+}
+
+function SocialLinkInput({ icon: Icon, value, color = "text-slate-900" }: any) {
+   return (
+      <div className="flex items-center gap-4 w-full">
+         <div className="flex-1 relative flex items-center">
+            <div className="absolute left-5 text-slate-400">
+               <Icon className={`w-5 h-5 ${color}`} />
+            </div>
+            <Input defaultValue={value} className="h-14 bg-slate-50 border-none rounded-xl font-bold px-14 text-slate-600 w-full" />
+         </div>
+         <button className="p-3 text-red-100 hover:text-red-500 transition-colors">
+            <Trash2 className="w-5 h-5" />
+         </button>
+      </div>
+   );
 }
