@@ -75,5 +75,5 @@ export function middleware(request: NextRequest) {
  * Adjust the matcher pattern if you need different behavior for specific routes.
  */
 export const config = {
-  matcher: '/api/:path*',
+  matcher: '/:path*',
 }
