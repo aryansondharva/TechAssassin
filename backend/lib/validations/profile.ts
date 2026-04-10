@@ -47,6 +47,22 @@ export const profileUpdateSchema = z.object({
   avatar_url: z.string().url().optional().or(z.literal('')),
   banner_url: z.string().url().optional().or(z.literal('')),
   interests: z.array(z.string()).max(10, 'Cannot have more than 10 interests').optional(),
+  first_name: z.string().max(50).optional().or(z.literal('')),
+  last_name: z.string().max(50).optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  tshirt_size: z.string().optional().or(z.literal('')),
+  readme: z.string().max(5000).optional().or(z.literal('')),
+  dietary_preference: z.string().optional().or(z.literal('')),
+  allergies: z.string().max(200).optional().or(z.literal('')),
+  has_education: z.boolean().optional(),
+  degree_type: z.string().optional().or(z.literal('')),
+  graduation_month: z.string().optional().or(z.literal('')),
+  roles: z.array(z.string()).optional(),
+  resume_url: z.string().url().optional().or(z.literal('')),
+  has_experience: z.boolean().optional(),
+  twitter_url: z.string().url().optional().or(z.literal('')),
+  emergency_contact_name: z.string().max(100).optional().or(z.literal('')),
+  emergency_contact_phone: z.string().max(20).optional().or(z.literal('')),
 }).partial()
 
 /**

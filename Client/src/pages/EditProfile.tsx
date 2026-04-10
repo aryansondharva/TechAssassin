@@ -93,7 +93,8 @@ export default function EditProfile() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await profileService.update(formData);
+      const updatedData = await profileService.update(formData);
+      setProfile(updatedData);
       toast({ title: 'Profile Updated', description: 'Operative parameters synchronized successfully.' });
     } catch (error) {
        toast({ title: 'Sync Failed', description: 'Could not write to the central database.', variant: 'destructive' });

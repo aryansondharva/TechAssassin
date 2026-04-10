@@ -6,15 +6,33 @@ export interface Profile {
   username: string
   email: string
   full_name: string | null
+  first_name: string | null
+  last_name: string | null
+  gender: string | null
+  tshirt_size: string | null
   phone: string | null
   aadhaar_number: string | null
   avatar_url: string | null
   github_url: string | null
+  linkedin_url: string | null
+  twitter_url: string | null
+  portfolio_url: string | null
   bio: string | null
+  readme: string | null
   address: string | null
+  dietary_preference: string | null
+  allergies: string | null
+  has_education: boolean
   education: string | null
   university: string | null
+  degree_type: string | null
   graduation_year: number | null
+  graduation_month: string | null
+  roles: string[] | null
+  resume_url: string | null
+  has_experience: boolean
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
   is_admin: boolean
   total_xp: number
   current_rank_id: string | null
