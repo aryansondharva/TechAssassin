@@ -25,7 +25,6 @@ import {
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api-client';
-import MissionsHub from './MissionsHub';
 
 interface LeaderboardEntry {
   id: string;
@@ -72,7 +71,7 @@ interface Contributor {
 }
 
 const CommunityDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'missions' | 'contributors'>('missions');
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'contributors'>('leaderboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -343,16 +342,16 @@ const CommunityDashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Navigation Bar - Tactical Style */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-10 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
-            {(['leaderboard', 'activities', 'missions', 'contributors'] as const).map((tab) => (
+            {(['leaderboard', 'activities', 'contributors'] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${activeTab === (tab === 'missions' ? 'events' : tab)
+                onClick={() => setActiveTab(tab)}
+                className={`relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-500 overflow-hidden ${activeTab === tab
                   ? 'text-white'
                   : 'text-white/40 hover:text-white/70'
                   }`}
               >
-                {activeTab === (tab === 'missions' ? 'events' : tab) && (
+                {activeTab === tab && (
                   <motion.div
                     layoutId="active-tab"
                     className="absolute inset-0 bg-red-600 rounded-xl"
@@ -361,7 +360,6 @@ const CommunityDashboard = () => {
                 <span className="relative z-10 flex items-center gap-2">
                   {tab === 'leaderboard' && <Trophy className="w-4 h-4" />}
                   {tab === 'activities' && <Activity className="w-4 h-4" />}
-                  {tab === 'missions' && <Globe className="w-4 h-4" />}
                   {tab === 'contributors' && (
                     <div className="flex -space-x-2 mr-2">
                       {contributors.slice(0, 3).map((c, i) => (
@@ -508,10 +506,6 @@ const CommunityDashboard = () => {
                     </motion.div>
                   ))}
                 </div>
-              )}
-
-              {activeTab === 'missions' && (
-                <MissionsHub />
               )}
 
               {activeTab === 'contributors' && (

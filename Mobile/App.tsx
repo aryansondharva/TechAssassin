@@ -316,7 +316,64 @@ const TechAssassinApp = () => {
       {/* Explicit 2cm gap added between explore missions button and feed */}
       <View style={{ height: 200 }} />
 
-      {/* Intelligence Feed Section stays as requested previously */}
+      {/* Daily Mission Section */}
+      {(() => {
+        const dailyMission = missions.find(m => m.frequency === 'daily' && m.status !== 'completed');
+        if (!dailyMission) return null;
+
+        return (
+          <View style={styles.dailyMissionSection}>
+            <View style={styles.sectionHeaderRow}>
+               <Text style={styles.sectionHeading}>ACTIVE DAILY BOUNTY</Text>
+               <View style={styles.timerBadge}>
+                  <Clock size={10} color={COLORS.primary} />
+                  <Text style={styles.timerText}>
+                    {Math.max(0, Math.floor(dailyMission.time_remaining_ms / 3600000))}H REMAINING
+                  </Text>
+               </View>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.dailyMissionCard}
+              onPress={() => joinMission(dailyMission.id, dailyMission.requirement_type)}
+            >
+              <LinearGradient
+                colors={["rgba(199, 18, 49, 0.15)", "rgba(13, 15, 18, 0.05)"]}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+              <View style={styles.dailyMissionContent}>
+                 <View style={styles.dailyMissionIcon}>
+                    <Target color={COLORS.primary} size={24} />
+                 </View>
+                 <View style={{ flex: 1, marginLeft: 15 }}>
+                    <Text style={styles.dailyMissionTitle}>{dailyMission.title}</Text>
+                    <Text style={styles.dailyMissionDesc}>{dailyMission.description}</Text>
+                 </View>
+                 <View style={styles.rewardBadgeSmall}>
+                    <Text style={styles.rewardValueSmall}>+{dailyMission.xp_reward}</Text>
+                    <Text style={styles.rewardLabelSmall}>XP</Text>
+                 </View>
+              </View>
+              
+              <View style={styles.dailyProgressTrack}>
+                 <View style={[styles.dailyProgressBar, { width: '0%' }]} />
+              </View>
+              
+              <View style={styles.dailyActionRow}>
+                 <Text style={styles.statusText}>STATUS: <Text style={{ color: COLORS.primary }}>AVAILBLE</Text></Text>
+                 <View style={styles.actionBtnGhost}>
+                    <Text style={styles.actionBtnText}>CLAIM XP</Text>
+                    <ChevronRight size={14} color={COLORS.primary} />
+                 </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        );
+      })()}
+
+      {/* Intelligence Feed Section */}
       <View style={styles.feedSection}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>INTELLIGENCE FEED</Text>
@@ -1182,9 +1239,120 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "black",
   },
+  dailyMissionSection: {
+    paddingHorizontal: 25,
+    marginTop: -100, // Positioned inside the hero gap
+    marginBottom: 40,
+  },
+  dailyMissionCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(199, 18, 49, 0.2)',
+    overflow: 'hidden',
+    padding: 20,
+    elevation: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+  },
+  dailyMissionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dailyMissionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: 'rgba(199, 18, 49, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(199, 18, 49, 0.2)',
+  },
+  dailyMissionTitle: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 16,
+    color: 'white',
+    marginBottom: 4,
+  },
+  dailyMissionDesc: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: COLORS.textMuted,
+  },
+  rewardBadgeSmall: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  rewardValueSmall: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 14,
+    color: COLORS.primary,
+  },
+  rewardLabelSmall: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 8,
+    color: COLORS.textMuted,
+  },
+  dailyProgressTrack: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 2,
+    marginBottom: 15,
+  },
+  dailyProgressBar: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
+  },
+  dailyActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 10,
+    color: COLORS.textMuted,
+    letterSpacing: 1,
+  },
+  actionBtnGhost: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionBtnText: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 11,
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  timerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(199, 18, 49, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  timerText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 9,
+    color: COLORS.primary,
+  },
   feedSection: {
     paddingHorizontal: 25,
-    paddingTop: 40,
+    paddingTop: 0,
   },
   sectionHeaderRow: {
     flexDirection: 'row',

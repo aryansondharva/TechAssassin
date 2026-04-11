@@ -9,3 +9,4 @@ export { eventsService } from './events.service';
 export { profileService } from './profile.service';
 export { registrationsService } from './registrations.service';
 export { emailService } from './email.service';
+export { missionsService } from './missions.service';

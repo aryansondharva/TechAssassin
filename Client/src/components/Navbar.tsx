@@ -131,7 +131,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                        
                        <div className="h-[1px] bg-white/5 my-2 mx-2" />
                        
-                       <DropdownItem to="/events" icon={Compass} label="My Missions" />
+                       <DropdownItem to="/missions" icon={Target} label="My Missions" />
                        <DropdownItem to="/community" icon={Briefcase} label="My Projects" />
                        <DropdownItem to="/claims" icon={Sparkles} label="My Claims" />
                        
@@ -216,6 +216,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                 <div className="flex flex-col gap-4">
                    <Link to="/profile" className="text-white/70 font-bold uppercase tracking-widest">My Assassin</Link>
                    <Link to="/edit-profile" className="text-white/70 font-bold uppercase tracking-widest">Edit Profile</Link>
+                   <Link to="/missions" className="text-white/70 font-bold uppercase tracking-widest">My Missions</Link>
                    <Link to="/dashboard" className="text-white/70 font-bold uppercase tracking-widest">Dashboard</Link>
                    <button onClick={handleLogout} className="text-red-500 font-bold uppercase tracking-widest text-left">Log Out</button>
                 </div>
