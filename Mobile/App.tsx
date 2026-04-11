@@ -40,13 +40,18 @@ import {
   Share2,
   Trophy,
   Shield,
-  Clock
+  Clock,
+  Github,
+  Linkedin,
+  Twitter
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "./src/theme/colors";
 import { moderateScale, SCREEN_WIDTH } from "./src/theme/responsive";
 import { supabase } from "./src/lib/supabase";
 import AuthScreen from "./src/screens/AuthScreen";
+import EventsScreen from "./src/screens/EventsScreen";
+import EditProfileScreen from "./src/screens/EditProfileScreen";
 import { Session } from "@supabase/supabase-js";
 
 const MAX_WIDTH = 480; // Standard mobile width limit
@@ -60,6 +65,7 @@ const TechAssassinApp = () => {
   });
 
   const [activeScreen, setActiveScreen] = useState("Home");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   
@@ -241,10 +247,15 @@ const TechAssassinApp = () => {
 
 
   const renderHomeScreen = () => (
-    <View style={styles.screenContainer}>
+    <ScrollView 
+      style={styles.screenScrollFull} 
+      showsVerticalScrollIndicator={false} 
+      contentContainerStyle={{ paddingHorizontal: 0 }}
+      bounces={false}
+    >
       <ImageBackground 
         source={require("./assets/hero-bg.png")} 
-        style={styles.heroBackground}
+        style={[styles.heroBackground, { height: Dimensions.get('window').height - 60 }]}
         resizeMode="cover"
       >
         <LinearGradient
@@ -261,7 +272,7 @@ const TechAssassinApp = () => {
             })}]
           }}>
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>OPERATIVE: {session?.user?.email?.split('@')[0] || 'GUEST'}</Text>
+              <Text style={styles.heroBadgeText}>HACKATHON COMMUNITY</Text>
             </View>
             
             <Text style={styles.heroMainTitle}>
@@ -269,38 +280,84 @@ const TechAssassinApp = () => {
             </Text>
             
             <View style={styles.heroSubtitleRow}>
-              <Zap size={22} color={COLORS.primary} fill={COLORS.primary} />
-              <Text style={styles.heroSubtitleText}>Level: {Math.floor((profile?.total_xp || 0) / 1000) + 1}</Text>
+              <Zap size={20} color={COLORS.primary} fill={COLORS.primary} />
+              <Text style={[styles.heroSubtitleText, { color: COLORS.primary }]}>Active Hackathon Community</Text>
             </View>
 
             <View style={styles.heroStatsBox}>
               <View style={styles.heroStatItem}>
-                <Trophy size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>{profile?.total_xp || 0} XP</Text>
+                <MapPin size={22} color={COLORS.primary} />
+                <Text style={styles.heroStatLabel}>Global</Text>
               </View>
               <View style={styles.heroStatDivider} />
               <View style={styles.heroStatItem}>
-                <Flame size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>{profile?.current_streak || 0} DAYS</Text>
+                <CalendarDays size={22} color={COLORS.primary} />
+                <Text style={styles.heroStatLabel}>Missions</Text>
               </View>
               <View style={styles.heroStatDivider} />
               <View style={styles.heroStatItem}>
-                <Shield size={18} color={COLORS.primary} />
-                <Text style={styles.heroStatValue}>{profile?.rank?.name || 'TRAINEE'}</Text>
+                <Users size={22} color={COLORS.primary} />
+                <Text style={styles.heroStatLabel}>1.8k+</Text>
               </View>
             </View>
 
             <TouchableOpacity style={styles.heroPrimaryBtn} onPress={() => setActiveScreen("Missions")}>
-              <Text style={styles.heroPrimaryBtnText}>DEPLOY TO MISSION</Text>
+              <Text style={styles.heroPrimaryBtnText}>JOIN THE SQUAD</Text>
               <ChevronRight color="black" size={20} strokeWidth={3} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.heroSecondaryBtn} onPress={() => setActiveScreen("Leaderboard")}>
-              <Text style={styles.heroSecondaryBtnText}>VIEW LEADERBOARD</Text>
+            <TouchableOpacity style={styles.heroSecondaryBtn} onPress={() => setActiveScreen("Events")}>
+              <Text style={styles.heroSecondaryBtnText}>EXPLORE MISSIONS</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
       </ImageBackground>
+
+      {/* Intelligence Feed Section stays as requested previously */}
+      <View style={styles.feedSection}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeading}>INTELLIGENCE FEED</Text>
+          <TouchableOpacity>
+             <Text style={styles.viewAllText}>ARCHIVES</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FeedItem 
+          icon={<Zap size={18} color={COLORS.primary} />} 
+          title="UPLINK ESTABLISHED" 
+          time="3M AGO" 
+          desc="New mission 'Code4Cause' detected in sector. Ready for deployment." 
+        />
+        <FeedItem 
+          icon={<Trophy size={18} color="#f59e0b" />} 
+          title="RANK ADVANCEMENT" 
+          time="1H AGO" 
+          desc="You've climbed into the top 50 global operatives. Stay sharp." 
+        />
+        <FeedItem 
+          icon={<Target size={18} color="#10b981" />} 
+          title="MISSION SECURED" 
+          time="4H AGO" 
+          desc="System scan completed: Daily objective 'Neural Sync' successful." 
+        />
+      </View>
+      
+      <View style={{ height: 120 }} />
+    </ScrollView>
+  );
+
+  const FeedItem = ({ icon, title, time, desc }: any) => (
+    <View style={styles.feedItem}>
+      <View style={styles.feedIconBox}>
+        {icon}
+      </View>
+      <View style={styles.feedContent}>
+        <View style={styles.feedHeader}>
+          <Text style={styles.feedTitle}>{title}</Text>
+          <Text style={styles.feedTime}>{time}</Text>
+        </View>
+        <Text style={styles.feedDesc}>{desc}</Text>
+      </View>
     </View>
   );
 
@@ -391,59 +448,95 @@ const TechAssassinApp = () => {
     </ScrollView>
   );
 
-  const renderProfileScreen = () => (
-    <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
-      <View style={styles.profileHeader}>
-        <View style={styles.profileAvatarBig}>
-          {profile?.avatar_url ? (
-            <Image 
-              source={{ uri: profile.avatar_url }} 
-              style={{ width: '100%', height: '100%', borderRadius: 50 }} 
-            />
-          ) : (
-            <User color={COLORS.primary} size={60} strokeWidth={1} />
+  const renderProfileScreen = () => {
+    if (isEditingProfile) {
+      return (
+        <EditProfileScreen 
+          userId={session?.user?.id || ''} 
+          onBack={() => {
+            setIsEditingProfile(false);
+            fetchProfile();
+          }} 
+        />
+      );
+    }
+
+    return (
+      <ScrollView style={styles.screenScroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.profileHeader}>
+          <View style={styles.profileAvatarBig}>
+            {profile?.avatar_url ? (
+              <Image 
+                source={{ uri: profile.avatar_url }} 
+                style={{ width: '100%', height: '100%', borderRadius: 50 }} 
+              />
+            ) : (
+              <User color={COLORS.primary} size={60} strokeWidth={1} />
+            )}
+          </View>
+          <Text style={styles.profileName}>{profile?.full_name || profile?.username || 'AGENT'}</Text>
+          <Text style={styles.profileStatus}>{profile?.rank?.name || 'Initiate'}</Text>
+
+          <TouchableOpacity 
+            style={styles.editProfileSummaryBtn}
+            onPress={() => setIsEditingProfile(true)}
+          >
+            <Text style={styles.editProfileSummaryText}>EDIT DOSSIER</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.profileStatsRow}>
+          <View style={styles.pStatItem}>
+            <Text style={styles.pStatVal}>{profile?.total_xp || 0}</Text>
+            <Text style={styles.pStatLabel}>XP</Text>
+          </View>
+          <View style={styles.pStatItem}>
+            <Text style={styles.pStatVal}>{profile?.current_streak || 0}</Text>
+            <Text style={styles.pStatLabel}>STREAK</Text>
+          </View>
+          <View style={styles.pStatItem}>
+            <Text style={styles.pStatVal}>#{profile?.rank_value || '?'}</Text>
+            <Text style={styles.pStatLabel}>RANK</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitle}>UNLOCKED BADGES</Text>
+        </View>
+        <View style={styles.badgesGrid}>
+           {['🏅', '🚀', '🔥', '⚡', '🛡️'].map((emoji, i) => (
+             <View key={i} style={styles.badgeItem}>
+               <Text style={{ fontSize: 30 }}>{emoji}</Text>
+             </View>
+           ))}
+        </View>
+
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitle}>NEURAL ACCESS</Text>
+        </View>
+        <View style={styles.socialRow}>
+          {profile?.github_url && (
+            <TouchableOpacity style={styles.socialIconBtn}><Github color="white" size={24} /></TouchableOpacity>
+          )}
+          {profile?.linkedin_url && (
+            <TouchableOpacity style={styles.socialIconBtn}><Linkedin color="white" size={24} /></TouchableOpacity>
+          )}
+          {profile?.twitter_url && (
+            <TouchableOpacity style={styles.socialIconBtn}><Twitter color="white" size={24} /></TouchableOpacity>
           )}
         </View>
-        <Text style={styles.profileName}>{profile?.full_name || profile?.username || 'AGENT'}</Text>
-        <Text style={styles.profileStatus}>{profile?.rank?.name || 'Initiate'}</Text>
-      </View>
 
-      <View style={styles.profileStatsRow}>
-        <View style={styles.pStatItem}>
-          <Text style={styles.pStatVal}>{profile?.total_xp || 0}</Text>
-          <Text style={styles.pStatLabel}>XP</Text>
-        </View>
-        <View style={styles.pStatItem}>
-          <Text style={styles.pStatVal}>{profile?.current_streak || 0}</Text>
-          <Text style={styles.pStatLabel}>STREAK</Text>
-        </View>
-        <View style={styles.pStatItem}>
-          <Text style={styles.pStatVal}>#{profile?.rank_value || '?'}</Text>
-          <Text style={styles.pStatLabel}>RANK</Text>
-        </View>
-      </View>
-
-      <View style={styles.sectionTitleRow}>
-        <Text style={styles.sectionTitle}>UNLOCKED BADGES</Text>
-      </View>
-      <View style={styles.badgesGrid}>
-         {['🏅', '🚀', '🔥', '⚡', '🛡️'].map((emoji, i) => (
-           <View key={i} style={styles.badgeItem}>
-             <Text style={{ fontSize: 30 }}>{emoji}</Text>
-           </View>
-         ))}
-      </View>
-
-      <TouchableOpacity 
-        style={styles.signOutBtn}
-        onPress={() => supabase.auth.signOut()}
-      >
-        <Text style={styles.signOutText}>TERMINATE SESSION</Text>
-      </TouchableOpacity>
-      
-      <View style={{ height: 120 }} />
-    </ScrollView>
-  );
+        <TouchableOpacity 
+          style={styles.signOutBtn}
+          onPress={() => supabase.auth.signOut()}
+        >
+          <Text style={styles.signOutText}>TERMINATE SESSION</Text>
+        </TouchableOpacity>
+        
+        <View style={{ height: 120 }} />
+      </ScrollView>
+    );
+  };
 
   return (
     <View style={styles.rootWrapper}>
@@ -481,7 +574,7 @@ const TechAssassinApp = () => {
           {activeScreen === "Missions" && renderMissionsScreen()}
           {activeScreen === "Leaderboard" && renderLeaderboardScreen()}
           {activeScreen === "Profile" && renderProfileScreen()}
-          {/* Add other screen renders as needed */}
+          {activeScreen === "Events" && <EventsScreen />}
         </SafeAreaView>
       )}
 
@@ -497,10 +590,10 @@ const TechAssassinApp = () => {
             <NavBtn icon={<Flame />} label="Home" active={activeScreen === "Home"} onPress={() => setActiveScreen("Home")} />
             <NavBtn icon={<Target />} label="Missions" active={activeScreen === "Missions"} onPress={() => setActiveScreen("Missions")} />
             
-            <View style={{ width: 80 }} /> {/* Spacer for central FAB */}
+            <View style={{ width: 80 }} />
 
-            <NavBtn icon={<Trophy />} label="Ranks" active={activeScreen === "Leaderboard"} onPress={() => setActiveScreen("Leaderboard")} />
-            <NavBtn icon={<User />} label="Profile" active={activeScreen === "Profile"} onPress={() => setActiveScreen("Profile")} />
+            <NavBtn icon={<Users />} label="Team" active={activeScreen === "Events"} onPress={() => setActiveScreen("Events")} />
+            <NavBtn icon={<Shield />} label="Vault" active={activeScreen === "Leaderboard"} onPress={() => setActiveScreen("Leaderboard")} />
           </View>
         </View>
 
@@ -590,10 +683,11 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     paddingHorizontal: moderateScale(30),
-    paddingBottom: moderateScale(120),
+    paddingBottom: 0, // Noticeably shifted further down
+    alignItems: "flex-start", // Left aligning!
   },
   heroBadge: {
-    alignSelf: "flex-start",
+    alignSelf: "flex-start", // Left aligned
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 50,
@@ -614,12 +708,14 @@ const styles = StyleSheet.create({
     color: "white",
     lineHeight: moderateScale(60),
     marginBottom: 4,
+    textAlign: "left", // Left aligned
   },
   heroSubtitleRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-start", // Left aligned
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 30,
   },
   heroSubtitleText: {
     fontFamily: "SpaceGrotesk-Bold",
@@ -642,7 +738,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  heroStatValue: {
+  heroStatLabel: {
     fontFamily: "Inter-Regular",
     fontSize: moderateScale(12),
     color: "rgba(255, 255, 255, 0.7)",
@@ -762,6 +858,9 @@ const styles = StyleSheet.create({
   screenScroll: {
     flex: 1,
     paddingHorizontal: 25,
+  },
+  screenScrollFull: {
+    flex: 1,
   },
   missionListHeader: {
     marginBottom: 25,
@@ -1079,6 +1178,102 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Bold",
     fontSize: 12,
     color: "black",
+  },
+  feedSection: {
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionHeading: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 12,
+    color: COLORS.textMuted,
+    letterSpacing: 2,
+  },
+  viewAllText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 10,
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  feedItem: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 20,
+    backgroundColor: COLORS.card,
+    padding: 15,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  feedIconBox: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedContent: {
+    flex: 1,
+  },
+  feedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  feedTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 12,
+    color: 'white',
+    letterSpacing: 0.5,
+  },
+  feedTime: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 9,
+    color: COLORS.textMuted,
+  },
+  feedDesc: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.5)',
+    lineHeight: 16,
+  },
+  editProfileSummaryBtn: {
+    marginTop: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  editProfileSummaryText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 10,
+    color: 'white',
+    letterSpacing: 1,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    gap: 15,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  socialIconBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
