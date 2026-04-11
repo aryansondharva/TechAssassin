@@ -254,7 +254,7 @@ const TechAssassinApp = () => {
       bounces={false}
     >
       <ImageBackground 
-        source={require("./assets/hero-bg.png")} 
+        source={require("./assets/hero_bg.png")} 
         style={[styles.heroBackground, { height: Dimensions.get('window').height - 60 }]}
         resizeMode="cover"
       >
