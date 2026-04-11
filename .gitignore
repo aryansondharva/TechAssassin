@@ -122,3 +122,11 @@ coverage/
 .vercel
 .turbo
 .eslintcache
+
+# =============================================================================
+# TEMP TESTING SCRIPTS AND OUTPUTS
+# =============================================================================
+github.html
+test_regex.js
+test_fetch.js
+test-supabase.ts

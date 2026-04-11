@@ -67,9 +67,10 @@ export default function Profile() {
       const username = getUsername(githubUrl);
       if (!username) throw new Error("Invalid Github Username");
       
-      const [userRes, reposRes] = await Promise.all([
+      const [userRes, reposRes, htmlRes] = await Promise.all([
         fetch(`https://api.github.com/users/${username}`),
-        fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`)
+        fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`),
+        fetch(`https://api.allorigins.win/raw?url=https://github.com/${username}`)
       ]);
       
       if (!userRes.ok || !reposRes.ok) {
@@ -77,12 +78,28 @@ export default function Profile() {
       }
       
       const userData = await userRes.json();
-      const repos = await reposRes.json();
+      const allRepos = await reposRes.json();
+      let displayRepos = [];
       
-      const stars = repos.reduce((acc: number, curr: any) => acc + curr.stargazers_count, 0);
+      if (htmlRes.ok) {
+        const html = await htmlRes.text();
+        const pinnedNames = [...html.matchAll(/<span class="repo"[^>]*>([^<]+)<\/span>/g)].map(m => m[1].trim());
+        if (pinnedNames.length > 0) {
+           displayRepos = allRepos.filter((r: any) => pinnedNames.includes(r.name));
+           // Preserve github's custom pinning sort order
+           displayRepos.sort((a: any, b: any) => pinnedNames.indexOf(a.name) - pinnedNames.indexOf(b.name));
+        }
+      }
+      
+      // Fallback: If no pinned repos (or proxy blocked), show top 6 repos by stars
+      if (displayRepos.length === 0) {
+         displayRepos = [...allRepos].sort((a: any, b: any) => b.stargazers_count - a.stargazers_count).slice(0, 6);
+      }
+      
+      const stars = allRepos.reduce((acc: number, curr: any) => acc + curr.stargazers_count, 0);
       
       setGithubData({
-        repos: repos,
+        repos: displayRepos,
         stars: stars,
         totalRepos: userData.public_repos,
         followers: userData.followers
