@@ -25,7 +25,7 @@ Breaches of the Creed will be handled by Command. Actions may include:
 
 ## Reporting
 If you encounter a violation of the Creed, report it to Command at:
-**llawlietbagsum@gmail.com**
+**aryansondharva25@gmail.com**
 
 Stay sharp. Stay professional.
 *Claim the Throne.*
