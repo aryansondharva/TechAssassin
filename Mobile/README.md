@@ -1,4 +1,4 @@
-# Tech Assassin Mobile (Android)
+# Tech Assassin (Android)
 
 This is the mobile application for the Tech Assassin community, built with React Native (Expo).
 
