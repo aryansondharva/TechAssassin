@@ -13,7 +13,11 @@ export async function GET() {
     }
 
     const missions = await getAvailableMissions(user.id)
-    return NextResponse.json(missions)
+    console.log(`[ROUTE DEBUG] Returning ${missions?.length || 0} missions for user ${user.id}`);
+    if (missions?.length === 0) {
+      console.log(`[ROUTE DEBUG] Data payload empty! Why?`, missions);
+    }
+    return NextResponse.json(missions || [])
   } catch (error) {
     return handleApiError(error)
   }
