@@ -37,6 +37,7 @@ interface Mission {
 
 const MissionsHub = () => {
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all'|'daily'|'weekly'|'one-time'>('all');
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
@@ -44,21 +45,34 @@ const MissionsHub = () => {
   const [proofLink, setProofLink] = useState('');
 
   useEffect(() => {
-    fetchMissions();
+    fetchData();
     
     // Refresh missions daily reset check
-    const interval = setInterval(fetchMissions, 60000); 
+    const interval = setInterval(fetchData, 60000); 
     return () => clearInterval(interval);
   }, []);
 
-  const fetchMissions = async () => {
+  const fetchData = async () => {
     try {
-      const data = await api.get<Mission[]>('/missions');
-      setMissions(data);
+      const [missionsData, profileData] = await Promise.all([
+        api.get<Mission[]>('/missions'),
+        api.get<any>('/profile')
+      ]);
+      setMissions(missionsData);
+      setProfile(profileData);
     } catch (error) {
-      console.error('Failed to fetch missions:', error);
+      console.error('Failed to fetch mission control data:', error);
     } finally {
       if (loading) setLoading(false);
+    }
+  };
+
+  const fetchMissions = async () => {
+    try {
+      const missionsData = await api.get<Mission[]>('/missions');
+      setMissions(missionsData);
+    } catch (error) {
+      console.error('Failed to fetch missions:', error);
     }
   };
 
@@ -86,7 +100,7 @@ const MissionsHub = () => {
         });
         setSolvingMissionId(null);
         setProofLink('');
-        fetchMissions();
+        fetchData();
       } else {
         toast({
           title: "VERIFICATION FAILED",
@@ -142,17 +156,20 @@ const MissionsHub = () => {
                <div className="px-3 py-1 rounded-lg bg-red-600/20 text-red-500 text-[10px] font-black">1.2x MULTIPLIER</div>
             </div>
          </div>
-         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md flex items-center justify-between group hover:border-blue-500/30 transition-all">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md flex items-center justify-between group hover:border-blue-500/30 transition-all">
             <div className="space-y-1">
-               <div className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em]">Next Milestone</div>
+               <div className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em]">Current Rank</div>
                <div className="text-3xl font-black italic text-blue-500 flex items-center gap-2">
                   <Medal className="w-6 h-6" />
-                  <span>Elite I</span>
+                  <span>{profile?.total_xp >= 1000 ? 'Elite' : profile?.total_xp >= 500 ? 'Veteran' : 'Rookie'}</span>
                </div>
             </div>
             <div className="text-right">
-               <div className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">Progress</div>
-               <div className="text-sm font-black italic">850 / 1000 XP</div>
+               <div className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">Total XP Earned</div>
+               <div className="text-sm font-black italic text-white flex items-center gap-1.5 justify-end">
+                 <Trophy className="w-4 h-4 text-yellow-500" />
+                 {profile?.total_xp || 0} XP
+               </div>
             </div>
          </div>
          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md flex items-center justify-between group hover:border-yellow-500/30 transition-all">
