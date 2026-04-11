@@ -38,6 +38,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
+  const [githubData, setGithubData] = useState<{repos: any[], stars: number, totalRepos: number, followers: number} | null>(null);
   
   const { username } = useParams<{ username: string }>();
   const isOwnProfile = !username;
@@ -50,6 +51,54 @@ export default function Profile() {
     fetchProfile();
   }, [navigate, username]);
 
+  const fetchGithubData = async (githubUrl: string) => {
+    try {
+      const getUsername = (url: string) => {
+        try {
+          const match = url.match(/github\.com\/([^/]+)/);
+          if (match) return match[1];
+          const parts = url.split('/').filter(Boolean);
+          return parts[parts.length - 1].replace('@', '');
+        } catch {
+          return null;
+        }
+      };
+      
+      const username = getUsername(githubUrl);
+      if (!username) throw new Error("Invalid Github Username");
+      
+      const [userRes, reposRes] = await Promise.all([
+        fetch(`https://api.github.com/users/${username}`),
+        fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`)
+      ]);
+      
+      if (!userRes.ok || !reposRes.ok) {
+        throw new Error(`Github API Error: ${userRes.statusText}`);
+      }
+      
+      const userData = await userRes.json();
+      const repos = await reposRes.json();
+      
+      const stars = repos.reduce((acc: number, curr: any) => acc + curr.stargazers_count, 0);
+      
+      setGithubData({
+        repos: repos,
+        stars: stars,
+        totalRepos: userData.public_repos,
+        followers: userData.followers
+      });
+    } catch (e) {
+      console.error("Github scraping failed", e);
+      // Fallback empty state so UI stops spinning
+      setGithubData({
+        repos: [], 
+        stars: 0,
+        totalRepos: 0,
+        followers: 0
+      });
+    }
+  };
+
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
@@ -60,6 +109,10 @@ export default function Profile() {
         data = await profileService.getByUsername(username);
       }
       setProfile(data);
+      
+      if (data?.github_url) {
+        fetchGithubData(data.github_url);
+      }
     } catch (error) {
       console.error("Failed to load profile", error);
       if (!isOwnProfile) {
@@ -183,15 +236,15 @@ export default function Profile() {
 
                           <div className="grid grid-cols-3 gap-8 mt-12 pt-8 border-t border-slate-50">
                              <div className="text-center">
-                                <p className="text-2xl font-black text-slate-900">13</p>
+                                <p className="text-2xl font-black text-slate-900">{githubData?.stars ?? '--'}</p>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Stars Earned</p>
                              </div>
                              <div className="text-center">
-                                <p className="text-2xl font-black text-slate-900">17</p>
+                                <p className="text-2xl font-black text-slate-900">{githubData?.totalRepos ?? '--'}</p>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Repositories</p>
                              </div>
                              <div className="text-center">
-                                <p className="text-2xl font-black text-slate-900">04</p>
+                                <p className="text-2xl font-black text-slate-900">{githubData?.followers ?? '--'}</p>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Followers</p>
                              </div>
                           </div>
@@ -200,34 +253,33 @@ export default function Profile() {
 
                       {/* Projects Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <RepoCard 
-                          title="college-management" 
-                          desc="A unified, real-time ecosystem connecting students, teachers, and administrators." 
-                          lang="JavaScript"
-                          stars={0}
-                          forks={0}
-                         />
-                         <RepoCard 
-                          title="Aura" 
-                          desc="AURA: powered spaced repetition platform that helps students retain information through..." 
-                          lang="JavaScript"
-                          stars={2}
-                          forks={0}
-                         />
-                         <RepoCard 
-                          title="TechAssassin" 
-                          desc="We are the TechAssassins: The hunt for bugs sharpens our blades. Dismantling tech,..." 
-                          lang="TypeScript"
-                          stars={2}
-                          forks={2}
-                         />
-                         <RepoCard 
-                          title="AuraXpress" 
-                          desc="AuraXpress - E-commerce Platform A full-stack e-commerce platform built with React, Node.js,..." 
-                          lang="TypeScript"
-                          stars={0}
-                          forks={1}
-                         />
+                         {githubData?.repos ? (
+                            githubData.repos.length > 0 ? (
+                              githubData.repos.map((repo: any) => (
+                                 <RepoCard 
+                                  key={repo.id}
+                                  title={repo.name} 
+                                  desc={repo.description || "No description provided"} 
+                                  lang={repo.language || "Code"}
+                                  stars={repo.stargazers_count}
+                                  forks={repo.forks_count}
+                                  url={repo.html_url}
+                                 />
+                              ))
+                            ) : (
+                               <div className="col-span-1 md:col-span-2 h-48 rounded-[2rem] bg-slate-50 border border-slate-100 flex flex-col items-center justify-center gap-3 text-slate-400">
+                                  <Github className="w-8 h-8 opacity-50" />
+                                  <span className="text-xs font-bold uppercase tracking-widest">No Projects Found / Rate Limited</span>
+                               </div>
+                            )
+                         ) : (
+                            [1,2,3,4].map(i => (
+                               <div key={i} className="h-48 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center animate-pulse gap-3">
+                                  <Loader2 className="w-5 h-5 animate-spin text-slate-300" />
+                                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading Repos</span>
+                               </div>
+                            ))
+                         )}
                       </div>
                    </div>
                 </TabsContent>
@@ -303,32 +355,34 @@ function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
   );
 }
 
-function RepoCard({ title, desc, lang, stars, forks }: any) {
+function RepoCard({ title, desc, lang, stars, forks, url }: any) {
   return (
-    <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-red-600/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group">
-       <div className="flex-1 space-y-3">
-          <h4 className="text-lg font-black text-slate-900 group-hover:text-red-600 transition-colors">{title}</h4>
-          <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2 italic">{desc}</p>
-       </div>
-       <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center gap-1.5">
-                <div 
-                   className={`w-2 h-2 rounded-full ${lang === 'TypeScript' ? 'bg-red-600' : 'bg-yellow-400'}`} 
-                />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang}</span>
-             </div>
-             <div className="flex items-center gap-1.5 text-slate-400">
-                <Star className="w-3 h-3" />
-                <span className="text-[10px] font-bold">{stars}</span>
-             </div>
-             <div className="flex items-center gap-1.5 text-slate-400">
-                <GitFork className="w-3 h-3" />
-                <span className="text-[10px] font-bold">{forks}</span>
-             </div>
-          </div>
-          <button className="text-slate-300 group-hover:text-slate-600 transition-colors"><ExternalLink className="w-4 h-4" /></button>
-       </div>
-    </Card>
+    <a href={url || "#"} target="_blank" rel="noopener noreferrer" className="block outline-none">
+      <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-red-600/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group h-full">
+         <div className="flex-1 space-y-3">
+            <h4 className="text-lg font-black text-slate-900 group-hover:text-red-600 transition-colors line-clamp-1">{title}</h4>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2 italic">{desc}</p>
+         </div>
+         <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
+            <div className="flex items-center gap-4">
+               <div className="flex items-center gap-1.5">
+                  <div 
+                     className={`w-2 h-2 rounded-full ${lang === 'TypeScript' ? 'bg-blue-600' : lang === 'JavaScript' ? 'bg-yellow-400' : 'bg-red-600'}`} 
+                  />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{lang}</span>
+               </div>
+               <div className="flex items-center gap-1.5 text-slate-400">
+                  <Star className="w-3 h-3" />
+                  <span className="text-[10px] font-bold">{stars}</span>
+               </div>
+               <div className="flex items-center gap-1.5 text-slate-400">
+                  <GitFork className="w-3 h-3" />
+                  <span className="text-[10px] font-bold">{forks}</span>
+               </div>
+            </div>
+            <button className="text-slate-300 group-hover:text-slate-600 transition-colors"><ExternalLink className="w-4 h-4" /></button>
+         </div>
+      </Card>
+    </a>
   );
 }
