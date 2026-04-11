@@ -313,6 +313,9 @@ const TechAssassinApp = () => {
         </View>
       </ImageBackground>
 
+      {/* Explicit 2cm gap added between explore missions button and feed */}
+      <View style={{ height: 200 }} />
+
       {/* Intelligence Feed Section stays as requested previously */}
       <View style={styles.feedSection}>
         <View style={styles.sectionHeaderRow}>
@@ -323,22 +326,22 @@ const TechAssassinApp = () => {
         </View>
 
         <FeedItem 
-          icon={<Zap size={18} color={COLORS.primary} />} 
-          title="UPLINK ESTABLISHED" 
-          time="3M AGO" 
-          desc="New mission 'Code4Cause' detected in sector. Ready for deployment." 
-        />
-        <FeedItem 
           icon={<Trophy size={18} color="#f59e0b" />} 
           title="RANK ADVANCEMENT" 
           time="1H AGO" 
-          desc="You've climbed into the top 50 global operatives. Stay sharp." 
+          desc="Climbed to top 50 rank. Stay sharp." 
         />
         <FeedItem 
           icon={<Target size={18} color="#10b981" />} 
           title="MISSION SECURED" 
           time="4H AGO" 
-          desc="System scan completed: Daily objective 'Neural Sync' successful." 
+          desc="Daily objective completed." 
+        />
+        <FeedItem 
+          icon={<Zap size={18} color={COLORS.primary} />} 
+          title="UPLINK ESTABLISHED" 
+          time="3M AGO" 
+          desc="Mission 'Code4Cause' detected." 
         />
       </View>
       
@@ -942,7 +945,7 @@ const styles = StyleSheet.create({
   },
   navWrapper: {
     position: "absolute",
-    bottom: moderateScale(30),
+    bottom: 15,
     left: Platform.OS === "web" ? "5%" : 20,
     right: Platform.OS === "web" ? "5%" : 20,
     height: 80,
