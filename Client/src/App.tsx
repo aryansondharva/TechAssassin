@@ -28,7 +28,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
@@ -37,10 +37,6 @@ const App = () => (
           <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/dashboard" element={<Profile />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/@:username" element={<Profile />} />
-          <Route path="/:username" element={<Profile />} />
           <Route path="/profile/edit" element={<EditProfile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/events" element={<Events />} />
@@ -49,6 +45,10 @@ const App = () => (
           <Route path="/missions" element={<Missions />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/aura" element={<Aura />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard" element={<Profile />} />
+          <Route path="/@:username" element={<Profile />} />
+          <Route path="/:username" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
