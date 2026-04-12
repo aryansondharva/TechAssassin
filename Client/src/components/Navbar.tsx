@@ -29,8 +29,8 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    authService.signOut();
+  const handleLogout = async () => {
+    await authService.signOut();
     window.location.href = '/';
   };
 

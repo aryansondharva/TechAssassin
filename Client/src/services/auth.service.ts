@@ -57,20 +57,22 @@ export const authService = {
    * Sign out the current user
    */
   signOut: async (): Promise<void> => {
-    try {
-      await api.post('/auth/signout');
-    } catch (e) { /* ignore if already invalid */ }
-    
-    // Clear everything
+    // Clear local state immediately to keep UI snappy and prevent race conditions
     clearAuthToken();
     localStorage.removeItem('auth_user');
+
+    try {
+      await api.post('/auth/signout');
+    } catch (e) { 
+      console.warn('Backend signout failed, but local session cleared:', e);
+    }
   },
 
   /**
    * Alias for signOut (used in Navbar)
    */
-  logout: function() {
-    this.signOut();
+  logout: async function() {
+    await this.signOut();
   },
 
   /**
