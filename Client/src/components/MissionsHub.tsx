@@ -19,16 +19,10 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, getStoredUserId } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
-// ─────────────────────────────────────────────
-// Supabase client (direct from frontend)
-// ─────────────────────────────────────────────
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+// Supabase client is imported from @/lib/supabase (shared, JWT-injecting instance)
 
 // ─────────────────────────────────────────────
 // Types
@@ -237,14 +231,13 @@ const MissionsHub = () => {
 
   const fetchData = async () => {
     try {
-      // 1. Get current session from Supabase directly
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
+      // 1. Get user ID from localStorage (set by backend auth on sign-in)
+      const uid = getStoredUserId();
+      if (!uid) {
         setLoading(false);
         return;
       }
 
-      const uid = session.user.id;
       setUserId(uid);
 
       // 2. Call RPC directly via Supabase client (no backend needed)

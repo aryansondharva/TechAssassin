@@ -17,6 +17,8 @@ import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Community from "./pages/Community";
 import Missions from "./pages/Missions";
+import Projects from "./pages/Projects";
+import Aura from "./pages/Aura";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,7 +28,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
@@ -45,6 +47,8 @@ const App = () => (
           <Route path="/events/:id" element={<EventDetails />} />
           <Route path="/community" element={<Community />} />
           <Route path="/missions" element={<Missions />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/aura" element={<Aura />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

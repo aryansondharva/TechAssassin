@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Home", href: "/", isRoute: true },
   { label: "Community", href: "/community", isRoute: true },
   { label: "Elite", href: "/leaderboard", isRoute: true },
+  { label: "Projects", href: "/projects", isRoute: true },
 ];
 
 const Navbar = ({ dark = true }: { dark?: boolean }) => {

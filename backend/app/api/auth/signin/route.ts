@@ -47,8 +47,13 @@ export async function POST(request: Request) {
       .single()
     
     // Return user (profile) and token
+    // Always include the real Supabase auth UID so the frontend
+    // can distinguish between the profile row id and the auth user id
     return NextResponse.json({
-      user: profile || data.user, // Fallback to supabase user if profile not found
+      user: {
+        ...(profile || data.user),
+        auth_id: data.user.id     // always the real Supabase auth UID
+      },
       token: data.session.access_token
     })
   } catch (error) {
