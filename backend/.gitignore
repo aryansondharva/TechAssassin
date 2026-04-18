@@ -8,10 +8,6 @@
 
 # testing
 /coverage
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
 
 # connection test files
 test-supabase-connection.mjs
