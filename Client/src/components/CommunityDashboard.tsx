@@ -20,13 +20,11 @@ import {
   Star,
   Globe,
   Monitor,
-  Github,
-  Handshake
+  Github
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api-client';
-import MentorProgramPanel from '@/components/MentorProgramPanel';
 
 interface LeaderboardEntry {
   id: string;
@@ -73,7 +71,7 @@ interface Contributor {
 }
 
 const CommunityDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'contributors' | 'mentors'>('leaderboard');
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'activities' | 'contributors'>('leaderboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -344,7 +342,7 @@ const CommunityDashboard = () => {
         <div className="max-w-6xl mx-auto">
           {/* Navigation Bar - Tactical Style */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-10 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
-            {(['leaderboard', 'activities', 'contributors', 'mentors'] as const).map((tab) => (
+            {(['leaderboard', 'activities', 'contributors'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -372,7 +370,6 @@ const CommunityDashboard = () => {
                     </div>
                   )}
                   {tab === 'contributors' && contributors.length === 0 && <Github className="w-4 h-4" />}
-                  {tab === 'mentors' && <Handshake className="w-4 h-4" />}
                   {tab}
                 </span>
               </button>
@@ -562,9 +559,6 @@ const CommunityDashboard = () => {
                 </div>
               )}
 
-              {activeTab === 'mentors' && (
-                <MentorProgramPanel />
-              )}
             </motion.div>
           </AnimatePresence>
         </div>

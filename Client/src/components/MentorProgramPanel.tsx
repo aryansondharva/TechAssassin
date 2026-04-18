@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, ApiError } from '@/lib/api-client';
-import { Loader2, ShieldAlert, Star } from 'lucide-react';
+import { Calendar, Copy, ExternalLink, Loader2, ShieldAlert, Star, Video } from 'lucide-react';
 
 type ExperienceLevel = 'junior' | 'mid' | 'senior' | 'expert';
 type RequestStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'completed';
@@ -65,6 +65,9 @@ const initialStats: MentorStats = {
   topMentors: []
 };
 
+const JITSI_BASE_URL = 'https://meet.jit.si';
+const MENTORSHIP_ROOM_PREFIX = 'techassassin-mentorship';
+
 const MentorProgramPanel = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [requests, setRequests] = useState<MentorRequest[]>([]);
@@ -84,6 +87,34 @@ const MentorProgramPanel = () => {
 
   const formatRating = (rating: number | null | undefined) => {
     return (rating ?? 0).toFixed(1);
+  };
+
+  const formatSessionSchedule = (dateString: string) => {
+    const date = new Date(dateString);
+    const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    try {
+      return date.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return date.toLocaleString(locale);
+    }
+  };
+
+  const getVideoCallUrl = (request: MentorRequest) => {
+    // Jitsi room names are safest with letters, numbers and hyphens.
+    const roomSeed = request.id.replace(/[^a-zA-Z0-9-]/g, '-');
+    return `${JITSI_BASE_URL}/${MENTORSHIP_ROOM_PREFIX}-${roomSeed}`;
+  };
+
+  const hasActiveSession = (request: MentorRequest) =>
+    (request.status === 'accepted' || request.status === 'completed') && Boolean(request.session);
+
+  const copyVideoCallUrl = async (request: MentorRequest) => {
+    try {
+      await navigator.clipboard.writeText(getVideoCallUrl(request));
+      setMessage('Video call link copied.');
+    } catch {
+      setMessage('Unable to copy video call link. Please copy manually after opening the call.');
+    }
   };
 
   useEffect(() => {
@@ -306,6 +337,12 @@ const MentorProgramPanel = () => {
               <span className="text-[10px] uppercase tracking-widest text-red-300">{request.status}</span>
             </div>
             <p className="text-sm text-white/70 mt-2">{request.goal}</p>
+            {request.session?.scheduled_for && (
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/50 bg-white/5 border border-white/10 rounded-md px-2 py-1">
+                <Calendar className="w-3 h-3 text-red-400" />
+                {formatSessionSchedule(request.session.scheduled_for)}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 mt-3">
               {request.canRespond && (
                 <>
@@ -332,6 +369,27 @@ const MentorProgramPanel = () => {
                     </button>
                   ))}
                 </div>
+              )}
+              {hasActiveSession(request) && (
+                <>
+                  <a
+                    href={getVideoCallUrl(request)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs bg-indigo-600/80 hover:bg-indigo-600"
+                  >
+                    <Video className="w-3 h-3" />
+                    Join Call
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <button
+                    onClick={() => copyVideoCallUrl(request)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs bg-white/10 hover:bg-white/20"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copy Link
+                  </button>
+                </>
               )}
             </div>
           </div>
