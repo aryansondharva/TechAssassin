@@ -225,11 +225,11 @@ export default function Profile() {
               </div>
 
               <p className="text-slate-600 text-lg leading-relaxed font-medium italic opacity-80 uppercase tracking-tight">
-                {currentUser.bio || "Si vis pacem, para bellum"}
+                {currentUser.bio || ""}
               </p>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                {(currentUser.skills || ["React", "Data Analysis", "Machine Learning", "Data Science"]).map((skill: string) => (
+                {(currentUser.skills || []).map((skill: string) => (
                   <Badge key={skill} variant="secondary" className="bg-white border border-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">
                     {skill}
                   </Badge>
@@ -239,7 +239,7 @@ export default function Profile() {
               <div className="flex items-center gap-6 pt-4 text-slate-400">
                 <div className="flex items-center gap-2 text-sm font-bold">
                   <MapPin className="w-4 h-4" />
-                  <span>{currentUser.address || "Surat, India"}</span>
+                  <span>{currentUser.address || ""}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <SocialIcon icon={Github} href={currentUser.github_url} />
@@ -312,8 +312,8 @@ export default function Profile() {
                                  <RepoCard 
                                   key={repo.id}
                                   title={repo.name} 
-                                  desc={repo.description || "No description provided"} 
-                                  lang={repo.language || "Code"}
+                                  desc={repo.description || ""} 
+                                  lang={repo.language || ""}
                                   stars={repo.stargazers_count}
                                   forks={repo.forks_count}
                                   url={repo.html_url}
@@ -398,7 +398,7 @@ export default function Profile() {
 function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
   return (
     <a 
-      href={href || "#"} 
+      href={href || ""} 
       target="_blank" 
       rel="noreferrer" 
       className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-md transition-all border border-slate-100/50"
@@ -410,7 +410,7 @@ function SocialIcon({ icon: Icon, href }: { icon: any, href?: string }) {
 
 function RepoCard({ title, desc, lang, stars, forks, url }: any) {
   return (
-    <a href={url || "#"} target="_blank" rel="noopener noreferrer" className="block outline-none">
+    <a href={url || ""} target="_blank" rel="noopener noreferrer" className="block outline-none">
       <Card className="border border-slate-100 shadow-none bg-white hover:shadow-xl hover:border-red-600/20 transition-all duration-500 p-8 rounded-[2rem] flex flex-col group h-full">
          <div className="flex-1 space-y-3">
             <h4 className="text-lg font-black text-slate-900 group-hover:text-red-600 transition-colors line-clamp-1">{title}</h4>

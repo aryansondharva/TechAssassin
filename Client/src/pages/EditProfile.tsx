@@ -63,13 +63,13 @@ export default function EditProfile() {
         address: data.address || '',
         bio: data.bio || '',
         readme: data.readme || '',
-        dietary_preference: data.dietary_preference || 'non-vegetarian',
+        dietary_preference: data.dietary_preference || '',
         allergies: data.allergies || '',
         has_education: data.has_education ?? true,
-        degree_type: data.degree_type || 'bachelors',
+        degree_type: data.degree_type || '',
         university: data.university || '',
-        graduation_year: data.graduation_year || 2024,
-        graduation_month: data.graduation_month || 'may',
+        graduation_year: data.graduation_year || '',
+        graduation_month: data.graduation_month || '',
         education: data.education || '', // Field of study
         roles: data.roles || [],
         skills: data.interests || [], // Mapping interests to skills in UI
