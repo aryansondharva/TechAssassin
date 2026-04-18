@@ -419,7 +419,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
 
     const { data: beginnerProfile } = await supabase
       .from('profiles')
-      .select('total_xp, current_streak')
+      .select('total_xp')
       .eq('id', request.beginner_id)
       .single()
 
@@ -437,8 +437,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
       await supabase
         .from('profiles')
         .update({
-          total_xp: (beginnerProfile.total_xp || 0) + BEGINNER_XP_REWARD,
-          current_streak: (beginnerProfile.current_streak || 0) + 1
+          total_xp: (beginnerProfile.total_xp || 0) + BEGINNER_XP_REWARD
         })
         .eq('id', request.beginner_id)
     }
