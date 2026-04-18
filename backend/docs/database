@@ -1,0 +1,412 @@
+# Supabase Setup Guide for Gamification System
+
+This guide covers the complete setup of Supabase for the Tech Assassin gamification system, including client configuration, Row Level Security (RLS) policies, and database access patterns.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Environment Configuration](#environment-configuration)
+3. [Supabase Client Setup](#supabase-client-setup)
+4. [Row Level Security (RLS)](#row-level-security-rls)
+5. [Database Migrations](#database-migrations)
+6. [Testing](#testing)
+7. [Troubleshooting](#troubleshooting)
+
+## Prerequisites
+
+Before setting up Supabase, ensure you have:
+
+- ✅ Supabase project created (https://supabase.com)
+- ✅ Node.js 18+ installed
+- ✅ All gamification database tables created (Tasks 1.1-1.9)
+- ✅ Database triggers and functions created (Tasks 2.1-2.3)
+
+## Environment Configuration
+
+### Step 1: Get Supabase Credentials
+
+1. Go to your Supabase project dashboard
+2. Navigate to **Settings** > **API**
+3. Copy the following values:
+   - **Project URL** (e.g., `https://xxxxx.supabase.co`)
+   - **Anon/Public Key** (starts with `eyJ...`)
+   - **Service Role Key** (starts with `eyJ...`)
+
+### Step 2: Configure Environment Variables
+
+Add the following to your `backend/.env.local` file:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+```
+
+⚠️ **Security Warning**: Never commit the service role key to version control!
+
+### Step 3: Verify Configuration
+
+Run the configuration test:
+
+```bash
+npm test -- lib/supabase/__tests__/client.test.ts
+```
+
+Expected output:
+```
+✓ Supabase Client Configuration (8 tests)
+  ✓ getServerClient (3)
+  ✓ getClientSupabase (2)
+  ✓ executeQuery (3)
+```
+
+## Supabase Client Setup
+
+### Client Types
+
+The gamification system uses three types of Supabase clients:
+
+#### 1. Server-side Client (Admin Operations)
+
+**File**: `backend/lib/supabase.ts`
+
+**Usage**:
+```typescript
+import { getServerClient } from '@/lib/supabase'
+
+const supabase = getServerClient()
+const { data, error } = await supabase
+  .from('xp_transactions')
+  .insert({ user_id, amount, source })
+```
+
+**Features**:
+- Uses service role key (bypasses RLS)
+- No session persistence
+- No auto-refresh
+- For backend services only
+
+#### 2. Server Component Client
+
+**File**: `backend/lib/supabase/server.ts`
+
+**Usage**:
+```typescript
+import { createClient } from '@/lib/supabase/server'
+
+export async function ServerComponent() {
+  const supabase = await createClient()
+  const { data } = await supabase.from('badges').select('*')
+  return <div>{/* render */}</div>
+}
+```
+
+**Features**:
+- Uses service role key
+- Integrates with Next.js cookies
+- For Server Components and API routes
+
+#### 3. Browser Client
+
+**File**: `backend/lib/supabase/client.ts`
+
+**Usage**:
+```typescript
+'use client'
+import { createClient } from '@/lib/supabase/client'
+
+export function ClientComponent() {
+  const supabase = createClient()
+  // Use in React components
+}
+```
+
+**Features**:
+- Uses anon key (respects RLS)
+- Auto-refresh tokens
+- Session persistence
+- Real-time subscriptions
+
+### Error Handling Helper
+
+Use `executeQuery()` for type-safe queries with error handling:
+
+```typescript
+import { executeQuery } from '@/lib/supabase'
+
+const result = await executeQuery(async (client) => {
+  const { data } = await client
+    .from('xp_transactions')
+    .select('*')
+    .eq('user_id', userId)
+  return data
+})
+
+if (result.error) {
+  console.error('Query failed:', result.error)
+  return
+}
+
+console.log('Data:', result.data)
+```
+
+## Row Level Security (RLS)
+
+### Overview
+
+RLS policies ensure data security by controlling who can access what data. The gamification system implements comprehensive RLS policies for all tables.
+
+### Migration File
+
+**Location**: `backend/supabase/migrations/20260327000013_create_rls_policies.sql`
+
+### Policy Summary
+
+#### XP Transactions
+- ✅ Users can view their own transactions
+- ✅ Admins can view all transactions
+- ✅ Admins can insert transactions (manual adjustments)
+- ✅ Service role can insert transactions (system operations)
+
+#### Badges
+- ✅ Anyone can view active badges
+- ✅ Admins can view all badges (including inactive)
+- ✅ Admins can create, update, and delete badges
+
+#### User Badges
+- ✅ Users can view their own badges
+- ✅ Anyone can view non-revoked badges
+- ✅ Admins can award and revoke badges
+
+#### Rank Tiers
+- ✅ Anyone can view rank tiers
+- ✅ Admins can create, update, and delete rank tiers
+
+#### User Ranks History
+- ✅ Users can view their own rank history
+- ✅ Anyone can view rank history (for profile display)
+
+#### XP Source Config
+- ✅ Anyone can view XP source configuration
+- ✅ Admins can create and update XP source config
+
+#### Rate Limits & Cooldowns
+- ✅ Users can view their own rate limits and cooldowns
+- ✅ Admins can view all rate limits and cooldowns
+- ✅ Service role can insert/update (system operations)
+
+### Applying RLS Policies
+
+#### Option 1: Via Supabase Dashboard
+
+1. Go to **SQL Editor** in Supabase Dashboard
+2. Copy contents of `backend/supabase/migrations/20260327000013_create_rls_policies.sql`
+3. Paste and run the SQL
+
+#### Option 2: Via Script (Recommended)
+
+```bash
+npx tsx scripts/apply-rls-policies.ts
+```
+
+#### Option 3: Via Supabase CLI
+
+```bash
+supabase db push
+```
+
+### Verifying RLS Policies
+
+Run the RLS policy tests:
+
+```bash
+npm test -- lib/supabase/__tests__/rls-policies.test.ts
+```
+
+Expected output:
+```
+✓ RLS Policies Migration (21 tests)
+  ✓ should enable RLS on all gamification tables
+  ✓ XP Transactions Policies (3)
+  ✓ Badges Policies (2)
+  ✓ User Badges Policies (3)
+  ✓ Rank Tiers Policies (2)
+  ✓ User Ranks History Policies (2)
+  ✓ XP Source Config Policies (2)
+  ✓ Rate Limits and Cooldowns Policies (3)
+  ✓ Policy Documentation (1)
+  ✓ Admin Role Check (2)
+```
+
+## Database Migrations
+
+### Migration Order
+
+The gamification system requires migrations to be applied in this order:
+
+1. **Schema Migrations** (Tasks 1.1-1.9)
+   - `20260327000001_create_xp_transactions_table.sql`
+   - `20260327000002_create_badges_table.sql`
+   - `20260327000003_create_user_badges_table.sql`
+   - `20260327000004_create_rank_tiers_table.sql`
+   - `20260327000005_create_user_ranks_history_table.sql`
+   - `20260327000006_create_xp_source_config_table.sql`
+   - `20260327000007_create_xp_rate_limits_table.sql`
+   - `20260327000008_create_activity_cooldowns_table.sql`
+   - `20260327000009_extend_profiles_table.sql`
+
+2. **Trigger Migrations** (Tasks 2.1-2.3)
+   - `20260327000010_create_update_user_total_xp_trigger.sql`
+   - `20260327000011_create_auto_update_user_rank_trigger.sql`
+   - `20260327000012_create_evaluate_badge_criteria_function.sql`
+
+3. **RLS Policies** (Task 3.2)
+   - `20260327000013_create_rls_policies.sql`
+
+### Applying All Migrations
+
+```bash
+# Via Supabase CLI
+supabase db push
+
+# Or manually via SQL Editor in Supabase Dashboard
+```
+
+## Testing
+
+### Unit Tests
+
+```bash
+# Test Supabase client configuration
+npm test -- lib/supabase/__tests__/client.test.ts
+
+# Test RLS policies structure
+npm test -- lib/supabase/__tests__/rls-policies.test.ts
+
+# Run all tests
+npm test
+```
+
+### Integration Tests
+
+Test the complete setup:
+
+```typescript
+import { getServerClient } from '@/lib/supabase'
+
+async function testSetup() {
+  const supabase = getServerClient()
+  
+  // Test 1: Query badges
+  const { data: badges, error: badgesError } = await supabase
+    .from('badges')
+    .select('*')
+    .limit(1)
+  
+  console.log('Badges query:', badges ? '✅' : '❌', badgesError)
+  
+  // Test 2: Query rank tiers
+  const { data: ranks, error: ranksError } = await supabase
+    .from('rank_tiers')
+    .select('*')
+    .limit(1)
+  
+  console.log('Ranks query:', ranks ? '✅' : '❌', ranksError)
+}
+
+testSetup()
+```
+
+## Troubleshooting
+
+### Issue: "Missing Supabase environment variables"
+
+**Solution**:
+1. Verify `.env.local` exists in `backend/` directory
+2. Check variable names are exactly:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. Restart dev server: `npm run dev`
+
+### Issue: RLS policy errors (403 Forbidden)
+
+**Solution**:
+1. Verify RLS policies are applied:
+   ```bash
+   npm test -- lib/supabase/__tests__/rls-policies.test.ts
+   ```
+2. Check Supabase Dashboard > Authentication > Policies
+3. Verify user has correct role in `profiles` table
+4. For admin operations, ensure using `getServerClient()` not `createClient()`
+
+### Issue: Real-time subscriptions not working
+
+**Solution**:
+1. Verify `NEXT_PUBLIC_SUPABASE_URL` is accessible from browser
+2. Check browser console for WebSocket errors
+3. Ensure Realtime is enabled in Supabase project settings
+4. Verify channel name format: `gamification:xp:${userId}`
+
+### Issue: Database connection timeout
+
+**Solution**:
+1. Check Supabase project status (not paused)
+2. Verify network connectivity
+3. Check connection pooling settings
+4. Increase timeout in client configuration
+
+### Issue: Service role key not working
+
+**Solution**:
+1. Verify key is correct (starts with `eyJ`)
+2. Check key has not been rotated in Supabase Dashboard
+3. Ensure using `getServerClient()` not `getClientSupabase()`
+4. Never use service role key in browser code
+
+## Security Best Practices
+
+### ✅ DO
+
+- Use service role key only in server-side code
+- Define RLS policies for all user-facing tables
+- Validate all input with Zod schemas
+- Log all admin operations
+- Implement rate limiting for XP operations
+- Use `executeQuery()` helper for error handling
+
+### ❌ DON'T
+
+- Never expose service role key in client code
+- Don't bypass RLS unless necessary
+- Don't trust client-side input
+- Don't skip input validation
+- Don't log sensitive data
+- Don't use anon key for admin operations
+
+## Next Steps
+
+After completing Supabase setup:
+
+1. ✅ **Task 3.1**: Supabase client configuration (COMPLETE)
+2. ✅ **Task 3.2**: RLS policies (COMPLETE)
+3. ⏭️ **Task 4**: Implement XP Service
+4. ⏭️ **Task 5**: Implement Badge Service
+5. ⏭️ **Task 6**: Implement Rank Service
+
+## References
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
+- [Supabase JavaScript Client](https://supabase.com/docs/reference/javascript)
+- [Next.js Integration](https://supabase.com/docs/guides/auth/auth-helpers/nextjs)
+- [Realtime Documentation](https://supabase.com/docs/guides/realtime)
+
+## Support
+
+For issues or questions:
+- Check [Troubleshooting](#troubleshooting) section
+- Review test output for specific errors
+- Consult Supabase documentation
+- Check migration files for SQL syntax

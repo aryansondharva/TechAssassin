@@ -1,0 +1,358 @@
+# Performance Optimizations - Real-Time Presence & Activity System
+
+This document describes the performance optimizations implemented for the Real-Time Presence & Activity System to support production-scale usage.
+
+## Overview
+
+The system is optimized to handle:
+- **1000+ concurrent users** per presence channel (Requirement 9.1)
+- **10 updates per second** per client for activity feed (Requirement 9.2)
+- **Sub-500ms query times** for activity history (Requirement 9.3)
+
+## 1. Database Connection Pooling
+
+### Configuration
+
+**File**: `backend/lib/db/postgres.ts`
+
+```typescript
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  
+  // Connection pool sizing
+  max: 50,                      // Maximum clients (increased for 1000+ users)
+  min: 10,                      // Minimum clients to keep alive
+  
+  // Timeout configurations
+  idleTimeoutMillis: 30000,     // Close idle clients after 30s
+  connectionTimeoutMillis: 5000, // Wait up to 5s for connection
+  statement_timeout: 10000,     // Abort queries after 10s
+  
+  // Connection lifecycle
+  allowExitOnIdle: false,       // Keep pool alive when idle
+});
+```
+
+### Pool Monitoring
+
+The connection pool includes monitoring capabilities:
+
+- **`getPoolStats()`**: Returns current pool statistics
+  - `totalCount`: Total clients in pool
+  - `idleCount`: Available idle clients
+  - `waitingCount`: Queued requests waiting for a client
+
+- **`isPoolHealthy()`**: Health check function
+  - Returns `false` if waiting queue > 10 or no idle connections
+  - Use for monitoring and alerting
+
+### Pool Events
+
+The pool emits events for monitoring:
+
+```typescript
+pool.on('acquire', (client) => {
+  // Warns when waiting queue exceeds 5
+});
+
+pool.on('remove', (client) => {
+  // Logs when clients are removed
+});
+```
+
+### Recommendations
+
+- **Development**: Use default settings (max: 20)
+- **Production**: Increase to max: 50-100 based on load
+- **Monitor**: Track `waitingCount` - if consistently > 5, increase pool size
+- **Scale**: Consider read replicas for read-heavy workloads
+
+## 2. Database Indexes
+
+### Presence Tracking Table
+
+```sql
+CREATE INDEX idx_presence_status ON presence_tracking(status);
+CREATE INDEX idx_presence_location ON presence_tracking(location_type, location_id);
+CREATE INDEX idx_presence_last_seen ON presence_tracking(last_seen);
+CREATE INDEX idx_presence_updated_at ON presence_tracking(updated_at);
+```
+
+**Purpose**:
+- Fast filtering by status (online/away/busy/offline)
+- Efficient location-based queries
+- Quick cleanup of stale records
+
+### Activity Feed Table
+
+```sql
+CREATE INDEX idx_activity_type ON activity_feed(type);
+CREATE INDEX idx_activity_user ON activity_feed(user_id);
+CREATE INDEX idx_activity_created ON activity_feed(created_at DESC);
+CREATE INDEX idx_activity_type_created ON activity_feed(type, created_at DESC);
+```
+
+**Purpose**:
+- Fast filtering by activity type
+- User-specific activity queries
+- Chronological ordering (newest first)
+- Combined type + time filtering
+
+### Leaderboard Scores Table
+
+```sql
+CREATE INDEX idx_leaderboard_event ON leaderboard_scores(event_id);
+CREATE INDEX idx_leaderboard_rank ON leaderboard_scores(event_id, rank);
+CREATE INDEX idx_leaderboard_user ON leaderboard_scores(user_id);
+CREATE INDEX idx_leaderboard_score ON leaderboard_scores(event_id, score DESC);
+```
+
+**Purpose**:
+- Fast event-specific leaderboard queries
+- Efficient rank-based ordering
+- User rank lookups
+- Score-based sorting
+
+### Verification
+
+Run the index verification script:
+
+```bash
+npx tsx backend/scripts/verify-indexes.ts
+```
+
+This script:
+1. Verifies all required indexes are present
+2. Runs EXPLAIN ANALYZE on common queries
+3. Confirms indexes are being used by the query planner
+
+### Query Performance Targets
+
+- **Activity feed queries**: < 500ms (Requirement 9.3)
+- **Presence queries**: < 100ms
+- **Leaderboard queries**: < 200ms
+
+## 3. Realtime Channel Configuration
+
+### Supabase Client Configuration
+
+**File**: `backend/lib/supabase/client.ts`
+
+```typescript
+export const createClient = () => {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      realtime: {
+        params: {
+          eventsPerSecond: 10, // Throttle to 10 events/second
+        },
+      },
+    }
+  )
+}
+```
+
+### Activity Feed Throttling
+
+**File**: `backend/lib/services/realtime-manager.ts`
+
+The RealtimeManager implements client-side throttling:
+
+```typescript
+private readonly MAX_UPDATES_PER_SECOND = 10;
+private readonly THROTTLE_INTERVAL = 100; // ms
+
+private queueActivityUpdate(activity: ActivityEvent, callback: Function): void {
+  this.activityUpdateQueue.push(activity);
+  
+  if (!this.activityThrottleTimer) {
+    this.processActivityQueue(callback);
+  }
+}
+
+private processActivityQueue(callback: Function): void {
+  // Process up to 10 updates per batch
+  const batch = this.activityUpdateQueue.splice(0, this.MAX_UPDATES_PER_SECOND);
+  batch.forEach(callback);
+  
+  // Schedule next batch after 100ms
+  setTimeout(() => this.processActivityQueue(callback), this.THROTTLE_INTERVAL);
+}
+```
+
+### Channel Subscription Strategy
+
+**Optimized subscription approach**:
+
+1. **Presence Channel**: Single global channel for all users
+   - Channel name: `presence:global`
+   - Uses Supabase Presence API for efficient state sync
+   - Automatic state reconciliation on reconnect
+
+2. **Activity Channel**: Single feed channel for all activities
+   - Channel name: `activity:feed`
+   - Listens to `INSERT` events on `activity_feed` table
+   - Client-side throttling to 10 updates/second
+
+3. **Leaderboard Channels**: Per-event channels
+   - Channel name: `leaderboard:{eventId}`
+   - Listens to `UPDATE` events on `leaderboard_scores` table
+   - Filtered by `event_id` for efficiency
+
+### Connection Resilience
+
+- **Exponential backoff**: 1s → 2s → 4s → 8s → 16s → 30s (max)
+- **Max reconnection attempts**: 5
+- **State resynchronization**: Automatic after reconnection
+- **Error handling**: Graceful degradation with user notifications
+
+## 4. Performance Monitoring
+
+### Metrics to Track
+
+1. **Database Pool**:
+   - Pool utilization (totalCount / max)
+   - Waiting queue length
+   - Connection acquisition time
+
+2. **Query Performance**:
+   - Average query execution time
+   - Slow query count (> 500ms)
+   - Index usage statistics
+
+3. **Realtime Connections**:
+   - Active WebSocket connections
+   - Message throughput (messages/second)
+   - Reconnection rate
+
+4. **Activity Feed**:
+   - Queue length (should stay < 100)
+   - Throttle drops (activities dropped due to overflow)
+   - Delivery latency
+
+### Monitoring Tools
+
+- **Database**: Use `getPoolStats()` for pool monitoring
+- **Queries**: Enable PostgreSQL slow query log
+- **Realtime**: Monitor Supabase dashboard for connection metrics
+- **Application**: Add custom metrics for queue lengths and latency
+
+## 5. Scaling Recommendations
+
+### Horizontal Scaling
+
+- **Database**: Use read replicas for read-heavy queries
+- **Realtime**: Supabase handles WebSocket scaling automatically
+- **Application**: Deploy multiple backend instances behind load balancer
+
+### Vertical Scaling
+
+- **Database**: Increase connection pool size (max: 100-200)
+- **Memory**: Ensure sufficient memory for connection pools
+- **CPU**: Monitor CPU usage during peak loads
+
+### Optimization Checklist
+
+- [ ] Connection pool configured (max: 50+)
+- [ ] All database indexes created
+- [ ] Realtime throttling enabled (10 events/second)
+- [ ] Query performance verified (< 500ms)
+- [ ] Pool monitoring implemented
+- [ ] Slow query logging enabled
+- [ ] Connection resilience tested
+- [ ] Load testing completed (1000+ users)
+
+## 6. Testing Performance
+
+### Load Testing
+
+Test with realistic load:
+
+```bash
+# Simulate 1000 concurrent users
+# Use tools like k6, Artillery, or JMeter
+```
+
+### Query Performance Testing
+
+```bash
+# Run index verification and performance tests
+npx tsx backend/scripts/verify-indexes.ts
+```
+
+### Connection Pool Testing
+
+```typescript
+// Monitor pool stats during load
+import { getPoolStats, isPoolHealthy } from '@/lib/db/postgres';
+
+setInterval(() => {
+  const stats = getPoolStats();
+  console.log('Pool stats:', stats);
+  console.log('Pool healthy:', isPoolHealthy());
+}, 5000);
+```
+
+## 7. Troubleshooting
+
+### High Waiting Queue
+
+**Symptom**: `waitingCount` consistently > 10
+
+**Solutions**:
+- Increase pool size (`max` parameter)
+- Optimize slow queries
+- Add database indexes
+- Consider read replicas
+
+### Slow Queries
+
+**Symptom**: Queries taking > 500ms
+
+**Solutions**:
+- Run EXPLAIN ANALYZE to check index usage
+- Add missing indexes
+- Optimize query structure
+- Consider query result caching
+
+### Throttle Overflow
+
+**Symptom**: Activity updates being dropped
+
+**Solutions**:
+- Increase `MAX_UPDATES_PER_SECOND` if needed
+- Implement priority queue for important updates
+- Add user notification for dropped updates
+
+### Connection Failures
+
+**Symptom**: Frequent reconnections
+
+**Solutions**:
+- Check network stability
+- Increase reconnection delays
+- Verify Supabase service status
+- Check firewall/proxy settings
+
+## 8. Production Checklist
+
+Before deploying to production:
+
+- [ ] Database connection pool configured for production load
+- [ ] All indexes verified and tested
+- [ ] Realtime throttling configured
+- [ ] Query performance meets SLA (< 500ms)
+- [ ] Pool monitoring and alerting set up
+- [ ] Load testing completed successfully
+- [ ] Connection resilience tested
+- [ ] Error handling and logging verified
+- [ ] Backup and recovery procedures documented
+- [ ] Scaling plan documented
+
+## References
+
+- [PostgreSQL Connection Pooling Best Practices](https://node-postgres.com/features/pooling)
+- [Supabase Realtime Documentation](https://supabase.com/docs/guides/realtime)
+- [Database Indexing Strategies](https://www.postgresql.org/docs/current/indexes.html)

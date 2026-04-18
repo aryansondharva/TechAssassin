@@ -1,0 +1,167 @@
+# Production Auth Issues - Complete Fix Guide
+
+## Issues Identified
+
+### 1. Backend Not Running
+- **Problem**: Backend server is not running
+- **Solution**: Start the backend server
+
+### 2. Test User Not Found
+- **Problem**: Test user `test@example.com` doesn't exist in Supabase
+- **Solution**: Use existing users or create new test user
+
+### 3. Production Configuration
+- **Problem**: Production environment variables need verification
+- **Solution**: Check production environment setup
+
+## Step-by-Step Fix
+
+### Step 1: Start Backend Server
+```bash
+cd backend
+npm run dev
+```
+
+### Step 2: Test with Real User Credentials
+Your existing users:
+- `naitiksondharva138@gmail.com` (username: naitiksondharva)
+- `aryansondharva402@gmail.com` (username: aryansondharva)
+- `s2377130@gmail.com` (username: johndoe)
+- `study.aura.ai@gmail.com` (username: syncwithraj)
+
+### Step 3: Check Supabase Auth Settings
+
+Go to your Supabase Dashboard: https://supabase.com/dashboard/project/qlurztwklaysbhdjcpam
+
+#### Authentication > Settings
+- **Site URL**: Set to your production URL
+- **Redirect URLs**: Add your production URL
+- **Email confirmation**: Check if enabled (if yes, users must confirm email)
+
+#### Authentication > Users
+- Verify users exist
+- Check email confirmation status
+- Reset passwords if needed
+
+#### Settings > API
+- **CORS origins**: Add your production URL
+
+### Step 4: Production Environment Variables
+
+Create production `.env` file with:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://qlurztwklaysbhdjcpam.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+DATABASE_URL=postgresql://postgres.qlurztwklaysbhdjcpam:1046402103As@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
+JWT_EXPIRES_IN=7d
+NEXT_PUBLIC_APP_URL=https://your-production-url.com
+```
+
+### Step 5: Test Authentication
+
+#### Test with existing user:
+```javascript
+// Test signin with real user
+const response = await fetch('/api/auth/signin', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: 'naitiksondharva138@gmail.com',
+    password: 'userpassword' // Use actual password
+  })
+});
+```
+
+### Step 6: Common Production Issues & Solutions
+
+#### Issue: CORS Errors
+**Solution**: Add production URL to Supabase CORS settings
+1. Go to Supabase Dashboard > Settings > API
+2. Add your production URL to CORS origins
+
+#### Issue: Email Confirmation Required
+**Solution**: Either confirm emails or disable confirmation
+1. Go to Supabase Dashboard > Authentication > Settings
+2. Disable "Enable email confirmations" temporarily
+
+#### Issue: Invalid Site URL
+**Solution**: Update Site URL in Supabase
+1. Go to Supabase Dashboard > Authentication > Settings
+2. Set Site URL to your production URL
+
+#### Issue: Redirect URL Mismatch
+**Solution**: Add redirect URLs
+1. Go to Supabase Dashboard > Authentication > Settings
+2. Add your production URL to redirect URLs
+
+### Step 7: Debug Checklist
+
+#### Backend Issues
+- [ ] Backend server is running
+- [ ] Environment variables are loaded
+- [ ] Database connection works
+- [ ] Supabase client initializes correctly
+
+#### Frontend Issues
+- [ ] Supabase URL is correct
+- [ ] Anon key is correct
+- [ ] Network requests reach backend
+- [ ] No CORS errors in console
+
+#### Supabase Issues
+- [ ] Users exist in authentication
+- [ ] Email confirmation status
+- [ ] Site URL is correct
+- [ ] Redirect URLs are configured
+- [ ] CORS origins are set
+
+### Step 8: Quick Fix Script
+
+If you need to quickly test, create a test user:
+
+```bash
+# Go to Supabase Dashboard
+# Authentication > Users > Add user
+# Email: test@techassassin.com
+# Password: Test123456!
+# Skip email confirmation for testing
+```
+
+Then test with:
+```javascript
+fetch('/api/auth/signin', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: 'test@techassassin.com',
+    password: 'Test123456!'
+  })
+})
+```
+
+### Step 9: Production Deployment
+
+For production deployment:
+1. Set all environment variables in production
+2. Configure Supabase settings for production URL
+3. Test with real user accounts
+4. Monitor logs for authentication errors
+
+## Most Likely Issue
+
+Based on the diagnosis, the most likely issue is:
+1. **Backend not running** - Start the backend server
+2. **Wrong test credentials** - Use existing user emails
+3. **Supabase Auth settings** - Check site URL and redirect URLs
+
+## Success Indicators
+
+When auth is working:
+- Backend responds to `/api/auth/signin`
+- Supabase auth returns valid session
+- User profile is retrieved from database
+- Frontend receives user data and token
+
+Start with Step 1 and work through each step systematically.

@@ -1,0 +1,102 @@
+# Fix Vercel Deployment Configuration
+
+## Issues Identified
+
+### 1. URL Configuration Issues
+- **NEXT_PUBLIC_APP_URL**: Currently set to `http://localhost:3002` (WRONG)
+- **NEXT_PUBLIC_SITE_URL**: Currently set to `http://localhost:3002` (WRONG)
+- **Should be**: `https://tech-assassin.vercel.app`
+
+### 2. Health Endpoint Issue
+- Health endpoint returns HTML instead of JSON
+- This suggests the API routes might not be properly deployed
+
+### 3. Signin Endpoint Issue
+- Returns 405 (Method Not Allowed)
+- This suggests the API routes aren't working correctly
+
+## Quick Fix Steps
+
+### Step 1: Update Vercel Environment Variables
+
+Go to Vercel Dashboard > Your Project > Settings > Environment Variables
+
+**Add/Update these variables:**
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://qlurztwklaysbhdjcpam.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsdXJ6dHdrbGF5c2JoZGpjcGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzI4NDIsImV4cCI6MjA5MTE0ODg0Mn0.qxQv9K7x6QSAW4Zt0OoshfgeRbzDbIU3C9RNZYbUuwo
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsdXJ6dHdrbGF5c2JoZGpjcGFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTU3Mjg0MiwiZXhwIjoyMDkxMTQ4ODQyfQ.mTzP5hsNFhDfevbiCHCf1iinRftsoi9NPQoeOXjkvzc
+DATABASE_URL=postgresql://postgres.qlurztwklaysbhdjcpam:1046402103As@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
+JWT_EXPIRES_IN=7d
+
+# IMPORTANT: Update these to your Vercel URL
+NEXT_PUBLIC_APP_URL=https://tech-assassin.vercel.app
+NEXT_PUBLIC_SITE_URL=https://tech-assassin.vercel.app
+```
+
+### Step 2: Update Supabase Configuration
+
+Go to Supabase Dashboard: https://supabase.com/dashboard/project/qlurztwklaysbhdjcpam
+
+**Authentication > Settings:**
+- **Site URL**: `https://tech-assassin.vercel.app`
+- **Redirect URLs**: Add `https://tech-assassin.vercel.app`
+- **CORS origins**: Add `https://tech-assassin.vercel.app`
+
+### Step 3: Redeploy Vercel
+
+1. Save environment variables in Vercel
+2. Go to Vercel Dashboard > Your Project
+3. Click **"Redeploy"** or **"Deploy Latest Commit"**
+4. Wait for deployment to complete
+
+### Step 4: Test After Deployment
+
+Test these URLs:
+- **App**: https://tech-assassin.vercel.app
+- **Health**: https://tech-assassin.vercel.app/api/health
+- **Signin**: https://tech-assassin.vercel.app/api/auth/signin
+
+### Step 5: If API Routes Still Don't Work
+
+The 405 error suggests API routes might not be properly configured. Check:
+
+1. **Vercel Configuration**: Make sure you're deploying the backend, not just the frontend
+2. **File Structure**: Ensure `app/api/` directory exists and is deployed
+3. **Next.js Config**: Check `next.config.mjs` for API configuration
+
+### Step 6: Alternative - Deploy Backend Separately
+
+If API routes continue to fail, consider:
+
+1. **Deploy backend to Render**: https://techassassin.onrender.com
+2. **Deploy frontend to Vercel**: https://tech-assassin.vercel.app
+3. **Update frontend API URL**: Point to Render backend
+
+## Most Critical Fix
+
+**Update these two environment variables in Vercel:**
+
+```bash
+NEXT_PUBLIC_APP_URL=https://tech-assassin.vercel.app
+NEXT_PUBLIC_SITE_URL=https://tech-assassin.vercel.app
+```
+
+This is the most important fix for your Vercel deployment.
+
+## Expected Result After Fix
+
+- Health endpoint returns proper JSON
+- Signin endpoint works with 200 status
+- Authentication works correctly
+- All app URLs point to the correct domain
+
+## Troubleshooting
+
+If issues persist:
+1. Check Vercel deployment logs
+2. Verify all environment variables are set
+3. Ensure API routes are properly structured
+4. Test with simple API endpoint first

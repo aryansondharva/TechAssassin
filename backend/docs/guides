@@ -1,0 +1,225 @@
+# Clerk Login Guide - Migration to Supabase Database
+
+## Overview
+This guide explains how users can sign up/sign in with Clerk and how their data gets stored in the Supabase database.
+
+## Login Information Options
+
+### 1. Email & Password (Traditional)
+- **Email**: Any valid email address
+- **Password**: User chooses their password
+- **Process**: Clerk handles authentication, stores in Supabase
+
+### 2. Social Login Options
+- **Google**: Use Google account
+- **GitHub**: Use GitHub account
+- **Apple**: Use Apple ID (if configured)
+- **Microsoft**: Use Microsoft account (if configured)
+
+### 3. Passwordless Options
+- **Magic Link**: Email-based login (no password)
+- **SMS**: Phone number verification (if configured)
+- **Passkeys**: Biometric authentication (if configured)
+
+## How It Works
+
+### Step 1: User Signs Up/In with Clerk
+```
+User visits your app
+  -> Clicks "Sign In" or "Sign Up"
+  -> Chooses login method (email/password, Google, etc.)
+  -> Clerk authenticates the user
+  -> Clerk provides user ID and user data
+```
+
+### Step 2: Automatic Database Migration
+```
+Backend receives Clerk user ID
+  -> Checks if profile exists in Supabase
+  -> If not, creates new profile automatically
+  -> Stores Clerk user ID and user data
+  -> Returns user profile to frontend
+```
+
+### Step 3: User Data Storage
+```
+Supabase Database (profiles table):
+- id: Generated UUID (internal)
+- clerk_user_id: Clerk user ID (for auth)
+- email: User's email from Clerk
+- username: Generated or from Clerk
+- full_name: User's name from Clerk
+- email_verified: Verification status from Clerk
+- clerk_created_at: When user created in Clerk
+- clerk_updated_at: When user updated in Clerk
+```
+
+## Current Clerk Configuration
+
+### Development Keys
+```bash
+# Frontend (Client/.env.local)
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_aW50ZWdyYWwtZm94aG91bmQtMzMuY2xlcmsuYWNjb3VudHMuZGV2JA
+
+# Backend (backend/.env.local)
+CLERK_SECRET_KEY=sk_test_integral-foxhound-33.clerk.accounts.dev
+```
+
+### Clerk Instance
+- **Instance**: `integral-foxhound-33`
+- **Environment**: Development
+- **Domain**: `integral-foxhound-33.clerk.accounts.dev`
+
+## Testing Login Process
+
+### Step 1: Start Your Applications
+```bash
+# Backend
+cd backend
+npm run dev
+
+# Frontend
+cd Client
+npm run dev
+```
+
+### Step 2: Access Your App
+- **Frontend**: `http://localhost:3002`
+- **Backend**: `http://localhost:3001`
+
+### Step 3: Sign Up/In
+1. **Open your frontend application**
+2. **Look for Clerk sign-in button** (usually top-right)
+3. **Choose your preferred login method**:
+   - **Email + Password**: Enter email and password
+   - **Social Login**: Click Google, GitHub, etc.
+   - **Magic Link**: Enter email, check email for link
+
+### Step 4: Verify Migration
+1. **Check browser console** for Clerk user data
+2. **Check Supabase database** for new profile
+3. **Test profile update** functionality
+
+## Example Users for Testing
+
+### Test User 1: Email & Password
+- **Email**: `test@example.com`
+- **Password**: `TestPassword123!`
+- **Expected Result**: Profile created in Supabase
+
+### Test User 2: Google Login
+- **Method**: Click "Continue with Google"
+- **Expected Result**: Profile created with Google data
+
+### Test User 3: GitHub Login
+- **Method**: Click "Continue with GitHub"
+- **Expected Result**: Profile created with GitHub data
+
+## Data Migration Details
+
+### What Gets Migrated Automatically
+1. **User ID**: Clerk user ID stored as `clerk_user_id`
+2. **Email**: Primary email from Clerk
+3. **Name**: Full name from Clerk profile
+4. **Username**: Generated from Clerk username or email
+5. **Verification Status**: Email verification from Clerk
+6. **Timestamps**: Creation and update times from Clerk
+
+### What Gets Generated in Supabase
+1. **Internal ID**: UUID for database relationships
+2. **Default Values**: XP, streaks, completion percentage
+3. **Profile Fields**: All profile-specific data
+
+### What Doesn't Get Migrated
+1. **Passwords**: Handled by Clerk only
+2. **Sessions**: Handled by Clerk only
+3. **Social Tokens**: Handled by Clerk only
+
+## Troubleshooting
+
+### Issue: User Not Created in Database
+**Solution**: 
+1. Check backend logs for errors
+2. Verify Clerk environment variables
+3. Ensure database connection works
+
+### Issue: Clerk Sign-in Not Working
+**Solution**:
+1. Check frontend Clerk keys
+2. Verify Clerk instance is active
+3. Check browser console for errors
+
+### Issue: Profile Not Updating
+**Solution**:
+1. Ensure user is signed in with Clerk
+2. Check if profile exists in database
+3. Verify RLS policies allow updates
+
+## Production Setup
+
+### Production Keys
+When you're ready for production:
+1. **Go to Clerk Dashboard**
+2. **Create production instance**
+3. **Update environment variables**:
+   ```bash
+   VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+   CLERK_SECRET_KEY=sk_live_...
+   ```
+
+### Customization Options
+1. **Branding**: Customize Clerk sign-in pages
+2. **Social Providers**: Add more social login options
+3. **Webhooks**: Sync user data changes
+4. **Themes**: Custom sign-in themes
+
+## Security Benefits
+
+### Clerk Handles
+- **Password security**: Hashing, encryption, storage
+- **Session management**: Secure token handling
+- **Social authentication**: OAuth flows
+- **Email verification**: Verification processes
+- **Password reset**: Secure reset flows
+
+### Your Application Handles
+- **User data storage**: Profile information
+- **Business logic**: XP, skills, missions
+- **Database operations**: CRUD operations
+- **Application features**: Your specific features
+
+## Next Steps
+
+### Immediate
+1. **Test all login methods** with Clerk
+2. **Verify profile creation** in Supabase
+3. **Test profile updates** work correctly
+4. **Check all API endpoints** work
+
+### Short Term
+1. **Add Clerk webhooks** for real-time sync
+2. **Customize Clerk themes** for branding
+3. **Add more social providers** if needed
+4. **Implement user management** features
+
+### Long Term
+1. **Add organizations** for team features
+2. **Implement audit logs** for security
+3. **Add SSO options** for enterprise
+4. **Custom user attributes** for features
+
+## Summary
+
+**Users can sign up/in with:**
+- **Email + Password**
+- **Google Account**
+- **GitHub Account**
+- **Other social providers** (if configured)
+
+**All user data gets automatically migrated to Supabase database with:**
+- Clerk user ID for authentication
+- Profile data from Clerk
+- Generated internal UUID for relationships
+- Default values for game features
+
+**The system is now ready for testing!**
