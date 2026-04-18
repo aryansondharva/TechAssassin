@@ -107,6 +107,96 @@ export interface LeaderboardEntry {
   user?: Profile
 }
 
+export interface ForumCategory {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  created_at: string
+}
+
+export interface Thread {
+  id: string
+  title: string
+  content: string
+  category_id: string | null
+  author_id: string
+  view_count: number
+  reply_count: number
+  solved_reply_id: string | null
+  is_locked: boolean
+  last_activity_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Reply {
+  id: string
+  thread_id: string
+  author_id: string
+  parent_reply_id: string | null
+  content: string
+  is_solution: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Tag {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  created_at: string
+}
+
+export interface ThreadTag {
+  thread_id: string
+  tag_id: string
+  created_at: string
+}
+
+export interface ThreadReaction {
+  id: string
+  thread_id: string
+  user_id: string
+  emoji: string
+  created_at: string
+}
+
+export interface Channel {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  type: 'text' | 'voice' | 'mission'
+  created_by: string | null
+  created_at: string
+}
+
+export interface ChannelMember {
+  id: string
+  channel_id: string
+  user_id: string
+  role: 'member' | 'moderator' | 'owner'
+  joined_at: string
+}
+
+export interface PresenceTracking {
+  id: string
+  user_id: string
+  status: 'online' | 'offline'
+  channel_id: string | null
+  last_seen: string
+  metadata: Record<string, any> | null
+}
+
+export interface ThreadView {
+  id: string
+  thread_id: string
+  viewer_id: string | null
+  viewed_at: string
+}
+
 // API Response Types
 
 export interface EventWithParticipants extends Event {
@@ -203,6 +293,176 @@ export type Database = {
           {
             foreignKeyName: "leaderboard_user_id_fkey"
             columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      forum_categories: {
+        Row: ForumCategory
+        Insert: Partial<ForumCategory>
+        Update: Partial<ForumCategory>
+        Relationships: []
+      },
+      threads: {
+        Row: Thread
+        Insert: Partial<Thread>
+        Update: Partial<Thread>
+        Relationships: [
+          {
+            foreignKeyName: "threads_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "threads_author_id_fkey"
+            columns: ["author_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "threads_solved_reply_id_fkey"
+            columns: ["solved_reply_id"]
+            referencedRelation: "replies"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      replies: {
+        Row: Reply
+        Insert: Partial<Reply>
+        Update: Partial<Reply>
+        Relationships: [
+          {
+            foreignKeyName: "replies_thread_id_fkey"
+            columns: ["thread_id"]
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "replies_author_id_fkey"
+            columns: ["author_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "replies_parent_reply_id_fkey"
+            columns: ["parent_reply_id"]
+            referencedRelation: "replies"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      tags: {
+        Row: Tag
+        Insert: Partial<Tag>
+        Update: Partial<Tag>
+        Relationships: []
+      },
+      thread_tags: {
+        Row: ThreadTag
+        Insert: Partial<ThreadTag>
+        Update: Partial<ThreadTag>
+        Relationships: [
+          {
+            foreignKeyName: "thread_tags_thread_id_fkey"
+            columns: ["thread_id"]
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      thread_reactions: {
+        Row: ThreadReaction
+        Insert: Partial<ThreadReaction>
+        Update: Partial<ThreadReaction>
+        Relationships: [
+          {
+            foreignKeyName: "thread_reactions_thread_id_fkey"
+            columns: ["thread_id"]
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_reactions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      channels: {
+        Row: Channel
+        Insert: Partial<Channel>
+        Update: Partial<Channel>
+        Relationships: [
+          {
+            foreignKeyName: "channels_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      channel_members: {
+        Row: ChannelMember
+        Insert: Partial<ChannelMember>
+        Update: Partial<ChannelMember>
+        Relationships: [
+          {
+            foreignKeyName: "channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      presence_tracking: {
+        Row: PresenceTracking
+        Insert: Partial<PresenceTracking>
+        Update: Partial<PresenceTracking>
+        Relationships: [
+          {
+            foreignKeyName: "presence_tracking_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presence_tracking_channel_id_fkey"
+            columns: ["channel_id"]
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
+      thread_views: {
+        Row: ThreadView
+        Insert: Partial<ThreadView>
+        Update: Partial<ThreadView>
+        Relationships: [
+          {
+            foreignKeyName: "thread_views_thread_id_fkey"
+            columns: ["thread_id"]
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_views_viewer_id_fkey"
+            columns: ["viewer_id"]
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           }

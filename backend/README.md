@@ -8,7 +8,7 @@ A serverless Next.js 14 backend application for the TechAssassin hackathon commu
 
 ### ✅ Completed
 - Project structure and dependencies
-- Complete database schema (7 tables)
+- Complete database schema (core + forum/live rooms tables)
 - All database migrations & RLS policies
 - Supabase Storage & File Management
 - Mission (Event) Management API
@@ -51,7 +51,7 @@ backend/
 │   ├── utils/           # Utilities ✅
 │   └── validations/     # Zod schemas (planned)
 ├── supabase/
-│   └── migrations/      # Database migrations ✅ (17 files)
+│   └── migrations/      # Database migrations ✅ (33 files)
 ├── types/
 │   └── database.ts      # TypeScript types ✅
 ├── vitest.config.ts     # Test configuration ✅
@@ -61,7 +61,7 @@ backend/
 
 ## Database Schema
 
-The database includes 7 main tables:
+Core tables:
 - ✅ **profiles** - Extended user information
 - ✅ **events** - Hackathon event details
 - ✅ **registrations** - User event registrations
@@ -69,6 +69,10 @@ The database includes 7 main tables:
 - ✅ **resources** - Educational content
 - ✅ **sponsors** - Sponsor information
 - ✅ **leaderboard** - Event scoring
+
+Community + realtime additions:
+- ✅ **forum_categories**, **threads**, **replies**, **tags**, **thread_tags**, **thread_reactions**, **thread_views**
+- ✅ **channels**, **channel_members**, **presence_tracking**
 
 All tables have:
 - ✅ Proper indexes for performance

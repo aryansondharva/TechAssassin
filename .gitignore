@@ -31,6 +31,7 @@ backend/supabase/
 **/supabase/
 !backend/supabase/
 !backend/supabase/migrations/
+!backend/supabase/migrations/**
 !backend/supabase/migrations/*.sql
 
 # =============================================================================
