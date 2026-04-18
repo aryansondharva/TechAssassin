@@ -75,6 +75,14 @@ The migrations are numbered sequentially and should be applied in order:
     - Creates storage policies for sponsor-logos bucket (admins only)
     - Enables public read access for all buckets
 
+### Additional migrations (forum, live rooms, realtime presence)
+
+- **20260418000001_create_forum_tables.sql**: categories, threads, replies, tags, thread_tags, thread_reactions with indexes
+- **20260418000002_create_channels_table.sql**: channels catalog and channel_members junction for live rooms
+- **20260418000003_alter_presence_add_channel.sql**: ensure presence_tracking exists and add channel_id for room-scoped presence
+- **20260418000004_forum_rls_policies.sql**: RLS policies for forum tables, channels, and presence_tracking
+- **20260418000005_thread_view_count_trigger.sql**: thread_views log table and RPC-friendly view_count increment function
+
 ## Applying Migrations
 
 ### Using Supabase CLI

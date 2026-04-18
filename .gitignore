@@ -29,6 +29,9 @@ VERIFY_DATABASE.sql
 # =============================================================================
 backend/supabase/
 **/supabase/
+!backend/supabase/migrations/
+!backend/supabase/migrations/**
+!backend/supabase/migrations/*.sql
 
 # =============================================================================
 # ENVIRONMENT FILES
