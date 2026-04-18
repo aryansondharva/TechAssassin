@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { requireAuthWithClient } from '../../../../../../../lib/middleware/auth'
-import { handleApiError } from '../../../../../../../lib/errors'
-import { mentorRequestActionSchema } from '../../../../../../../lib/validations/mentor'
-import { updateMentorRequestStatus } from '../../../../../../../lib/services/mentors'
+import { requireAuthWithClient } from '../../../../../../lib/middleware/auth'
+import { handleApiError } from '../../../../../../lib/errors'
+import { mentorRequestActionSchema } from '../../../../../../lib/validations/mentor'
+import { updateMentorRequestStatus } from '../../../../../../lib/services/mentors'
 
 export async function PATCH(
   request: Request,

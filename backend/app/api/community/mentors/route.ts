@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuthWithClient } from '../../../../../lib/middleware/auth'
-import { handleApiError } from '../../../../../lib/errors'
-import { mentorDirectoryFilterSchema } from '../../../../../lib/validations/mentor'
-import { getMentorDirectory } from '../../../../../lib/services/mentors'
+import { requireAuthWithClient } from '../../../../lib/middleware/auth'
+import { handleApiError } from '../../../../lib/errors'
+import { mentorDirectoryFilterSchema } from '../../../../lib/validations/mentor'
+import { getMentorDirectory } from '../../../../lib/services/mentors'
 
 export async function GET(request: NextRequest) {
   try {
