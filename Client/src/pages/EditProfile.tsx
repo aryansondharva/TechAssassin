@@ -95,6 +95,21 @@ export default function EditProfile() {
     try {
       const updatedData = await profileService.update(formData);
       setProfile(updatedData);
+      
+      // Update the stored user data for real-time sync across the app
+      const userDataToUpdate = {
+        first_name: updatedData.first_name,
+        last_name: updatedData.last_name,
+        full_name: `${updatedData.first_name} ${updatedData.last_name}`.trim(),
+        username: updatedData.username,
+        avatar_url: updatedData.avatar_url,
+        bio: updatedData.bio,
+        address: updatedData.address
+      };
+      
+      console.log('Updating user data:', userDataToUpdate);
+      authService.updateUser(userDataToUpdate);
+      
       toast({ title: 'Profile Updated', description: 'Operative parameters synchronized successfully.' });
     } catch (error) {
        toast({ title: 'Sync Failed', description: 'Could not write to the central database.', variant: 'destructive' });

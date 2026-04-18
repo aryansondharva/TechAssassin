@@ -11,13 +11,13 @@ import { motion, AnimatePresence } from "framer-motion";
 const navLinks = [
   { label: "Home", href: "/", isRoute: true },
   { label: "Community", href: "/community", isRoute: true },
-  { label: "Projects", href: "/projects", isRoute: true },
 ];
 
 const Navbar = ({ dark = true }: { dark?: boolean }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const [user, setUser] = useState(authService.getUser());
   const isAuthenticated = authService.isAuthenticated();
 
   useEffect(() => {
@@ -25,7 +25,18 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    // Listen for user updates
+    const handleUserUpdate = (event: CustomEvent) => {
+      console.log('Navbar received user update:', event.detail);
+      setUser(event.detail);
+    };
+    window.addEventListener('userUpdated', handleUserUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('userUpdated', handleUserUpdate as EventListener);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -33,7 +44,19 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
     window.location.href = '/';
   };
 
-  const user = authService.getUser();
+  // Helper function to construct display name
+  const getDisplayName = (user: any) => {
+    if (!user) return 'Operative';
+    return user.full_name || 
+      (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : user.username) ||
+      'Operative';
+  };
+
+  const getInitial = (user: any) => {
+    if (!user) return 'O';
+    const displayName = getDisplayName(user);
+    return displayName.charAt(0).toUpperCase();
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] px-4 py-6 pointer-events-none text-sans">
@@ -110,14 +133,14 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                       />
                     ) : (
                       <span className="text-white font-bold text-[10px]">
-                        {user?.username?.charAt(0).toUpperCase()}
+                        {getInitial(user)}
                       </span>
                     )}
                   </div>
                   <span className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
                     dark ? 'text-white/70 group-hover:text-white' : 'text-slate-600 group-hover:text-slate-900'
                   }`}>
-                    {user?.username || 'Operative'}
+                    {getDisplayName(user)}
                   </span>
                   <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
                 </button>

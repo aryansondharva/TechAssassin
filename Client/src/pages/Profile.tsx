@@ -38,7 +38,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
-  const [githubData, setGithubData] = useState<{repos: any[], stars: number, totalRepos: number, followers: number} | null>(null);
+  const [githubData, setGithubData] = useState<{repos: any[], stars: number, totalRepos: number, followers: number, contributions?: number} | null>(null);
   
   const { username } = useParams<{ username: string }>();
   const isOwnProfile = !username;
@@ -49,7 +49,20 @@ export default function Profile() {
       return;
     }
     fetchProfile();
-  }, [navigate, username]);
+    
+    // Listen for user updates
+    const handleUserUpdate = () => {
+      console.log('Profile page received user update, refreshing...');
+      if (isOwnProfile) {
+        fetchProfile();
+      }
+    };
+    window.addEventListener('userUpdated', handleUserUpdate);
+    
+    return () => {
+      window.removeEventListener('userUpdated', handleUserUpdate);
+    };
+  }, [navigate, username, isOwnProfile]);
 
   const fetchGithubData = async (githubUrl: string) => {
     try {
@@ -154,6 +167,16 @@ export default function Profile() {
   );
 
   const user = profile || {};
+  
+  // Construct full_name from first_name and last_name if not available
+  const displayName = user.full_name || 
+    (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : user.username) ||
+    'Operative';
+  
+  // Get the first letter of display name for avatar
+  const getInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] font-sans">
@@ -169,7 +192,7 @@ export default function Profile() {
                   <Avatar className="w-full h-full rounded-none">
                     <AvatarImage src={user.avatar_url || ''} className="object-cover" />
                     <AvatarFallback className="bg-slate-100 text-3xl font-bold text-slate-300">
-                       {user.username?.charAt(0).toUpperCase()}
+                       {getInitial(displayName)}
                     </AvatarFallback>
                   </Avatar>
                </div>
@@ -184,7 +207,7 @@ export default function Profile() {
             <div className="flex-1 space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{user.full_name || user.username}</h1>
+                  <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{displayName}</h1>
                   <p className="text-red-600 font-semibold text-sm mt-1">@{user.username}</p>
                 </div>
                 {isOwnProfile && (
