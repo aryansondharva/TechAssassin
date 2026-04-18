@@ -65,6 +65,9 @@ const initialStats: MentorStats = {
   topMentors: []
 };
 
+const JITSI_BASE_URL = 'https://meet.jit.si';
+const MENTORSHIP_ROOM_PREFIX = 'techassassin-mentorship';
+
 const MentorProgramPanel = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [requests, setRequests] = useState<MentorRequest[]>([]);
@@ -86,17 +89,31 @@ const MentorProgramPanel = () => {
     return (rating ?? 0).toFixed(1);
   };
 
-  const getVideoCallUrl = (request: MentorRequest) => {
-    const roomSeed = (request.session?.id || request.id).replace(/[^a-zA-Z0-9-]/g, '-');
-    return `https://meet.jit.si/techassassin-mentorship-${roomSeed}`;
+  const formatSessionSchedule = (dateString: string) => {
+    const date = new Date(dateString);
+    const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    try {
+      return date.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return date.toLocaleString(locale);
+    }
   };
+
+  const getVideoCallUrl = (request: MentorRequest) => {
+    // Jitsi room names are safest with letters, numbers and hyphens.
+    const roomSeed = request.id.replace(/[^a-zA-Z0-9-]/g, '-');
+    return `${JITSI_BASE_URL}/${MENTORSHIP_ROOM_PREFIX}-${roomSeed}`;
+  };
+
+  const hasActiveSession = (request: MentorRequest) =>
+    (request.status === 'accepted' || request.status === 'completed') && Boolean(request.session);
 
   const copyVideoCallUrl = async (request: MentorRequest) => {
     try {
       await navigator.clipboard.writeText(getVideoCallUrl(request));
       setMessage('Video call link copied.');
     } catch {
-      setMessage('Unable to copy video call link.');
+      setMessage('Unable to copy video call link. Please copy manually after opening the call.');
     }
   };
 
@@ -323,7 +340,7 @@ const MentorProgramPanel = () => {
             {request.session?.scheduled_for && (
               <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/50 bg-white/5 border border-white/10 rounded-md px-2 py-1">
                 <Calendar className="w-3 h-3 text-red-400" />
-                {new Date(request.session.scheduled_for).toLocaleString()}
+                {formatSessionSchedule(request.session.scheduled_for)}
               </div>
             )}
             <div className="flex flex-wrap gap-2 mt-3">
@@ -353,7 +370,7 @@ const MentorProgramPanel = () => {
                   ))}
                 </div>
               )}
-              {(request.status === 'accepted' || request.status === 'completed') && request.session && (
+              {hasActiveSession(request) && (
                 <>
                   <a
                     href={getVideoCallUrl(request)}
