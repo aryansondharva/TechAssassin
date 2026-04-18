@@ -1,14 +1,20 @@
-import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
 /**
  * Client-side Supabase client for use in React components
- * Uses cookies for session management
+ * Uses anon key for public operations (authentication handled by Clerk)
  * Automatically handles authentication state
  */
-export const createClient = () => {
-  return createBrowserClient<any>(
+export const createClient = (): Database => {
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
   )
 }

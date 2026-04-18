@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAuth, requireAuthWithClient, requireAdmin } from '../../../lib/middleware/auth'
+import { requireAuth, requireAuthWithClient, requireAdmin } from '../../../lib/middleware/auth-clerk-new'
 import { profileUpdateSchema } from '../../../lib/validations/profile'
 import { handleApiError, NotFoundError, ConflictError, AuthorizationError } from '../../../lib/errors'
 import { deleteAvatar } from '../../../lib/storage/cleanup'

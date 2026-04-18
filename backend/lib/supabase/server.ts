@@ -1,20 +1,20 @@
-import { createServerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../../types/database'
 
 /**
  * Server-side Supabase client for use in Server Components and API routes
- * Uses cookies for session management
+ * Uses service role key for admin operations (no session management needed with Clerk)
  * Must be called within async server context
  */
 export const createClient = async () => {
-  const cookieStore = cookies()
-  return createServerClient<any>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => (cookieStore as any).set(name, value, options))
-      },
-    },
-  })
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  )
 }
