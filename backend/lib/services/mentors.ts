@@ -10,6 +10,8 @@ export interface MentorDirectoryFilters {
 }
 
 type MentorRequestStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'completed'
+const MENTOR_XP_REWARD = 100
+const BEGINNER_XP_REWARD = 40
 
 interface MentorRequestActionInput {
   action: 'accept' | 'decline' | 'cancel' | 'confirm_complete'
@@ -260,7 +262,7 @@ export async function getMyMentorRequests(userId: string) {
   const requestIds = requests.map((request) => request.id)
   const { data: sessions } = await supabase
     .from('mentor_sessions')
-    .select('*')
+    .select('id, request_id, scheduled_for, mentor_confirmed, beginner_confirmed, completed_at')
     .in('request_id', requestIds)
 
   const sessionMap = new Map((sessions || []).map((session) => [session.request_id, session]))
@@ -363,7 +365,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
 
   const { data: mentorSession, error: sessionFetchError } = await supabase
     .from('mentor_sessions')
-    .select('*')
+    .select('id, request_id, scheduled_for, mentor_notes, beginner_notes, mentor_confirmed, beginner_confirmed, completed_at')
     .eq('request_id', requestId)
     .maybeSingle()
 
@@ -425,7 +427,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
       await supabase
         .from('profiles')
         .update({
-          total_xp: (mentorProfile.total_xp || 0) + 100,
+          total_xp: (mentorProfile.total_xp || 0) + MENTOR_XP_REWARD,
           mentor_total_sessions: (mentorProfile.mentor_total_sessions || 0) + 1
         })
         .eq('id', request.mentor_id)
@@ -435,7 +437,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
       await supabase
         .from('profiles')
         .update({
-          total_xp: (beginnerProfile.total_xp || 0) + 40,
+          total_xp: (beginnerProfile.total_xp || 0) + BEGINNER_XP_REWARD,
           current_streak: (beginnerProfile.current_streak || 0) + 1
         })
         .eq('id', request.beginner_id)

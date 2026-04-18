@@ -83,8 +83,7 @@ const MentorProgramPanel = () => {
   );
 
   const formatRating = (rating: number | null | undefined) => {
-    if (rating === null || rating === undefined) return '0.0';
-    return rating.toFixed(1);
+    return (rating ?? 0).toFixed(1);
   };
 
   useEffect(() => {
@@ -326,7 +325,7 @@ const MentorProgramPanel = () => {
                     <button
                       key={ratingValue}
                       onClick={() => submitFeedback(request.session.id, ratingValue)}
-                      aria-label={`Rate ${ratingValue} stars`}
+                      aria-label={`Rate session ${ratingValue} out of 5 stars`}
                       className="px-2 py-1 rounded-md text-xs bg-yellow-600/70 hover:bg-yellow-500"
                     >
                       {ratingValue}★
