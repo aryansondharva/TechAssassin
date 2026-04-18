@@ -20,6 +20,7 @@ import Mentorship from "./pages/Mentorship";
 import Missions from "./pages/Missions";
 import Projects from "./pages/Projects";
 import Aura from "./pages/Aura";
+import CommunityGuidelines from "./pages/CommunityGuidelines";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetails />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/community/guidelines" element={<CommunityGuidelines />} />
           <Route path="/mentorship" element={<Mentorship />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/projects" element={<Projects />} />
