@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, ApiError } from '@/lib/api-client';
-import { Loader2, ShieldAlert, Star } from 'lucide-react';
+import { Calendar, Copy, ExternalLink, Loader2, ShieldAlert, Star, Video } from 'lucide-react';
 
 type ExperienceLevel = 'junior' | 'mid' | 'senior' | 'expert';
 type RequestStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'completed';
@@ -84,6 +84,20 @@ const MentorProgramPanel = () => {
 
   const formatRating = (rating: number | null | undefined) => {
     return (rating ?? 0).toFixed(1);
+  };
+
+  const getVideoCallUrl = (request: MentorRequest) => {
+    const roomSeed = (request.session?.id || request.id).replace(/[^a-zA-Z0-9-]/g, '-');
+    return `https://meet.jit.si/techassassin-mentorship-${roomSeed}`;
+  };
+
+  const copyVideoCallUrl = async (request: MentorRequest) => {
+    try {
+      await navigator.clipboard.writeText(getVideoCallUrl(request));
+      setMessage('Video call link copied.');
+    } catch {
+      setMessage('Unable to copy video call link.');
+    }
   };
 
   useEffect(() => {
@@ -306,6 +320,12 @@ const MentorProgramPanel = () => {
               <span className="text-[10px] uppercase tracking-widest text-red-300">{request.status}</span>
             </div>
             <p className="text-sm text-white/70 mt-2">{request.goal}</p>
+            {request.session?.scheduled_for && (
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/50 bg-white/5 border border-white/10 rounded-md px-2 py-1">
+                <Calendar className="w-3 h-3 text-red-400" />
+                {new Date(request.session.scheduled_for).toLocaleString()}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 mt-3">
               {request.canRespond && (
                 <>
@@ -332,6 +352,27 @@ const MentorProgramPanel = () => {
                     </button>
                   ))}
                 </div>
+              )}
+              {(request.status === 'accepted' || request.status === 'completed') && request.session && (
+                <>
+                  <a
+                    href={getVideoCallUrl(request)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs bg-indigo-600/80 hover:bg-indigo-600"
+                  >
+                    <Video className="w-3 h-3" />
+                    Join Call
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <button
+                    onClick={() => copyVideoCallUrl(request)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs bg-white/10 hover:bg-white/20"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copy Link
+                  </button>
+                </>
               )}
             </div>
           </div>

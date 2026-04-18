@@ -16,6 +16,7 @@ import EditProfile from "./pages/EditProfile";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Community from "./pages/Community";
+import Mentorship from "./pages/Mentorship";
 import Missions from "./pages/Missions";
 import Projects from "./pages/Projects";
 import Aura from "./pages/Aura";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetails />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/mentorship" element={<Mentorship />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/aura" element={<Aura />} />

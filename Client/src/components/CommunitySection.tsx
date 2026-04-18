@@ -438,6 +438,15 @@ const CommunitySection = () => {
               Contribution Guidelines
             </Link>
           </div>
+          <div className="mt-4">
+            <Link
+              to="/mentorship"
+              className="inline-flex items-center gap-2 border border-primary/30 bg-primary/10 text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/15 transition-colors"
+            >
+              <Users className="w-5 h-5" />
+              Explore Mentor Program
+            </Link>
+          </div>
         </div>
       </div>
     </section>
