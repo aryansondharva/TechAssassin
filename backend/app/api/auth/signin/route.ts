@@ -5,6 +5,21 @@ import { handleApiError } from '../../../../lib/errors'
 import { AuthenticationError } from '../../../../lib/middleware/auth'
 
 /**
+ * OPTIONS /api/auth/signin
+ * Handle CORS preflight requests
+ */
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 })
+  
+  response.headers.set('Access-Control-Allow-Origin', 'https://tech-assassin.vercel.app')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set('Access-Control-Allow-Credentials', 'true')
+  
+  return response
+}
+
+/**
  * POST /api/auth/signin
  * Authenticate user with email and password
  * Requirements: 2.1, 2.2
@@ -49,13 +64,21 @@ export async function POST(request: Request) {
     // Return user (profile) and token
     // Always include the real Supabase auth UID so the frontend
     // can distinguish between the profile row id and the auth user id
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         ...(profile || data.user),
         auth_id: data.user.id     // always the real Supabase auth UID
       },
       token: data.session.access_token
     })
+    
+    // Add CORS headers
+    response.headers.set('Access-Control-Allow-Origin', 'https://tech-assassin.vercel.app')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    
+    return response
   } catch (error) {
     return handleApiError(error)
   }
