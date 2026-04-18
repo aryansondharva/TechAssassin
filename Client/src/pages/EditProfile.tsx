@@ -57,6 +57,7 @@ export default function EditProfile() {
       setFormData({
         first_name: data.first_name || '',
         last_name: data.last_name || '',
+        username: data.username || '',
         gender: data.gender || '',
         tshirt_size: data.tshirt_size || '',
         address: data.address || '',
@@ -97,7 +98,7 @@ export default function EditProfile() {
       setProfile(updatedData);
       
       // Update the stored user data for real-time sync across the app
-      const userDataToUpdate = {
+      authService.updateUser({
         first_name: updatedData.first_name,
         last_name: updatedData.last_name,
         full_name: `${updatedData.first_name} ${updatedData.last_name}`.trim(),
@@ -105,10 +106,7 @@ export default function EditProfile() {
         avatar_url: updatedData.avatar_url,
         bio: updatedData.bio,
         address: updatedData.address
-      };
-      
-      console.log('Updating user data:', userDataToUpdate);
-      authService.updateUser(userDataToUpdate);
+      });
       
       toast({ title: 'Profile Updated', description: 'Operative parameters synchronized successfully.' });
     } catch (error) {
@@ -162,6 +160,7 @@ export default function EditProfile() {
                     <Field label="First name" value={formData.first_name} onChange={(v) => handleUpdateField('first_name', v)} />
                     <Field label="Last name" value={formData.last_name} onChange={(v) => handleUpdateField('last_name', v)} />
                   </div>
+                  <Field label="Username" value={formData.username} onChange={(v) => handleUpdateField('username', v)} placeholder="Choose your unique username" />
                   <div className="space-y-4">
                     <div>
                       <Label className="text-[12px] font-bold text-slate-800 uppercase tracking-widest mb-2 block">I identify as</Label>

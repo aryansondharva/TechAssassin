@@ -95,20 +95,12 @@ export const authService = {
   updateUser: (userData: any): void => {
     try {
       const currentUser = authService.getUser();
-      console.log('Current user from storage:', currentUser);
-      console.log('User data to update:', userData);
-      
       if (currentUser) {
         const updatedUser = { ...currentUser, ...userData };
-        console.log('Updated user object:', updatedUser);
-        
         localStorage.setItem('auth_user', JSON.stringify(updatedUser));
         
         // Dispatch a custom event to notify components of the update
         window.dispatchEvent(new CustomEvent('userUpdated', { detail: updatedUser }));
-        console.log('Dispatched userUpdated event');
-      } else {
-        console.log('No current user found in storage');
       }
     } catch (e) {
       console.error('Failed to update user data:', e);

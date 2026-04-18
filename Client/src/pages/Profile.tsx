@@ -52,7 +52,6 @@ export default function Profile() {
     
     // Listen for user updates
     const handleUserUpdate = () => {
-      console.log('Profile page received user update, refreshing...');
       if (isOwnProfile) {
         fetchProfile();
       }
@@ -168,9 +167,15 @@ export default function Profile() {
 
   const user = profile || {};
   
+  // Get stored user data for immediate updates
+  const storedUser = authService.getUser();
+  
+  // Use stored user data if available, otherwise use profile data
+  const currentUser = storedUser || user;
+  
   // Construct full_name from first_name and last_name if not available
-  const displayName = user.full_name || 
-    (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : user.username) ||
+  const displayName = currentUser.full_name || 
+    (currentUser.first_name && currentUser.last_name ? `${currentUser.first_name} ${currentUser.last_name}`.trim() : currentUser.username) ||
     'Operative';
   
   // Get the first letter of display name for avatar
@@ -190,7 +195,7 @@ export default function Profile() {
             <div className="relative group shrink-0">
                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-50">
                   <Avatar className="w-full h-full rounded-none">
-                    <AvatarImage src={user.avatar_url || ''} className="object-cover" />
+                    <AvatarImage src={currentUser.avatar_url || ''} className="object-cover" />
                     <AvatarFallback className="bg-slate-100 text-3xl font-bold text-slate-300">
                        {getInitial(displayName)}
                     </AvatarFallback>
@@ -208,7 +213,7 @@ export default function Profile() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{displayName}</h1>
-                  <p className="text-red-600 font-semibold text-sm mt-1">@{user.username}</p>
+                  <p className="text-red-600 font-semibold text-sm mt-1">@{currentUser.username}</p>
                 </div>
                 {isOwnProfile && (
                   <Link to="/edit-profile">
@@ -220,11 +225,11 @@ export default function Profile() {
               </div>
 
               <p className="text-slate-600 text-lg leading-relaxed font-medium italic opacity-80 uppercase tracking-tight">
-                {user.bio || "Si vis pacem, para bellum"}
+                {currentUser.bio || "Si vis pacem, para bellum"}
               </p>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                {(user.skills || ["React", "Data Analysis", "Machine Learning", "Data Science"]).map((skill: string) => (
+                {(currentUser.skills || ["React", "Data Analysis", "Machine Learning", "Data Science"]).map((skill: string) => (
                   <Badge key={skill} variant="secondary" className="bg-white border border-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">
                     {skill}
                   </Badge>
@@ -234,11 +239,11 @@ export default function Profile() {
               <div className="flex items-center gap-6 pt-4 text-slate-400">
                 <div className="flex items-center gap-2 text-sm font-bold">
                   <MapPin className="w-4 h-4" />
-                  <span>{user.address || "Surat, India"}</span>
+                  <span>{currentUser.address || "Surat, India"}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <SocialIcon icon={Github} href={user.github_url} />
-                  <SocialIcon icon={Linkedin} href={user.linkedin_url} />
+                  <SocialIcon icon={Github} href={currentUser.github_url} />
+                  <SocialIcon icon={Linkedin} href={currentUser.linkedin_url} />
                   <SocialIcon icon={Twitter} />
                 </div>
               </div>
@@ -275,7 +280,7 @@ export default function Profile() {
                              
                              <div className="flex-1 w-full overflow-hidden">
                                 <img 
-                                  src={`https://ghchart.rshah.org/DC2626/${user.github_url?.split('/').pop() || 'aryansondharva'}`} 
+                                  src={`https://ghchart.rshah.org/DC2626/${currentUser.github_url?.split('/').pop() || 'aryansondharva'}`} 
                                   className="w-full h-auto opacity-90 rounded-xl"
                                   alt="Github Chart" 
                                 />

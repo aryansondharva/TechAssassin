@@ -28,7 +28,6 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
     
     // Listen for user updates
     const handleUserUpdate = (event: CustomEvent) => {
-      console.log('Navbar received user update:', event.detail);
       setUser(event.detail);
     };
     window.addEventListener('userUpdated', handleUserUpdate as EventListener);
