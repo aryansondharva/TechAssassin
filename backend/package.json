@@ -13,7 +13,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.2.3",
+    "@clerk/nextjs": "^6.39.2",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/supabase-js": "^2.95.3",
     "@types/bcryptjs": "^2.4.6",
