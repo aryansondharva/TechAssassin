@@ -357,7 +357,7 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
     return updatedRequest
   }
 
-  const { data: session, error: sessionFetchError } = await supabase
+  const { data: mentorSession, error: sessionFetchError } = await supabase
     .from('mentor_sessions')
     .select('*')
     .eq('request_id', requestId)
@@ -365,29 +365,29 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
 
   if (sessionFetchError) throw sessionFetchError
 
-  let mentorConfirmed = session?.mentor_confirmed || false
-  let beginnerConfirmed = session?.beginner_confirmed || false
+  let mentorConfirmed = mentorSession?.mentor_confirmed || false
+  let beginnerConfirmed = mentorSession?.beginner_confirmed || false
 
   if (userId === request.mentor_id) mentorConfirmed = true
   if (userId === request.beginner_id) beginnerConfirmed = true
 
   const mentorNotes = userId === request.mentor_id
-    ? (input.notes ?? session?.mentor_notes ?? null)
-    : (session?.mentor_notes ?? null)
+    ? (input.notes ?? mentorSession?.mentor_notes ?? null)
+    : (mentorSession?.mentor_notes ?? null)
   const beginnerNotes = userId === request.beginner_id
-    ? (input.notes ?? session?.beginner_notes ?? null)
-    : (session?.beginner_notes ?? null)
+    ? (input.notes ?? mentorSession?.beginner_notes ?? null)
+    : (mentorSession?.beginner_notes ?? null)
 
   const sessionPayload = {
     request_id: requestId,
     mentor_id: request.mentor_id,
     beginner_id: request.beginner_id,
-    scheduled_for: input.scheduled_for ?? session?.scheduled_for ?? request.preferred_schedule_at ?? null,
+    scheduled_for: input.scheduled_for ?? mentorSession?.scheduled_for ?? request.preferred_schedule_at ?? null,
     mentor_confirmed: mentorConfirmed,
     beginner_confirmed: beginnerConfirmed,
     mentor_notes: mentorNotes,
     beginner_notes: beginnerNotes,
-    completed_at: mentorConfirmed && beginnerConfirmed ? new Date().toISOString() : session?.completed_at ?? null
+    completed_at: mentorConfirmed && beginnerConfirmed ? new Date().toISOString() : mentorSession?.completed_at ?? null
   }
 
   const { data: upsertedSession, error: sessionUpsertError } = await supabase
