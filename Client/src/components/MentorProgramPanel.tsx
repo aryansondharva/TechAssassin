@@ -316,9 +316,17 @@ const MentorProgramPanel = () => {
                 <button onClick={() => handleRequestAction(request.id, 'confirm_complete')} className="px-3 py-1 rounded-md text-xs bg-blue-600/80 hover:bg-blue-600">Confirm Complete</button>
               )}
               {request.status === 'completed' && request.session && (
-                <button onClick={() => submitFeedback(request.session!.id, 5)} className="px-3 py-1 rounded-md text-xs bg-yellow-600/80 hover:bg-yellow-600">
-                  Rate 5★
-                </button>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((ratingValue) => (
+                    <button
+                      key={ratingValue}
+                      onClick={() => submitFeedback(request.session.id, ratingValue)}
+                      className="px-2 py-1 rounded-md text-xs bg-yellow-600/70 hover:bg-yellow-500"
+                    >
+                      {ratingValue}★
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </div>

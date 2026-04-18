@@ -564,11 +564,11 @@ export async function getMentorStats() {
   const supabase = await createClient()
 
   const [activeMentorsResult, openRequestsResult, successfulMatchesResult, topMentorsResult] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_mentor_available', true),
-    supabase.from('mentor_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_mentor_available', true),
+    supabase.from('mentor_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase
       .from('mentor_requests')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'completed')
       .gte('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
     supabase
