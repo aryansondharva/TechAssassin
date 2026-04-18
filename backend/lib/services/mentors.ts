@@ -495,9 +495,8 @@ async function recomputeMentorRating(mentorId: string) {
   if (error) throw error
 
   const count = feedbackRows?.length || 0
-  const avg = count === 0
-    ? 0
-    : feedbackRows!.reduce((sum, row) => sum + row.rating, 0) / count
+  const totalRating = (feedbackRows || []).reduce((sum, row) => sum + row.rating, 0)
+  const avg = count === 0 ? 0 : totalRating / count
 
   const { error: updateError } = await supabase
     .from('profiles')
