@@ -82,6 +82,11 @@ const MentorProgramPanel = () => {
     [mentors, selectedMentorId]
   );
 
+  const formatRating = (rating: number | null | undefined) => {
+    if (rating === null || rating === undefined) return '0.0';
+    return rating.toFixed(1);
+  };
+
   useEffect(() => {
     void loadData();
   }, []);
@@ -257,7 +262,7 @@ const MentorProgramPanel = () => {
                   </div>
                   <div className="text-xs text-yellow-400 flex items-center gap-1">
                     <Star className="w-3 h-3 fill-current" />
-                    {mentor.mentor_rating?.toFixed(1) || '0.0'} ({mentor.mentor_rating_count})
+                    {formatRating(mentor.mentor_rating)} ({mentor.mentor_rating_count})
                   </div>
                 </div>
                 <div className="text-xs text-white/70 mt-2">{mentor.bio || 'No bio yet.'}</div>
@@ -321,6 +326,7 @@ const MentorProgramPanel = () => {
                     <button
                       key={ratingValue}
                       onClick={() => submitFeedback(request.session.id, ratingValue)}
+                      aria-label={`Rate ${ratingValue} stars`}
                       className="px-2 py-1 rounded-md text-xs bg-yellow-600/70 hover:bg-yellow-500"
                     >
                       {ratingValue}★
@@ -341,7 +347,7 @@ const MentorProgramPanel = () => {
               <div key={mentor.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
                 <div className="font-semibold">{mentor.full_name || mentor.username}</div>
                 <div className="text-xs text-white/60">@{mentor.username}</div>
-                <div className="text-xs text-yellow-400 mt-2">Rating: {mentor.mentor_rating?.toFixed(1) || '0.0'}</div>
+                <div className="text-xs text-yellow-400 mt-2">Rating: {formatRating(mentor.mentor_rating)}</div>
                 <div className="text-xs text-white/60">Sessions: {mentor.mentor_total_sessions}</div>
               </div>
             ))}

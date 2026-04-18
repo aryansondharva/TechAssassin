@@ -315,11 +315,15 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
   if (input.action === 'cancel') nextStatus = 'canceled'
 
   if (input.action !== 'confirm_complete') {
+    const respondedAt = (input.action === 'accept' || input.action === 'decline')
+      ? new Date().toISOString()
+      : request.responded_at
+
     const { data: updatedRequest, error: updateError } = await supabase
       .from('mentor_requests')
       .update({
         status: nextStatus,
-        responded_at: input.action === 'accept' || input.action === 'decline' ? new Date().toISOString() : request.responded_at
+        responded_at: respondedAt
       })
       .eq('id', requestId)
       .select('*')
