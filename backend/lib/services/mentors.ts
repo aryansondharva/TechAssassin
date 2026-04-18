@@ -69,10 +69,26 @@ export async function getMentorDirectory(filters: MentorDirectoryFilters = {}, v
   }
 
   const mentorIds = mentors.map((mentor) => mentor.id)
-  const { data: blockedLinks } = await supabase
-    .from('mentor_blocks')
-    .select('blocker_id, blocked_user_id')
-    .or(`and(blocker_id.eq.${viewerId},blocked_user_id.in.(${mentorIds.join(',')})),and(blocked_user_id.eq.${viewerId},blocker_id.in.(${mentorIds.join(',')}))`)
+  const [blocksByViewer, blocksAgainstViewer] = await Promise.all([
+    supabase
+      .from('mentor_blocks')
+      .select('blocker_id, blocked_user_id')
+      .eq('blocker_id', viewerId)
+      .in('blocked_user_id', mentorIds),
+    supabase
+      .from('mentor_blocks')
+      .select('blocker_id, blocked_user_id')
+      .eq('blocked_user_id', viewerId)
+      .in('blocker_id', mentorIds)
+  ])
+
+  if (blocksByViewer.error) throw blocksByViewer.error
+  if (blocksAgainstViewer.error) throw blocksAgainstViewer.error
+
+  const blockedLinks = [
+    ...(blocksByViewer.data || []),
+    ...(blocksAgainstViewer.data || [])
+  ]
 
   const blockedIds = new Set<string>()
   ;(blockedLinks || []).forEach((item) => {
@@ -160,13 +176,17 @@ export async function createMentorRequest(beginnerId: string, input: {
     throw new ValidationError('You cannot create a mentor request for yourself')
   }
 
-  const { data: blockRelation } = await supabase
+  const participantIds = [beginnerId, input.mentor_id]
+  const { data: blockRelation, error: blockError } = await supabase
     .from('mentor_blocks')
-    .select('id')
-    .or(`and(blocker_id.eq.${beginnerId},blocked_user_id.eq.${input.mentor_id}),and(blocker_id.eq.${input.mentor_id},blocked_user_id.eq.${beginnerId})`)
-    .limit(1)
+    .select('blocker_id, blocked_user_id')
+    .in('blocker_id', participantIds)
+    .in('blocked_user_id', participantIds)
 
-  if ((blockRelation || []).length > 0) {
+  if (blockError) throw blockError
+
+  const hasBlockedRelation = (blockRelation || []).some((row) => row.blocker_id !== row.blocked_user_id)
+  if (hasBlockedRelation) {
     throw new ValidationError('Mentorship request cannot be sent because one user has blocked the other')
   }
 
@@ -193,14 +213,32 @@ export async function createMentorRequest(beginnerId: string, input: {
 export async function getMyMentorRequests(userId: string) {
   const supabase = await createClient()
 
-  const { data: requests, error } = await supabase
-    .from('mentor_requests')
-    .select('*')
-    .or(`beginner_id.eq.${userId},mentor_id.eq.${userId}`)
-    .order('created_at', { ascending: false })
-    .limit(100)
+  const [beginnerRequestsResult, mentorRequestsResult] = await Promise.all([
+    supabase
+      .from('mentor_requests')
+      .select('*')
+      .eq('beginner_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(100),
+    supabase
+      .from('mentor_requests')
+      .select('*')
+      .eq('mentor_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(100)
+  ])
 
-  if (error) throw error
+  if (beginnerRequestsResult.error) throw beginnerRequestsResult.error
+  if (mentorRequestsResult.error) throw mentorRequestsResult.error
+
+  const mergedRequests = [
+    ...(beginnerRequestsResult.data || []),
+    ...(mentorRequestsResult.data || [])
+  ]
+
+  const requests = mergedRequests
+    .filter((item, index, array) => index === array.findIndex((candidate) => candidate.id === item.id))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
   if (!requests || requests.length === 0) {
     return []
@@ -333,6 +371,13 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
   if (userId === request.mentor_id) mentorConfirmed = true
   if (userId === request.beginner_id) beginnerConfirmed = true
 
+  const mentorNotes = userId === request.mentor_id
+    ? (input.notes ?? session?.mentor_notes ?? null)
+    : (session?.mentor_notes ?? null)
+  const beginnerNotes = userId === request.beginner_id
+    ? (input.notes ?? session?.beginner_notes ?? null)
+    : (session?.beginner_notes ?? null)
+
   const sessionPayload = {
     request_id: requestId,
     mentor_id: request.mentor_id,
@@ -340,8 +385,8 @@ export async function updateMentorRequestStatus(userId: string, requestId: strin
     scheduled_for: input.scheduled_for ?? session?.scheduled_for ?? request.preferred_schedule_at ?? null,
     mentor_confirmed: mentorConfirmed,
     beginner_confirmed: beginnerConfirmed,
-    mentor_notes: userId === request.mentor_id ? input.notes ?? session?.mentor_notes ?? null : session?.mentor_notes ?? null,
-    beginner_notes: userId === request.beginner_id ? input.notes ?? session?.beginner_notes ?? null : session?.beginner_notes ?? null,
+    mentor_notes: mentorNotes,
+    beginner_notes: beginnerNotes,
     completed_at: mentorConfirmed && beginnerConfirmed ? new Date().toISOString() : session?.completed_at ?? null
   }
 
