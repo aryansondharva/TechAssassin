@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { authService } from "@/services";
+import { useUser, useClerk, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
@@ -17,44 +17,20 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const [user, setUser] = useState(authService.getUser());
-  const isAuthenticated = authService.isAuthenticated();
+  const { user, isSignedIn } = useUser();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
-    
-    // Listen for user updates
-    const handleUserUpdate = (event: CustomEvent) => {
-      setUser(event.detail);
-    };
-    window.addEventListener('userUpdated', handleUserUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener('userUpdated', handleUserUpdate as EventListener);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = async () => {
-    await authService.signOut();
+    await signOut();
     window.location.href = '/';
-  };
-
-  // Helper function to construct display name
-  const getDisplayName = (user: any) => {
-    if (!user) return 'Operative';
-    return user.full_name || 
-      (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : user.username) ||
-      'Operative';
-  };
-
-  const getInitial = (user: any) => {
-    if (!user) return 'O';
-    const displayName = getDisplayName(user);
-    return displayName.charAt(0).toUpperCase();
   };
 
   return (
@@ -116,83 +92,30 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
 
           {/* Right Side - Actions */}
           <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated ? (
-              <div className="relative group">
-                <button
-                  className={`flex items-center gap-3 px-4 py-2 rounded-full transition-all duration-300 group ${
-                    dark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                  } border`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-white/20 overflow-hidden">
-                    {user?.avatar_url ? (
-                      <img 
-                        src={user?.avatar_url} 
-                        alt="Avatar" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white font-bold text-[10px]">
-                        {getInitial(user)}
-                      </span>
-                    )}
-                  </div>
-                  <span className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
-                    dark ? 'text-white/70 group-hover:text-white' : 'text-slate-600 group-hover:text-slate-900'
-                  }`}>
-                    {getDisplayName(user)}
-                  </span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                </button>
-
-                {/* Tactical Dropdown Menu (Devfolio Style) */}
-                <div className="absolute top-full right-0 mt-3 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-[110]">
-                   <div className="bg-[#2D333B] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-                    <div className="p-2 py-3 space-y-0.5">
-                       <DropdownItem to="/profile" icon={Shield} label="My Assassin" />
-                       <DropdownItem to="/edit-profile" icon={PenSquare} label="Edit Profile" />
-                       
-                       <div className="h-[1px] bg-white/5 my-2 mx-2" />
-                       
-                       <DropdownItem to="/missions" icon={Target} label="My Missions" />
-                       <DropdownItem to="/community" icon={Briefcase} label="My Projects" />
-                       <DropdownItem to="/claims" icon={Sparkles} label="My Claims" />
-                       
-                       <div className="h-[1px] bg-white/5 my-2 mx-2" />
-                       
-                       <DropdownItem to="/organizer" icon={BarChart} label="Organizer Dashboard" />
-                       
-                       <div className="h-[1px] bg-white/5 my-2 mx-2" />
-                       
-                       <DropdownItem to="/qr" icon={QrCode} label="Show QR Code" />
-                       <DropdownItem to="/settings" icon={Settings} label="Account Settings" />
-                       
-                       <button 
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 transition-all group/logout"
-                      >
-                        <LogOut className="w-5 h-5 text-slate-400 group-hover/logout:text-white" />
-                        <span className="text-[13px] font-medium">Log Out</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {isSignedIn ? (
+              <UserButton>
+                <UserButton.MenuItems>
+                  <UserButton.Link href="/profile" label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
+                  <UserButton.Link href="/edit-profile" label="Edit Profile" labelIcon={<PenSquare className="w-4 h-4" />} />
+                  <UserButton.Link href="/missions" label="My Missions" labelIcon={<Target className="w-4 h-4" />} />
+                  <UserButton.Link href="/community" label="My Projects" labelIcon={<Briefcase className="w-4 h-4" />} />
+                  <UserButton.Action label="Show QR Code" labelIcon={<QrCode className="w-4 h-4" />} onClick={() => window.location.href = '/qr'} />
+                </UserButton.MenuItems>
+              </UserButton>
             ) : (
               <div className="flex items-center gap-6">
-                <Link
-                  to="/signin"
-                  className={`text-[11px] font-black uppercase tracking-widest transition-colors ${dark ? 'text-white/40 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}
-                >
-                  Enter System
-                </Link>
-                <Link
-                  to="/signup"
-                  className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl ${
+                <SignInButton mode="modal">
+                  <button className={`text-[11px] font-black uppercase tracking-widest transition-colors ${dark ? 'text-white/40 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
+                    Enter System
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl ${
                     dark ? 'bg-white text-black hover:bg-white/90' : 'bg-slate-900 text-white hover:bg-slate-800'
-                  }`}
-                >
-                  Join Squad <Zap className="w-3 h-3 fill-current" />
-                </Link>
+                  }`}>
+                    Join Squad <Zap className="w-3 h-3 fill-current" />
+                  </button>
+                </SignUpButton>
               </div>
             )}
           </div>
@@ -233,8 +156,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                   {link.label}
                 </Link>
               ))}
-              <div className={`h-[1px] my-2 ${dark ? 'bg-white/10' : 'bg-slate-100'}`} />
-              {isAuthenticated ? (
+              {isSignedIn ? (
                 <div className="flex flex-col gap-4">
                    <Link to="/profile" className="text-white/70 font-bold uppercase tracking-widest">My Assassin</Link>
                    <Link to="/edit-profile" className="text-white/70 font-bold uppercase tracking-widest">Edit Profile</Link>
@@ -244,24 +166,24 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
-                  <Link
-                    to="/signin"
-                    onClick={() => setMobileOpen(false)}
-                    className={`w-full py-4 rounded-2xl border text-center font-black uppercase tracking-widest ${
-                      dark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                    }`}
-                  >
-                    Enter System
-                  </Link>
-                  <Link
-                    to="/signup"
-                    onClick={() => setMobileOpen(false)}
-                    className={`w-full py-4 rounded-2xl text-center font-black uppercase tracking-widest ${
-                      dark ? 'bg-white text-black' : 'bg-slate-900 text-white'
-                    }`}
-                  >
-                    Join Squad
-                  </Link>
+                  <SignInButton mode="modal">
+                    <button
+                      className={`w-full py-4 rounded-2xl border text-center font-black uppercase tracking-widest ${
+                        dark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                      }`}
+                    >
+                      Enter System
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button
+                      className={`w-full py-4 rounded-2xl text-center font-black uppercase tracking-widest ${
+                        dark ? 'bg-white text-black' : 'bg-slate-900 text-white'
+                      }`}
+                    >
+                      Join Squad
+                    </button>
+                  </SignUpButton>
                 </div>
               )}
             </div>

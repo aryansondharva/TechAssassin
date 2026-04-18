@@ -30,25 +30,25 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Get authentication token from localStorage
+ * Get authentication token from Clerk session
  */
-function getAuthToken(): string | null {
-  return localStorage.getItem('auth_token');
+async function getAuthToken(): Promise<string | null> {
+  if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.session) {
+    try {
+      return await (window as any).Clerk.session.getToken();
+    } catch (e) {
+      console.warn("Failed to get Clerk token", e);
+      return null;
+    }
+  }
+  return null;
 }
 
 /**
- * Set authentication token in localStorage
+ * Empty placeholders to prevent existing code from breaking
  */
-export function setAuthToken(token: string): void {
-  localStorage.setItem('auth_token', token);
-}
-
-/**
- * Remove authentication token from localStorage
- */
-export function clearAuthToken(): void {
-  localStorage.removeItem('auth_token');
-}
+export function setAuthToken(token: string): void {}
+export function clearAuthToken(): void {}
 
 /**
  * Build URL with query parameters
@@ -83,7 +83,7 @@ async function request<T>(
   };
   
   // Add authentication token if available
-  const token = getAuthToken();
+  const token = await getAuthToken();
   if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
   }
@@ -194,7 +194,7 @@ export const api = {
     const formData = new FormData();
     formData.append(fieldName, file);
     
-    const token = getAuthToken();
+    const token = await getAuthToken();
     const headers: HeadersInit = {};
     
     if (token) {

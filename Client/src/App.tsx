@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import Index from "./pages/Index";
-import SignUp from "./pages/SignUp";
-import SignIn from "./pages/SignIn";
+import { SignUp, SignIn } from "@clerk/react";
 import ForgotPassword from "./pages/ForgotPassword";
 import MagicLink from "./pages/MagicLink";
 import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
@@ -33,8 +32,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup/*" element={<div className="min-h-screen flex items-center justify-center bg-background"><SignUp routing="path" path="/signup" /></div>} />
+          <Route path="/signin/*" element={<div className="min-h-screen flex items-center justify-center bg-background"><SignIn routing="path" path="/signin" /></div>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
