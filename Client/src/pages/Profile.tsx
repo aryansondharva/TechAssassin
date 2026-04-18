@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { authService, profileService } from "@/services";
+import { profileService } from "@/services";
+import { useUser, useAuth } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -42,9 +43,13 @@ export default function Profile() {
   
   const { username } = useParams<{ username: string }>();
   const isOwnProfile = !username;
+  const { isLoaded, userId } = useAuth();
+  const { user: clerkUser } = useUser();
 
   useEffect(() => {
-    if (isOwnProfile && !authService.isAuthenticated()) {
+    if (!isLoaded) return;
+
+    if (isOwnProfile && !userId) {
       navigate('/signin');
       return;
     }
@@ -61,7 +66,7 @@ export default function Profile() {
     return () => {
       window.removeEventListener('userUpdated', handleUserUpdate);
     };
-  }, [navigate, username, isOwnProfile]);
+  }, [navigate, username, isOwnProfile, isLoaded, userId]);
 
   const fetchGithubData = async (githubUrl: string) => {
     try {
@@ -167,17 +172,14 @@ export default function Profile() {
 
   const user = profile || {};
   
-  // Get stored user data for immediate updates
-  const storedUser = authService.getUser();
-  
-  // Use stored user data if available, otherwise use profile data
-  const currentUser = storedUser || user;
-  
-  // Construct full_name from first_name and last_name if not available
-  const displayName = currentUser.full_name || 
-    (currentUser.first_name && currentUser.last_name ? `${currentUser.first_name} ${currentUser.last_name}`.trim() : currentUser.username) ||
+  // Use Clerk data if profile hasn't loaded or for fallback
+  const displayName = profile?.full_name || 
+    (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}`.trim() : profile?.username) ||
+    clerkUser?.fullName || clerkUser?.username ||
     'Operative';
   
+  const avatarUrl = profile?.avatar_url || clerkUser?.imageUrl;
+
   // Get the first letter of display name for avatar
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase();
@@ -195,7 +197,7 @@ export default function Profile() {
             <div className="relative group shrink-0">
                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-50">
                   <Avatar className="w-full h-full rounded-none">
-                    <AvatarImage src={currentUser.avatar_url || ''} className="object-cover" />
+                    <AvatarImage src={avatarUrl || ''} className="object-cover" />
                     <AvatarFallback className="bg-slate-100 text-3xl font-bold text-slate-300">
                        {getInitial(displayName)}
                     </AvatarFallback>
@@ -213,7 +215,7 @@ export default function Profile() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{displayName}</h1>
-                  <p className="text-red-600 font-semibold text-sm mt-1">@{currentUser.username}</p>
+                  <p className="text-red-600 font-semibold text-sm mt-1">@{profile?.username || clerkUser?.username}</p>
                 </div>
                 {isOwnProfile && (
                   <Link to="/edit-profile">
@@ -225,11 +227,11 @@ export default function Profile() {
               </div>
 
               <p className="text-slate-600 text-lg leading-relaxed font-medium italic opacity-80 uppercase tracking-tight">
-                {currentUser.bio || ""}
+                {profile?.bio || ""}
               </p>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                {(currentUser.skills || []).map((skill: string) => (
+                {(profile?.skills || []).map((skill: string) => (
                   <Badge key={skill} variant="secondary" className="bg-white border border-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">
                     {skill}
                   </Badge>
@@ -239,11 +241,11 @@ export default function Profile() {
               <div className="flex items-center gap-6 pt-4 text-slate-400">
                 <div className="flex items-center gap-2 text-sm font-bold">
                   <MapPin className="w-4 h-4" />
-                  <span>{currentUser.address || ""}</span>
+                  <span>{profile?.address || ""}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <SocialIcon icon={Github} href={currentUser.github_url} />
-                  <SocialIcon icon={Linkedin} href={currentUser.linkedin_url} />
+                  <SocialIcon icon={Github} href={profile?.github_url} />
+                  <SocialIcon icon={Linkedin} href={profile?.linkedin_url} />
                   <SocialIcon icon={Twitter} />
                 </div>
               </div>
@@ -280,7 +282,7 @@ export default function Profile() {
                              
                              <div className="flex-1 w-full overflow-hidden">
                                 <img 
-                                  src={`https://ghchart.rshah.org/DC2626/${currentUser.github_url?.split('/').pop() || 'aryansondharva'}`} 
+                                  src={`https://ghchart.rshah.org/DC2626/${profile?.github_url?.split('/').pop() || 'aryansondharva'}`} 
                                   className="w-full h-auto opacity-90 rounded-xl"
                                   alt="Github Chart" 
                                 />
@@ -308,7 +310,7 @@ export default function Profile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          {githubData?.repos ? (
                             githubData.repos.length > 0 ? (
-                              githubData.repos.map((repo: any) => (
+                               githubData.repos.map((repo: any) => (
                                  <RepoCard 
                                   key={repo.id}
                                   title={repo.name} 

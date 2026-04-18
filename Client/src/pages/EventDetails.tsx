@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { eventsService, registrationsService, authService } from '@/services';
+import { eventsService, registrationsService } from '@/services';
+import { useAuth } from '@clerk/react';
 import { ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ export default function EventDetails() {
     team_name: '',
     project_idea: '',
   });
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -54,7 +56,7 @@ export default function EventDetails() {
   };
 
   const handleRegisterClick = () => {
-    if (!authService.isAuthenticated()) {
+    if (!userId) {
       toast({
         title: 'Authentication Required',
         description: 'Please sign in to register for events',

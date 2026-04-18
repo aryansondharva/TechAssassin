@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { authService, profileService, missionsService } from '@/services';
+import { profileService, missionsService } from '@/services';
+import { useAuth } from '@clerk/react';
 import type { Mission } from '@/services/missions.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,13 +32,17 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isClaiming, setIsClaiming] = useState(false);
 
+  const { isLoaded, userId } = useAuth();
+
   useEffect(() => {
-    if (authService.isAuthenticated()) {
+    if (!isLoaded) return;
+
+    if (userId) {
       fetchData();
     } else {
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, isLoaded, userId]);
 
   const fetchData = async () => {
     try {

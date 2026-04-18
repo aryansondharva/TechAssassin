@@ -11,40 +11,42 @@ const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Fail gracefully instead of showing a white screen if env vars are missing in production
 const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON);
 
-/** Returns the JWT stored by auth.service.ts after sign-in */
-function getStoredToken(): string | null {
-  try {
-    return localStorage.getItem('auth_token');
-  } catch {
-    return null;
-  }
-}
-
-/** Returns the real Supabase auth user ID stored by auth.service.ts after sign-in */
+/**  
+ * Returns the real Supabase auth user ID currently active in Clerk session.
+ * We pull this dynamically from Clerk instead of local storage.
+ */
 export function getStoredUserId(): string | null {
   try {
-    const raw = localStorage.getItem('auth_user');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed?.auth_id ?? parsed?.id ?? null;
+    return window.Clerk?.user?.id || null;
   } catch {
     return null;
   }
 }
 
 /**
- * Supabase client initialization with safety guards.
+ * Supabase client initialization with asynchronous Clerk JWT injection.
  */
 let supabaseInstance: any;
 
 if (isSupabaseConfigured) {
   supabaseInstance = createClient(SUPABASE_URL, SUPABASE_ANON, {
     global: {
-      headers: {
-        get Authorization() {
-          const token = getStoredToken();
-          return token ? `Bearer ${token}` : '';
-        },
+      fetch: async (url, options = {}) => {
+        // Asynchronously fetch the custom Supabase-signed JWT mint from Clerk
+        const clerkToken = window.Clerk?.session 
+          ? await window.Clerk.session.getToken({ template: 'supabase' })
+          : null;
+
+        const headers = new Headers(options?.headers);
+        if (clerkToken) {
+          headers.set('Authorization', `Bearer ${clerkToken}`);
+        }
+
+        // Return standard fetch implementation but armed with the new dynamic headers!
+        return fetch(url, {
+          ...options,
+          headers,
+        });
       },
     },
     auth: {

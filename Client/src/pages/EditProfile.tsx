@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { profileService, authService } from '@/services';
+import { profileService } from '@/services';
+import { useAuth } from '@clerk/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,16 +38,20 @@ export default function EditProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
   
+  const { isLoaded, userId } = useAuth();
+  
   // Advanced state mapping for the expanded Supabase schema
   const [formData, setFormData] = useState<ProfileUpdateRequest>({});
 
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
+    if (!isLoaded) return;
+    
+    if (!userId) {
       navigate('/signin');
       return;
     }
     fetchProfile();
-  }, [navigate]);
+  }, [navigate, isLoaded, userId]);
 
   const fetchProfile = async () => {
     setIsLoading(true);
