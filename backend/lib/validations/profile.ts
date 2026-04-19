@@ -41,7 +41,7 @@ export const profileUpdateSchema = z.object({
     .optional(),
   university: z.string().max(100).optional().or(z.literal('')),
   education: z.string().max(100).optional().or(z.literal('')),
-  graduation_year: z.number().int().min(1900).max(2100).optional().or(z.null()),
+  graduation_year: z.union([z.number().int().min(1900).max(2100), z.string(), z.null()]).optional(),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(200).optional().or(z.literal('')),
   avatar_url: z.string().url().optional().or(z.literal('')),

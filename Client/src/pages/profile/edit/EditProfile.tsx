@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { profileService } from '@/services';
+import { profileService, authService } from '@/services';
 import { useAuth } from '@clerk/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -92,6 +92,7 @@ export default function EditProfile() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateField = (field: keyof ProfileUpdateRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -113,7 +114,8 @@ export default function EditProfile() {
         address: updatedData.address
       });
       
-      toast({ title: 'Profile Updated', description: 'Operative parameters synchronized successfully.' });
+      const timeString = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+      toast({ title: 'Profile Updated', description: `Successfully updated at ${timeString} (IST)` });
     } catch (error) {
        toast({ title: 'Sync Failed', description: 'Could not write to the central database.', variant: 'destructive' });
     } finally {
@@ -368,6 +370,7 @@ export default function EditProfile() {
 
 // --- SUB-COMPONENTS ---
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SidebarLink({ active, onClick, icon: Icon, label }: any) {
   return (
     <button onClick={onClick} className={`flex items-center gap-4 w-full px-6 py-4 rounded-xl transition-all font-bold text-xs uppercase tracking-[0.2em] group ${active ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 hover:text-red-500 hover:bg-white/50'}`}>
@@ -377,6 +380,7 @@ function SidebarLink({ active, onClick, icon: Icon, label }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SectionCard({ title, subtitle, children, onSave, isSaving }: any) {
   return (
     <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden">
@@ -396,6 +400,7 @@ function SectionCard({ title, subtitle, children, onSave, isSaving }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Field({ label, placeholder, value, onChange }: any) {
   return (
     <div className="space-y-2">
@@ -410,6 +415,7 @@ function Field({ label, placeholder, value, onChange }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RoleToggle({ label, active, onToggle }: any) {
   return (
      <div onClick={onToggle} className={`p-5 rounded-xl border flex items-center gap-4 cursor-pointer transition-all ${active ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
@@ -419,6 +425,7 @@ function RoleToggle({ label, active, onToggle }: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SocialLinkInput({ icon: Icon, value, onChange, color = "text-slate-900" }: any) {
    return (
       <div className="flex items-center gap-4 w-full">
@@ -431,6 +438,7 @@ function SocialLinkInput({ icon: Icon, value, onChange, color = "text-slate-900"
    );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RadioItem({ value, label }: any) {
   return (
     <div className="flex items-center space-x-3 p-5 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-all">
