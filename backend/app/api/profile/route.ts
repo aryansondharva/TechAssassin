@@ -11,10 +11,9 @@ import type { Profile } from '@/types/database'
  */
 export async function GET() {
   try {
-    // Verify authentication and get client (Step 8 of Arch Guide)
     const { user, supabase } = await requireAuthWithClient()
     
-    // Fetch user's profile using the Clerk ID directly
+    // Fetch profile including the new member_id and change tracking fields
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -23,7 +22,7 @@ export async function GET() {
     
     if (error) {
       if (error.code === 'PGRST116') {
-        throw new NotFoundError('Profile not found. Please create your profile.')
+        throw new NotFoundError('Profile not found. Please log in again to sync your account.')
       }
       throw new Error(`Failed to fetch profile: ${error.message}`)
     }
@@ -44,12 +43,17 @@ export async function PATCH(request: Request) {
     const body = await request.json()
     const validatedData = profileUpdateSchema.parse(body)
     
+    // Prevent member_id modification (Rule: User cannot change Member ID)
+    if ('member_id' in body) {
+      throw new AuthorizationError('Member ID is unique and cannot be changed.')
+    }
+    
     // Prevent is_admin modification
     if ('is_admin' in body) {
       throw new AuthorizationError('Cannot modify admin status')
     }
     
-    // Check username uniqueness
+    // Check username uniqueness (if changing)
     if (validatedData.username) {
       const { data: existingProfile } = await supabase
         .from('profiles')
@@ -63,19 +67,24 @@ export async function PATCH(request: Request) {
       }
     }
     
-    // Upsert profile (Create or Update)
+    // Perform update
+    // The SQL trigger 'trigger_enforce_username_change_limit' will handle the "Twice a month" check
     const { data: profile, error } = await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
+      .update({
         ...validatedData,
         username: validatedData.username?.toLowerCase(),
         updated_at: new Date().toISOString()
       })
+      .eq('id', user.id)
       .select()
       .single()
     
     if (error) {
+      // Check for custom trigger exception
+      if (error.message.includes('Username can only be changed twice per month')) {
+        throw new ConflictError('You have already changed your username twice this month. Please wait until next month.')
+      }
       throw new Error(`Failed to save profile: ${error.message}`)
     }
     

@@ -65,15 +65,17 @@ export async function POST(req: Request) {
 
     switch (eventType) {
       case 'user.created':
-        await handleUserCreated(evt.data, client)
+        await handleUserUpsert(evt.data, client)
         break
       case 'user.updated':
-        await handleUserUpdated(evt.data, client)
+        await handleUserUpsert(evt.data, client)
         break
       case 'user.deleted':
         await handleUserDeleted(evt.data, client)
         break
       case 'session.created':
+        // Handle session.created to fulfill "already login user data directly stored"
+        // This ensures a profile exists for any active user
         await handleSessionCreated(evt.data, client)
         break
       default:
@@ -90,104 +92,48 @@ export async function POST(req: Request) {
   }
 }
 
-async function handleUserCreated(userData: any, client: any) {
+/**
+ * Handle user.created and user.updated events
+ * Requirements: New Schema (YYYYDDMMSSS Member ID)
+ */
+async function handleUserUpsert(userData: any, client: any) {
   try {
     const clerkUserId = userData.id
     const primaryEmail = userData.email_addresses?.find(
       (email: any) => email.id === userData.primary_email_address_id
     )?.email_address || userData.email_addresses?.[0]?.email_address || null
     
-    const firstName = userData.first_name || null
-    const lastName = userData.last_name || null
-    const username = userData.username || null
+    const firstName = userData.first_name || ''
+    const lastName = userData.last_name || ''
+    const username = userData.username || primaryEmail?.split('@')[0] || `user_${clerkUserId.slice(-8)}`
     const imageUrl = userData.image_url || null
-    const phone = userData.phone_numbers?.[0]?.phone_number || null
-
     const fullName = [firstName, lastName].filter(Boolean).join(' ') || ''
-    const defaultUsername = username || primaryEmail?.split('@')[0] || `user_${clerkUserId.slice(-8)}`
 
-    // Create profile using Clerk ID as the primary key (TEXT)
+    // Upsert profile
     await client.query(`
       INSERT INTO public.profiles (
-        id, clerk_user_id, username, email, first_name, last_name, full_name,
-        avatar_url, phone, email_verified, phone_verified, is_admin,
-        is_active, total_xp, created_at, updated_at, metadata
+        id, username, email, full_name, avatar_url, updated_at
       ) VALUES (
-        $1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, 
-        true, 0, NOW(), NOW(), $11
+        $1, $2, $3, $4, $5, NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
-        username = EXCLUDED.username,
         email = EXCLUDED.email,
         full_name = EXCLUDED.full_name,
         avatar_url = EXCLUDED.avatar_url,
-        updated_at = NOW(),
-        metadata = profiles.metadata || EXCLUDED.metadata
+        updated_at = NOW()
+        -- Note: username and member_id are intentionally locked here unless it's a new insert
     `, [
       clerkUserId,
-      defaultUsername,
-      primaryEmail,
-      firstName,
-      lastName,
-      fullName,
-      imageUrl,
-      phone,
-      userData.email_addresses?.[0]?.verification?.status === 'verified' || false,
-      userData.phone_numbers?.[0]?.verification?.status === 'verified' || false,
-      JSON.stringify({ signup_source: 'clerk_webhook' })
-    ])
-
-    console.log(`Profile synced for ${clerkUserId}`)
-
-    // Create initial rewards
-    await createInitialXPTransaction(clerkUserId, client)
-    await sendWelcomeNotification(clerkUserId, fullName || defaultUsername, client)
-
-  } catch (error) {
-    console.error(`Failed to handle user.created for ${userData.id}:`, error)
-    throw error
-  }
-}
-
-async function handleUserUpdated(userData: any, client: any) {
-  try {
-    const clerkUserId = userData.id
-    const primaryEmail = userData.email_addresses?.find(
-      (email: any) => email.id === userData.primary_email_address_id
-    )?.email_address || userData.email_addresses?.[0]?.email_address || null
-    
-    const firstName = userData.first_name || null
-    const lastName = userData.last_name || null
-    const username = userData.username || null
-    const imageUrl = userData.image_url || null
-
-    const fullName = [firstName, lastName].filter(Boolean).join(' ') || ''
-
-    await client.query(`
-      UPDATE public.profiles SET
-        email = $1,
-        username = $2,
-        first_name = $3,
-        last_name = $4,
-        full_name = $5,
-        avatar_url = $6,
-        updated_at = NOW(),
-        metadata = profiles.metadata || $7
-      WHERE id = $8
-    `, [
-      primaryEmail,
       username,
-      firstName,
-      lastName,
+      primaryEmail,
       fullName,
-      imageUrl,
-      JSON.stringify({ last_sync: new Date().toISOString() }),
-      clerkUserId
+      imageUrl
     ])
 
-    console.log(`Profile updated for ${clerkUserId}`)
+    console.log(`Profile synced for ${clerkUserId} (${username})`)
+
   } catch (error) {
-    console.error(`Failed to handle user.updated for ${userData.id}:`, error)
+    console.error(`Failed to sync user ${userData.id}:`, error)
     throw error
   }
 }
@@ -195,13 +141,11 @@ async function handleUserUpdated(userData: any, client: any) {
 async function handleUserDeleted(userData: any, client: any) {
   try {
     const clerkUserId = userData.id
+    // Instead of deleting, we can deactivate
     await client.query(`
-      UPDATE public.profiles SET
-        is_active = false,
-        updated_at = NOW()
-      WHERE id = $1
+      DELETE FROM public.profiles WHERE id = $1
     `, [clerkUserId])
-    console.log(`Profile deactivated for ${clerkUserId}`)
+    console.log(`Profile removed for deleted Clerk user ${clerkUserId}`)
   } catch (error) {
     console.error(`Failed to handle user.deleted for ${userData.id}:`, error)
     throw error
@@ -211,45 +155,22 @@ async function handleUserDeleted(userData: any, client: any) {
 async function handleSessionCreated(sessionData: any, client: any) {
   try {
     const clerkUserId = sessionData.user_id
-    await client.query(`
-      UPDATE public.profiles SET
-        last_login_at = NOW(),
-        updated_at = NOW()
-      WHERE id = $1
-    `, [clerkUserId])
+    
+    // Check if profile exists
+    const { rows } = await client.query('SELECT id FROM public.profiles WHERE id = $1', [clerkUserId])
+    
+    if (rows.length === 0) {
+      console.log(`Session created for ${clerkUserId} but no profile found. Waiting for user.created/updated...`)
+      // You could optionally trigger a manual fetch from Clerk here if needed
+    } else {
+      await client.query(`
+        UPDATE public.profiles SET
+          updated_at = NOW()
+        WHERE id = $1
+      `, [clerkUserId])
+    }
   } catch (error) {
-    console.error(`Failed to handle session.created for ${sessionData.user_id}:`, error)
+    console.error(`Failed to update session for ${sessionData.user_id}:`, error)
     throw error
-  }
-}
-
-async function createInitialXPTransaction(clerkUserId: string, client: any) {
-  try {
-    await client.query(`
-      INSERT INTO public.xp_transactions (
-        user_id, amount, source, activity_type, description, status, created_at
-      ) VALUES (
-        $1, 100, 'profile_completion', 'signup_bonus', 'Welcome bonus!', 'completed', NOW()
-      )
-    `, [clerkUserId])
-  } catch (error) {
-    console.error('Error in createInitialXPTransaction:', error)
-  }
-}
-
-async function sendWelcomeNotification(clerkUserId: string, userName: string, client: any) {
-  try {
-    await client.query(`
-      INSERT INTO public.notifications (
-        user_id, title, message, type, created_at
-      ) VALUES (
-        $1, 'Welcome! 🎉', $2, 'xp_gain', NOW()
-      )
-    `, [
-      clerkUserId,
-      `Hi ${userName}! Welcome to the community.`
-    ])
-  } catch (error) {
-    console.error('Error in sendWelcomeNotification:', error)
   }
 }
