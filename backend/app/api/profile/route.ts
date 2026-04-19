@@ -1,49 +1,45 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { Pool } from 'pg'
 import { profileUpdateSchema } from '@/lib/validations/profile'
 import { handleApiError, NotFoundError, ConflictError, AuthorizationError, AuthenticationError } from '@/lib/errors'
 import { deleteAvatar } from '@/lib/storage/cleanup'
-import type { Profile } from '@/types/database'
 
-/**
- * Get a service-role Supabase client (bypasses RLS).
- * Safe to use server-side since the key is never exposed to the browser.
- */
-function getAdminClient() {
-  return createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  )
-}
+// Use pg pool directly — avoids PostgREST schema cache issues entirely
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
+  ssl: { rejectUnauthorized: false }
+})
 
 /**
  * GET /api/profile
  * Get current user's own profile (all fields).
- * Uses service-role client — Clerk auth is the gate, not RLS.
  */
 export async function GET() {
   try {
     const { userId } = await auth()
-
     if (!userId) {
       throw new AuthenticationError('Authentication required')
     }
 
-    const supabase = getAdminClient()
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    const client = await pool.connect()
+    try {
+      const { rows } = await client.query(
+        'SELECT * FROM public.profiles WHERE id = $1',
+        [userId]
+      )
 
-    if (error || !profile) {
-      // Profile row doesn't exist yet — first login after Clerk, before webhook ran
-      throw new NotFoundError('Profile not found. Please log out and log back in to sync your account.')
+      if (rows.length === 0) {
+        throw new NotFoundError('Profile not found. Please log out and log back in to sync your account.')
+      }
+
+      return NextResponse.json(rows[0])
+    } finally {
+      client.release()
     }
-
-    return NextResponse.json(profile as Profile)
   } catch (error) {
     return handleApiError(error)
   }
@@ -52,12 +48,11 @@ export async function GET() {
 /**
  * PATCH /api/profile
  * Update authenticated user's own profile.
- * Uses service-role client scoped to the user's own Clerk ID.
+ * The SQL trigger 'trigger_enforce_username_change_limit' enforces the 2x/month rule.
  */
 export async function PATCH(request: Request) {
   try {
     const { userId } = await auth()
-
     if (!userId) {
       throw new AuthenticationError('Authentication required')
     }
@@ -68,52 +63,68 @@ export async function PATCH(request: Request) {
     if ('member_id' in body) {
       throw new AuthorizationError('Member ID is unique and cannot be changed.')
     }
-
     // Prevent is_admin modification
     if ('is_admin' in body) {
       throw new AuthorizationError('Cannot modify admin status.')
     }
 
     const validatedData = profileUpdateSchema.parse(body)
-    const supabase = getAdminClient()
 
-    // Check username uniqueness (if changing)
-    if (validatedData.username) {
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', validatedData.username)
-        .neq('id', userId)
-        .single()
-
-      if (existingProfile) {
-        throw new ConflictError('Username already taken')
+    const client = await pool.connect()
+    try {
+      // Check username uniqueness (if changing)
+      if (validatedData.username) {
+        const { rows: existing } = await client.query(
+          'SELECT id FROM public.profiles WHERE username = $1 AND id != $2',
+          [validatedData.username.toLowerCase(), userId]
+        )
+        if (existing.length > 0) {
+          throw new ConflictError('Username already taken')
+        }
       }
-    }
 
-    // Perform update — SQL trigger enforces the 2x/month username limit
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .update({
-        ...validatedData,
-        username: validatedData.username?.toLowerCase(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
-      .select()
-      .single()
+      // Build dynamic UPDATE query from validated fields
+      const allowedFields = [
+        'username', 'full_name', 'email', 'bio', 'avatar_url',
+        'github_url', 'linkedin_url', 'portfolio_url'
+      ]
 
-    if (error) {
-      if (error.message.includes('Username can only be changed twice per month')) {
-        throw new ConflictError('You have already changed your username twice this month.')
+      const entries = Object.entries(validatedData)
+        .filter(([key]) => allowedFields.includes(key))
+        .map(([key, value]) => {
+          // Lowercase usernames
+          if (key === 'username' && typeof value === 'string') {
+            return [key, value.toLowerCase()]
+          }
+          return [key, value]
+        })
+
+      if (entries.length === 0) {
+        throw new Error('No valid fields to update')
       }
-      if (error.code === 'PGRST116') {
+
+      const setClauses = entries.map(([key], i) => `${key} = $${i + 2}`).join(', ')
+      const values = entries.map(([, value]) => value)
+
+      const { rows } = await client.query(
+        `UPDATE public.profiles SET ${setClauses}, updated_at = NOW() WHERE id = $1 RETURNING *`,
+        [userId, ...values]
+      )
+
+      if (rows.length === 0) {
         throw new NotFoundError('Profile not found. Please log out and log back in to sync your account.')
       }
-      throw new Error(`Failed to save profile: ${error.message}`)
-    }
 
-    return NextResponse.json(profile as Profile)
+      return NextResponse.json(rows[0])
+    } catch (error: any) {
+      // Surface the trigger message for username change limit
+      if (error.message?.includes('Username can only be changed twice per month')) {
+        throw new ConflictError('You have already changed your username twice this month.')
+      }
+      throw error
+    } finally {
+      client.release()
+    }
   } catch (error) {
     return handleApiError(error)
   }
@@ -125,20 +136,15 @@ export async function PATCH(request: Request) {
 export async function DELETE() {
   try {
     const { userId } = await auth()
-
     if (!userId) {
       throw new AuthenticationError('Authentication required')
     }
 
-    const supabase = getAdminClient()
-
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId)
-
-    if (error) {
-      throw new Error(`Failed to delete profile: ${error.message}`)
+    const client = await pool.connect()
+    try {
+      await client.query('DELETE FROM public.profiles WHERE id = $1', [userId])
+    } finally {
+      client.release()
     }
 
     try {
