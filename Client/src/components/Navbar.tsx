@@ -98,7 +98,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                 <NotificationBell dark={dark} />
                 <UserButton>
                   <UserButton.MenuItems>
-                    <UserButton.Link href="/profile" label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
+                    <UserButton.Link href={`/@${user?.username}`} label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
                     <UserButton.Link href="/edit-profile" label="Edit Profile" labelIcon={<PenSquare className="w-4 h-4" />} />
                     <UserButton.Link href="/missions" label="My Missions" labelIcon={<Target className="w-4 h-4" />} />
                     <UserButton.Link href="/community" label="My Projects" labelIcon={<Briefcase className="w-4 h-4" />} />
@@ -167,10 +167,10 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
               ))}
               {isSignedIn ? (
                 <div className="flex flex-col gap-4">
-                   <Link to="/profile" className="text-white/70 font-bold uppercase tracking-widest">My Assassin</Link>
-                   <Link to="/edit-profile" className="text-white/70 font-bold uppercase tracking-widest">Edit Profile</Link>
-                   <Link to="/missions" className="text-white/70 font-bold uppercase tracking-widest">My Missions</Link>
-                   <Link to="/dashboard" className="text-white/70 font-bold uppercase tracking-widest">Dashboard</Link>
+                   <Link to={`/@${user?.username}`} className="text-white/70 font-bold uppercase tracking-widest" onClick={() => setMobileOpen(false)}>My Assassin</Link>
+                   <Link to="/edit-profile" className="text-white/70 font-bold uppercase tracking-widest" onClick={() => setMobileOpen(false)}>Edit Profile</Link>
+                   <Link to="/missions" className="text-white/70 font-bold uppercase tracking-widest" onClick={() => setMobileOpen(false)}>My Missions</Link>
+                   <Link to={`/@${user?.username}`} className="text-white/70 font-bold uppercase tracking-widest" onClick={() => setMobileOpen(false)}>Dashboard</Link>
                    <button onClick={handleLogout} className="text-red-500 font-bold uppercase tracking-widest text-left">Log Out</button>
                 </div>
               ) : (

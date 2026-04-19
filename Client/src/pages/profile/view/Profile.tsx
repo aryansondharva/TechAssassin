@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { profileService } from "@/services";
 import { useUser, useAuth } from "@clerk/react";
@@ -41,13 +41,27 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("home");
   const [githubData, setGithubData] = useState<{repos: any[], stars: number, totalRepos: number, followers: number, contributions?: number} | null>(null);
   
-  const { username } = useParams<{ username: string }>();
-  const isOwnProfile = !username;
-  const { isLoaded, userId } = useAuth();
-  const { user: clerkUser } = useUser();
+   const { username } = useParams<{ username: string }>();
+   const { isLoaded, userId } = useAuth();
+   const { user: clerkUser } = useUser();
+   
+   const isOwnProfile = useMemo(() => {
+     if (!username) return true;
+     if (!clerkUser) return false;
+     
+     // Remove @ if present
+     const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
+     return cleanUsername === clerkUser.username;
+   }, [username, clerkUser]);
 
   useEffect(() => {
     if (!isLoaded) return;
+
+    // If on generic /profile, redirect to dynamic /@username
+    if (!username && clerkUser?.username) {
+      navigate(`/@${clerkUser.username}`, { replace: true });
+      return;
+    }
 
     if (isOwnProfile && !userId) {
       navigate('/signin');
