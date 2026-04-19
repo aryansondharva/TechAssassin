@@ -178,6 +178,17 @@ export default function Profile() {
     }
   };
 
+  const shareProfile = () => {
+    const currentUsername = profile?.username || clerkUser?.username;
+    if (!currentUsername) return;
+    const url = `${window.location.origin}/@${currentUsername}`;
+    navigator.clipboard.writeText(url);
+    toast({ 
+      title: "Sync Complete", 
+      description: "Operative dossier link copied to clipboard.",
+    });
+  };
+
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <Loader2 className="h-10 w-10 animate-spin text-red-600" />
@@ -231,13 +242,22 @@ export default function Profile() {
                   <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight uppercase">{displayName}</h1>
                   <p className="text-red-600 font-semibold text-sm mt-1">@{profile?.username || clerkUser?.username}</p>
                 </div>
-                {isOwnProfile && (
-                  <Link to="/edit-profile">
-                    <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold px-6 hover:bg-slate-50 hover:text-red-600 hover:border-red-200">
-                       Edit Profile
-                    </Button>
-                  </Link>
-                )}
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={shareProfile}
+                    className="rounded-xl border-slate-200 text-slate-400 font-bold px-3 hover:bg-slate-50 hover:text-red-600 shadow-sm transition-all"
+                  >
+                     <Share2 className="w-4 h-4" />
+                  </Button>
+                  {isOwnProfile && (
+                    <Link to="/edit-profile">
+                      <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold px-6 hover:bg-slate-50 hover:text-red-600 hover:border-red-200 shadow-sm">
+                         Edit Profile
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
 
               <p className="text-slate-600 text-lg leading-relaxed font-medium italic opacity-80 uppercase tracking-tight">

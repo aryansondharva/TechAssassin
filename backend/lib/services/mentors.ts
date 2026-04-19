@@ -39,9 +39,11 @@ export async function getMentorDirectory(filters: MentorDirectoryFilters = {}, v
       mentor_visibility,
       mentor_total_sessions,
       mentor_rating,
-      mentor_rating_count
+      mentor_rating_count,
+      is_mentor_verified
     `)
     .eq('is_mentor_available', true)
+    .eq('is_mentor_verified', true)
     .neq('mentor_visibility', 'private')
     .order('mentor_rating', { ascending: false, nullsFirst: false })
     .order('mentor_total_sessions', { ascending: false })
@@ -117,7 +119,8 @@ export async function updateMyMentorProfile(userId: string, input: Record<string
       mentor_timezone,
       mentor_focus_areas,
       mentor_availability,
-      mentor_visibility
+      mentor_visibility,
+      is_mentor_verified
     `)
     .single()
 
@@ -142,7 +145,8 @@ export async function getMyMentorProfile(userId: string) {
       mentor_visibility,
       mentor_total_sessions,
       mentor_rating,
-      mentor_rating_count
+      mentor_rating_count,
+      is_mentor_verified
     `)
     .eq('id', userId)
     .single()
