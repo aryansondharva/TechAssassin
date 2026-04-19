@@ -3,6 +3,7 @@ import { Target, Users, Video, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MentorProgramPanel from '@/components/MentorProgramPanel';
+import MentorshipLiveChat from '@/components/MentorshipLiveChat';
 
 const features = [
   {
@@ -89,6 +90,7 @@ const Mentorship = () => {
       </main>
 
       <Footer />
+      <MentorshipLiveChat />
     </div>
   );
 };
