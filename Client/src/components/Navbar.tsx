@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUser, useClerk, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "./NotificationBell";
 
 const navLinks = [
   { label: "Home", href: "/", isRoute: true },
@@ -93,15 +94,18 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
           {/* Right Side - Actions */}
           <div className="hidden md:flex items-center gap-4">
             {isSignedIn ? (
-              <UserButton>
-                <UserButton.MenuItems>
-                  <UserButton.Link href="/profile" label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
-                  <UserButton.Link href="/edit-profile" label="Edit Profile" labelIcon={<PenSquare className="w-4 h-4" />} />
-                  <UserButton.Link href="/missions" label="My Missions" labelIcon={<Target className="w-4 h-4" />} />
-                  <UserButton.Link href="/community" label="My Projects" labelIcon={<Briefcase className="w-4 h-4" />} />
-                  <UserButton.Action label="Show QR Code" labelIcon={<QrCode className="w-4 h-4" />} onClick={() => window.location.href = '/qr'} />
-                </UserButton.MenuItems>
-              </UserButton>
+              <div className="flex items-center gap-6">
+                <NotificationBell dark={dark} />
+                <UserButton>
+                  <UserButton.MenuItems>
+                    <UserButton.Link href="/profile" label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
+                    <UserButton.Link href="/edit-profile" label="Edit Profile" labelIcon={<PenSquare className="w-4 h-4" />} />
+                    <UserButton.Link href="/missions" label="My Missions" labelIcon={<Target className="w-4 h-4" />} />
+                    <UserButton.Link href="/community" label="My Projects" labelIcon={<Briefcase className="w-4 h-4" />} />
+                    <UserButton.Action label="Show QR Code" labelIcon={<QrCode className="w-4 h-4" />} onClick={() => window.location.href = '/qr'} />
+                  </UserButton.MenuItems>
+                </UserButton>
+              </div>
             ) : (
               <div className="flex items-center gap-6">
                 <SignInButton mode="modal">
@@ -119,17 +123,22 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
               </div>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className={`lg:hidden w-10 h-10 flex items-center justify-center rounded-xl border transition-colors ${
-              dark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-            }`}
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+            
+            {/* Mobile Actions Container */}
+            <div className="flex items-center gap-4 md:hidden">
+              {isSignedIn && <NotificationBell dark={dark} />}
+              
+              {/* Mobile Menu Button */}
+              <button
+                className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors ${
+                  dark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+                onClick={() => setMobileOpen(!mobileOpen)}
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
       </motion.div>
 
       {/* Mobile Menu */}
@@ -194,7 +203,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
   );
 };
 
-function DropdownItem({ to, icon: Icon, label }: { to: string, icon: any, label: string }) {
+function DropdownItem({ to, icon: Icon, label }: { to: string, icon: React.ElementType, label: string }) {
   return (
     <Link 
       to={to} 
