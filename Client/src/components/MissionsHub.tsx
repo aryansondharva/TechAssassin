@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api-client';
+import type { Profile } from '@/types/api';
 import { toast } from '@/hooks/use-toast';
 
 // Supabase client is imported from @/lib/supabase (shared, JWT-injecting instance)
@@ -233,10 +234,10 @@ const MissionsHub = () => {
     try {
       const [missionsData, profileData] = await Promise.all([
         api.get<Mission[]>('/missions'),
-        api.get<any>('/profile'),
+        api.get<Profile>('/profile'),
       ]);
 
-      setMissions(Array.isArray(missionsData) ? missionsData : []);
+      setMissions(missionsData);
       setProfile(profileData ?? null);
       setUserId(profileData?.id ?? null);
 

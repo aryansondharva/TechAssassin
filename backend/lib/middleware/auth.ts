@@ -33,7 +33,7 @@ export interface AuthResult {
   supabase: SupabaseClient
 }
 
-const UUID_V4_OR_V1_REGEX =
+const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 /**
@@ -63,15 +63,31 @@ export async function requireAuthWithClient(): Promise<AuthResult> {
 
   let resolvedUserId = userId
 
-  if (!UUID_V4_OR_V1_REGEX.test(userId) && primaryEmail) {
-    const { data: profile } = await supabase
+  // Clerk user IDs are non-UUID strings (for example: "user_xxx"), while this
+  // codebase stores Supabase profile IDs as UUIDs for relational joins.
+  // For Clerk-authenticated requests, resolve the internal Supabase profile ID
+  // by the Clerk user's primary email.
+  if (!UUID_REGEX.test(userId)) {
+    if (!primaryEmail) {
+      throw new AuthenticationError('Unable to resolve user email from Clerk session')
+    }
+
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', primaryEmail)
       .single()
 
+    // PGRST116 = no rows returned for .single()
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('Failed to resolve Supabase profile for Clerk user:', profileError)
+      throw new AuthenticationError('Unable to resolve user profile')
+    }
+
     if (profile?.id) {
       resolvedUserId = profile.id
+    } else {
+      throw new AuthenticationError('User profile not found. Ensure Clerk webhook sync is configured.')
     }
   }
   
@@ -79,7 +95,7 @@ export async function requireAuthWithClient(): Promise<AuthResult> {
     user: {
       id: resolvedUserId,
       clerk_id: userId,
-      email: primaryEmail ?? undefined,
+      email: primaryEmail,
     },
     supabase,
   }
