@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { api } from '@/lib/api-client'
 import type { Profile } from '@/types/api' // Keeping to minimal dependencies
 

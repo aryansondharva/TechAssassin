@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 
 export function useEventPresence(eventId: string) {
   const { userId } = useAuth()
