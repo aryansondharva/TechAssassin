@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../../../lib/supabase/server'
-import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '../../../../../lib/middleware/auth'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
 
 /**
  * POST /api/sponsors/[id]/logo

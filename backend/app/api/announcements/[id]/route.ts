@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../../lib/supabase/server'
-import { requireAuth, AuthenticationError, AuthorizationError } from '../../../../lib/middleware/auth'
-import { announcementUpdateSchema } from '../../../../lib/validations/announcement'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
+import { announcementUpdateSchema } from '@/lib/validations/announcement'
 import { ZodError } from 'zod'
 
 /**

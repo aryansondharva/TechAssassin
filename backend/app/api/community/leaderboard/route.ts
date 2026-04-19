@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getGlobalLeaderboard } from '../@/lib/services/community'
-import { handleApiError } from '../@/lib/errors'
+import { getGlobalLeaderboard } from '@/lib/services/community'
+import { handleApiError } from '@/lib/errors'
 
 export const dynamic = 'force-dynamic'
 

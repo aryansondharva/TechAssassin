@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, requireAdmin } from '../../../../../lib/middleware/auth'
-import { createClient } from '../../../../../lib/supabase/server'
+import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * GET /api/registrations/event/[eventId]

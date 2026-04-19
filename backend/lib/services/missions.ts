@@ -1,4 +1,4 @@
-import { createClient } from '../supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { handleApiError } from '../errors'
 
 export interface Mission {

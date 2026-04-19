@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getOnlineCount, getLiveActivity } from '../@/lib/services/presence'
-import { handleApiError } from '../@/lib/errors'
+import { getOnlineCount, getLiveActivity } from '@/lib/services/presence'
+import { handleApiError } from '@/lib/errors'
 
 export async function GET() {
   try {

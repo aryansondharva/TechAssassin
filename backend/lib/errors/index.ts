@@ -30,4 +30,4 @@ export {
 export {
   AuthenticationError,
   AuthorizationError
-} from '../middleware/auth'
+} from '@/lib/middleware/auth'

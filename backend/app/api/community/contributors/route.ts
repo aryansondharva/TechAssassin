@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { handleApiError } from '../@/lib/errors'
+import { handleApiError } from '@/lib/errors'
 
 // Simple in-memory cache
 let contributorsCache: any = null

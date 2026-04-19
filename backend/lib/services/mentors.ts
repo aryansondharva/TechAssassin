@@ -1,4 +1,4 @@
-import { createClient } from '../supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { AuthorizationError, NotFoundError, ValidationError } from '../errors'
 
 export interface MentorDirectoryFilters {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getEventById } from '../../../../../lib/services/events'
-import { createClient } from '../../../../../lib/supabase/server'
-import { requireAuth, requireAdmin } from '../../../../../lib/middleware/auth'
+import { getEventById } from '@/lib/services/events'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
 
 /**
  * POST /api/events/[id]/images

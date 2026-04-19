@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { requireAuthWithClient } from '../../@/lib/middleware/auth'
-import { handleApiError } from '../../@/lib/errors'
-import { mentorReportCreateSchema } from '../../@/lib/validations/mentor'
-import { createMentorReport } from '../../@/lib/services/mentors'
+import { requireAuthWithClient } from '@/lib/middleware/auth'
+import { handleApiError } from '@/lib/errors'
+import { mentorReportCreateSchema } from '@/lib/validations/mentor'
+import { createMentorReport } from '@/lib/services/mentors'
 
 export async function POST(request: Request) {
   try {

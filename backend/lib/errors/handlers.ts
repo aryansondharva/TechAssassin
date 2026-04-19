@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
-import { AuthenticationError, AuthorizationError } from '../middleware/auth'
+import { AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
 import { PostgrestError } from '@supabase/supabase-js'
 
 /**

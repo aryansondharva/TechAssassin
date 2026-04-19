@@ -27,7 +27,7 @@ vi.mock('@/services/streak-service', () => ({
   }
 }));
 
-import { streakService } from '@/services/streak-service';
+import { streakService } from '@/lib/services/streak-service';
 
 describe('GET /api/gamification/streaks/:userId', () => {
   beforeEach(() => {

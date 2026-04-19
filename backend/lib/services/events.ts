@@ -1,5 +1,5 @@
-import { createClient } from '../supabase/server'
-import type { Event, EventWithParticipants } from '../../types/database'
+import { createClient } from '@/lib/supabase/server'
+import type { Event, EventWithParticipants } from '@/types/database'
 
 /**
  * Calculate event status based on current date and event dates

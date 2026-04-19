@@ -1,7 +1,8 @@
+import { currentUser } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { createClient } from '../../../../lib/supabase/server'
-import { handleApiError, NotFoundError } from '../../../../lib/errors'
-import type { Profile } from '../../../../types/database'
+import { createClient } from '@/lib/supabase/server'
+import { handleApiError, NotFoundError } from '@/lib/errors'
+import type { Profile } from '@/types/database'
 
 /**
  * GET /api/profile/[id]
@@ -36,8 +37,8 @@ export async function GET(
       throw new NotFoundError('Profile not found')
     }
     
-    // Get current user to determine if this is their own profile
-    const { data: { user } } = await Clerk currentUser()
+    // Get current user to determine if this is their own profile (from @clerk/nextjs/server)
+    const user = await currentUser()
     
     // If viewing own profile, return all fields
     if (user && user.id === id) {

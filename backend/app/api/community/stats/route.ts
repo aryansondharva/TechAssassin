@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getCommunityStats } from '../@/lib/services/community'
-import { handleApiError } from '../@/lib/errors'
+import { getCommunityStats } from '@/lib/services/community'
+import { handleApiError } from '@/lib/errors'
 
 export async function GET() {
   try {

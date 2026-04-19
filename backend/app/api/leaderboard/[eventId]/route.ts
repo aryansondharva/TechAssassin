@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getLeaderboard } from '../../../../lib/services/leaderboard'
-import { requireAuth } from '../../../../lib/middleware/auth'
-import { handleApiError } from '../../../../lib/errors'
+import { getLeaderboard } from '@/lib/services/leaderboard'
+import { requireAuth } from '@/lib/middleware/auth'
+import { handleApiError } from '@/lib/errors'
 
 /**
  * GET /api/leaderboard/[eventId]

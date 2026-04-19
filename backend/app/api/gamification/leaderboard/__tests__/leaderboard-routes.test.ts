@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GET as getLeaderboard } from '../route';
 import { GET as getUserPosition } from '../position/[userId]/route';
-import { leaderboardCache } from '@/services/leaderboard-cache-service';
+import { leaderboardCache } from '@/lib/services/leaderboard-cache-service';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase/server', () => ({
