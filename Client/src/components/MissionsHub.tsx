@@ -19,7 +19,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, getStoredUserId } from '@/lib/supabase';
+import { api } from '@/lib/api-client';
 import { toast } from '@/hooks/use-toast';
 
 // Supabase client is imported from @/lib/supabase (shared, JWT-injecting instance)
@@ -231,34 +231,14 @@ const MissionsHub = () => {
 
   const fetchData = async () => {
     try {
-      // 1. Get user ID from localStorage (set by backend auth on sign-in)
-      const uid = getStoredUserId();
-      if (!uid) {
-        setLoading(false);
-        return;
-      }
+      const [missionsData, profileData] = await Promise.all([
+        api.get<Mission[]>('/missions'),
+        api.get<any>('/profile'),
+      ]);
 
-      setUserId(uid);
-
-      // 2. Call RPC directly via Supabase client (no backend needed)
-      const { data: missionsData, error: missionsError } = await supabase.rpc('get_available_missions', {
-        p_user_id: uid,
-      });
-
-      if (missionsError) {
-        console.error('RPC error:', missionsError);
-      } else if (missionsData) {
-        setMissions(missionsData as Mission[]);
-      }
-
-      // 3. Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .single();
-
-      if (profileData) setProfile(profileData);
+      setMissions(Array.isArray(missionsData) ? missionsData : []);
+      setProfile(profileData ?? null);
+      setUserId(profileData?.id ?? null);
 
     } catch (err) {
       console.error('fetchData error:', err);
@@ -280,17 +260,11 @@ const MissionsHub = () => {
     setVerifyingId(mission.id);
 
     try {
-      // Upsert completed status directly in Supabase
-      const { error } = await supabase.from('user_missions').upsert({
-        user_id:      userId,
-        mission_id:   mission.id,
-        status:       'completed',
-        progress:     { verified: true, link: link || null, timestamp: new Date().toISOString() },
-        completed_at: new Date().toISOString(),
-        last_reset_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,mission_id' });
-
-      if (error) throw error;
+      await api.post('/missions', {
+        missionId: mission.id,
+        requirementType: mission.requirement_type || 'generic',
+        payload: { link: link || null },
+      });
 
       toast({
         title: '🎯 MISSION ACCOMPLISHED',

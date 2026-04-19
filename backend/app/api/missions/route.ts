@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '../../../lib/supabase/server'
+import { requireAuthWithClient } from '../../../lib/middleware/auth'
 import { getAvailableMissions, verifyMission } from '../../../lib/services/missions'
 import { handleApiError } from '../../../lib/errors'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { user } = await requireAuthWithClient()
 
     const missions = await getAvailableMissions(user.id)
     console.log(`[ROUTE DEBUG] Returning ${missions?.length || 0} missions for user ${user.id}`);
@@ -25,12 +20,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { user } = await requireAuthWithClient()
 
     const { missionId, requirementType, payload } = await request.json()
     

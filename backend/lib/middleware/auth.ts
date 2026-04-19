@@ -33,6 +33,9 @@ export interface AuthResult {
   supabase: SupabaseClient
 }
 
+const UUID_V4_OR_V1_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 /**
  * Verify user session via Clerk and return authenticated user with Supabase client
  * Throws AuthenticationError (401) if not authenticated
@@ -54,8 +57,32 @@ export async function requireAuthWithClient(): Promise<AuthResult> {
       }
     }
   )
+
+  const clerkUser = await currentUser()
+  const primaryEmail = clerkUser?.primaryEmailAddress?.emailAddress?.toLowerCase()
+
+  let resolvedUserId = userId
+
+  if (!UUID_V4_OR_V1_REGEX.test(userId) && primaryEmail) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', primaryEmail)
+      .single()
+
+    if (profile?.id) {
+      resolvedUserId = profile.id
+    }
+  }
   
-  return { user: { id: userId }, supabase }
+  return {
+    user: {
+      id: resolvedUserId,
+      clerk_id: userId,
+      email: primaryEmail ?? undefined,
+    },
+    supabase,
+  }
 }
 
 /**
@@ -92,4 +119,4 @@ export async function requireAdmin(userId: string): Promise<void> {
   if (!profile.is_admin) {
     throw new AuthorizationError('Admin access required')
   }
-}
+}
