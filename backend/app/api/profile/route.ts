@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { Pool } from 'pg'
 import { profileUpdateSchema } from '@/lib/validations/profile'
 import { handleApiError, NotFoundError, ConflictError, AuthorizationError, AuthenticationError } from '@/lib/errors'
@@ -33,7 +33,32 @@ export async function GET() {
       )
 
       if (rows.length === 0) {
-        throw new NotFoundError('Profile not found. Please log out and log back in to sync your account.')
+        // Just-in-time provisioning: Fetch directly from Clerk if Webhook was delayed
+        try {
+          const clerk = await clerkClient()
+          const user = await clerk.users.getUser(userId)
+          
+          const primaryEmail = user.emailAddresses.find(
+            (email) => email.id === user.primaryEmailAddressId
+          )?.emailAddress || user.emailAddresses[0]?.emailAddress || ''
+          
+          const username = user.username || primaryEmail.split('@')[0] || `user_${userId.slice(-8)}`
+          const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || ''
+          const avatarUrl = user.imageUrl || null
+
+          const { rows: newRows } = await client.query(`
+            INSERT INTO public.profiles (
+              id, username, email, full_name, avatar_url, updated_at
+            ) VALUES (
+              $1, $2, $3, $4, $5, NOW()
+            ) RETURNING *
+          `, [userId, username, primaryEmail, fullName, avatarUrl])
+          
+          return NextResponse.json(newRows[0])
+        } catch (syncError) {
+          console.error("Failed to sync user from Clerk just-in-time:", syncError)
+          throw new NotFoundError('Profile not found and could not be synced from authentication provider. Please log out and back in.')
+        }
       }
 
       return NextResponse.json(rows[0])
