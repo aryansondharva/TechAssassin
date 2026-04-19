@@ -33,6 +33,8 @@ backend/supabase/
 !backend/supabase/migrations/
 !backend/supabase/migrations/**
 !backend/supabase/migrations/*.sql
+!backend/lib/supabase/
+!backend/lib/supabase/**
 
 # =============================================================================
 # ENVIRONMENT FILES
