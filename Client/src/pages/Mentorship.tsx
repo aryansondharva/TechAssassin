@@ -1,51 +1,90 @@
 import { motion } from 'framer-motion';
-import { Video, Handshake, Sparkles } from 'lucide-react';
+import { Target, Users, Video, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MentorProgramPanel from '@/components/MentorProgramPanel';
 
+const features = [
+  {
+    icon: Users,
+    title: "Find Your Mentor",
+    description: "Connect with industry veterans to accelerate your growth and career trajectory.",
+  },
+  {
+    icon: Target,
+    title: "Tactical Guidance",
+    description: "Get one-on-one sessions for code reviews, architecture, and career advice.",
+  },
+  {
+    icon: Video,
+    title: "Live Sync",
+    description: "Integrated secure video calls straight from the platform for immediate feedback.",
+  },
+  {
+    icon: Globe,
+    title: "Elite Networking",
+    description: "Expand your professional network with pre-vetted tech professionals securely.",
+  },
+];
+
 const Mentorship = () => {
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white">
-      <Navbar dark={true} />
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar dark={false} />
 
       <main className="pt-24 pb-20">
-        <section className="relative overflow-hidden mb-10">
-          <div className="absolute inset-0 bg-[url('/textures/grunge-overlay.png')] opacity-10" />
-          <div className="absolute inset-0 bg-gradient-to-b from-red-600/10 via-transparent to-transparent" />
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4"
+              >
+                Mentor Command
+              </motion.span>
+              <motion.h1 
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                className="text-4xl md:text-6xl font-bold text-foreground mb-4 font-heading"
+              >
+                Mentor Program
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto leading-relaxed"
+              >
+                Discover mentors, request support sessions, track mentorship progress, and connect instantly with integrated video-call links.
+              </motion.p>
+            </div>
 
-          <div className="max-w-7xl mx-auto px-6 pt-16 pb-8 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-xl"
-            >
-              <Handshake className="w-4 h-4 text-red-600" />
-              <span className="text-white/60 text-[10px] font-black uppercase tracking-[0.3em]">Mentor Command</span>
-            </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-20">
+              {features.map((feature, idx) => {
+                const Icon = feature.icon;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + idx * 0.1 }}
+                    key={feature.title}
+                    className="text-center p-6 rounded-xl border border-border bg-card hover:shadow-md transition-shadow"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                      <Icon size={26} className="text-primary" />
+                    </div>
+                    <h3 className="font-heading font-semibold text-foreground mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
 
-            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 leading-none text-transparent bg-clip-text bg-gradient-to-br from-white to-white/50">
-              MENTOR <span className="text-red-600">PROGRAM</span>
-            </h1>
-            <p className="text-white/40 text-sm md:text-base max-w-2xl mx-auto font-medium leading-relaxed">
-              Discover mentors, request support sessions, track mentorship progress, and connect instantly with integrated video-call links.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-              <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 flex items-center gap-2">
-                <Video className="w-3.5 h-3.5 text-red-500" />
-                Session Call Ready
-              </div>
-              <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                Tactical Guidance
-              </div>
+            <div className="max-w-7xl mx-auto">
+              <MentorProgramPanel />
             </div>
           </div>
-        </section>
-
-        <section className="max-w-7xl mx-auto px-6">
-          <MentorProgramPanel />
         </section>
       </main>
 
