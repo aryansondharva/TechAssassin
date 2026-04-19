@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../lib/supabase/server'
-import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '../../../lib/middleware/auth'
-import { sponsorCreateSchema } from '../../../lib/validations/sponsor'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
+import { sponsorCreateSchema } from '@/lib/validations/sponsor'
 import { ZodError } from 'zod'
-import { getCached, cache, CacheKeys, CacheTTL } from '../../../lib/utils/cache'
+import { getCached, cache, CacheKeys, CacheTTL } from '@/lib/utils/cache'
 
 /**
  * GET /api/sponsors

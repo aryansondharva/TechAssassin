@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { requireAuthWithClient } from '../../../lib/middleware/auth'
-import { getAvailableMissions, verifyMission } from '../../../lib/services/missions'
-import { handleApiError } from '../../../lib/errors'
+import { requireAuthWithClient } from '@/lib/middleware/auth'
+import { getAvailableMissions, verifyMission } from '@/lib/services/missions'
+import { handleApiError } from '@/lib/errors'
 
 export async function GET() {
   try {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../lib/supabase/server'
-import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '../../../lib/middleware/auth'
-import { resourceCreateSchema } from '../../../lib/validations/resource'
-import { validatePaginationParams, getPaginationMetadata, paginate } from '../../../lib/utils/pagination'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, requireAdmin, AuthenticationError, AuthorizationError } from '@/lib/middleware/auth'
+import { resourceCreateSchema } from '@/lib/validations/resource'
+import { validatePaginationParams, getPaginationMetadata, paginate } from '@/lib/utils/pagination'
 import { ZodError } from 'zod'
 
 /**

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '../../../../lib/supabase/server'
-import { requireAuth } from '../../../../lib/middleware/auth'
-import { handleApiError, ValidationError } from '../../../../lib/errors'
+import { createClient } from '../@/lib/supabase/server'
+import { requireAuth } from '../@/lib/middleware/auth'
+import { handleApiError, ValidationError } from '../@/lib/errors'
 import type { Profile } from '../../../../types/database'
 
 /**

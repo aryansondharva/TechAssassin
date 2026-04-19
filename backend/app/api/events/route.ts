@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listEvents } from '../../../lib/services/events'
-import { createClient } from '../../../lib/supabase/server'
-import { requireAuth, requireAdmin } from '../../../lib/middleware/auth'
-import { eventCreateSchema } from '../../../lib/validations/event'
-import { handleApiError, ValidationError } from '../../../lib/errors'
-import { validatePaginationParams, getPaginationMetadata } from '../../../lib/utils/pagination'
-import { getCached, cache, CacheKeys, CacheTTL } from '../../../lib/utils/cache'
+import { listEvents } from '@/lib/services/events'
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
+import { eventCreateSchema } from '@/lib/validations/event'
+import { handleApiError, ValidationError } from '@/lib/errors'
+import { validatePaginationParams, getPaginationMetadata } from '@/lib/utils/pagination'
+import { getCached, cache, CacheKeys, CacheTTL } from '@/lib/utils/cache'
 
 /**
  * GET /api/events

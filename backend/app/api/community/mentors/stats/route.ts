@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { handleApiError } from '../../../../../lib/errors'
-import { getMentorStats } from '../../../../../lib/services/mentors'
+import { handleApiError } from '../../@/lib/errors'
+import { getMentorStats } from '../../@/lib/services/mentors'
 
 export async function GET() {
   try {
