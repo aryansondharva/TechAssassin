@@ -10,8 +10,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import MagicLink from "./pages/MagicLink";
 import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
 import AuthCallback from "./pages/AuthCallback";
-import Profile from "./pages/Profile";
-import EditProfile from "./pages/EditProfile";
+import Profile from "./pages/profile/view/Profile";
+import EditProfile from "./pages/profile/edit/EditProfile";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Community from "./pages/Community";
@@ -29,7 +29,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup/*" element={<div className="min-h-screen flex items-center justify-center bg-background"><SignUp routing="path" path="/signup" /></div>} />

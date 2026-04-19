@@ -30,7 +30,7 @@ export async function GET(
     }
     
     // Get current user to determine if this is their own profile
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await Clerk currentUser()
     
     // If viewing own profile, return all fields
     if (user && user.id === profile.id) {

@@ -1,0 +1,385 @@
+# Real-Time Presence & Activity API Endpoints
+
+This document describes the backend API endpoints for the Real-Time Presence & Activity System.
+
+## Presence API Endpoints
+
+### POST /api/presence/update
+Update user's presence status.
+
+**Request Body:**
+```json
+{
+  "userId": "uuid",
+  "status": "online" | "away" | "busy" | "offline",
+  "location": {
+    "type": "page" | "event",
+    "id": "string"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "presence": {
+    "user_id": "uuid",
+    "status": "online",
+    "location_type": "page",
+    "location_id": "dashboard",
+    "last_seen": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+**Requirements:** 1.1, 1.2, 2.4
+
+---
+
+### POST /api/presence/heartbeat
+Update user's last_seen timestamp.
+
+**Request Body:**
+```json
+{
+  "userId": "uuid",
+  "location": {
+    "type": "page" | "event",
+    "id": "string"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "presence": {
+    "user_id": "uuid",
+    "status": "online",
+    "last_seen": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+**Requirements:** 2.4
+
+---
+
+### GET /api/presence/online
+Get all online users with their presence information.
+
+**Query Parameters:**
+- `locationType` (optional): Filter by location type ("page" or "event")
+- `locationId` (optional): Filter by location ID
+
+**Response:**
+```json
+{
+  "success": true,
+  "presenceState": {
+    "user-id-1": {
+      "status": "online",
+      "location": {
+        "type": "page",
+        "id": "dashboard"
+      },
+      "lastSeen": "2024-01-01T00:00:00Z",
+      "username": "john_doe",
+      "avatarUrl": "https://..."
+    }
+  },
+  "count": 5
+}
+```
+
+**Requirements:** 1.1, 1.2, 2.4
+
+---
+
+## Activity API Endpoints
+
+### POST /api/activity/create
+Create a new activity and persist to database.
+
+**Request Body:**
+```json
+{
+  "type": "challenge_solved" | "event_joined" | "badge_earned" | "team_registered",
+  "userId": "uuid",
+  "metadata": {
+    "challengeName": "string",
+    "eventName": "string",
+    "badgeName": "string",
+    "teamName": "string"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "type": "challenge_solved",
+  "userId": "uuid",
+  "username": "john_doe",
+  "avatarUrl": "https://...",
+  "metadata": {
+    "challengeName": "SQL Injection Challenge"
+  },
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+
+**Requirements:** 3.1, 4.1, 4.2
+
+---
+
+### GET /api/activity/feed
+Get activity feed with filtering and pagination.
+
+**Query Parameters:**
+- `page` (optional, default: 1): Page number
+- `pageSize` (optional, default: 20): Items per page (max: 100)
+- `type` (optional): Filter by activity type
+- `userId` (optional): Filter by user ID
+
+**Response:**
+```json
+{
+  "activities": [
+    {
+      "id": "uuid",
+      "type": "challenge_solved",
+      "userId": "uuid",
+      "username": "john_doe",
+      "avatarUrl": "https://...",
+      "metadata": {
+        "challengeName": "SQL Injection Challenge"
+      },
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "totalCount": 100,
+  "page": 1,
+  "pageSize": 20,
+  "hasMore": true
+}
+```
+
+**Requirements:** 3.1, 4.1, 4.2
+
+---
+
+### GET /api/activity/:id
+Get single activity by ID.
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "type": "challenge_solved",
+  "userId": "uuid",
+  "username": "john_doe",
+  "avatarUrl": "https://...",
+  "metadata": {
+    "challengeName": "SQL Injection Challenge"
+  },
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+
+**Requirements:** 3.1, 4.1, 4.2
+
+---
+
+## Leaderboard API Endpoints
+
+### POST /api/leaderboard/update
+Update user score in leaderboard and recalculate ranks.
+
+**Request Body:**
+```json
+{
+  "eventId": "uuid",
+  "userId": "uuid",
+  "score": 1000
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "eventId": "uuid",
+  "userId": "uuid",
+  "score": 1000,
+  "rank": 5,
+  "previousRank": 7,
+  "rankChange": "up" | "down" | "same" | null
+}
+```
+
+**Requirements:** 5.1
+
+---
+
+### GET /api/leaderboard/:eventId
+Get leaderboard entries for an event with participant profile information.
+
+**Response:**
+```json
+[
+  {
+    "rank": 1,
+    "userId": "uuid",
+    "username": "john_doe",
+    "avatarUrl": "https://...",
+    "score": 1500,
+    "previousRank": 2,
+    "rankChange": "up"
+  }
+]
+```
+
+**Requirements:** 5.1
+
+---
+
+### GET /api/leaderboard/:eventId/rank/:userId
+Get user's rank in a specific event leaderboard.
+
+**Response:**
+```json
+{
+  "rank": 5,
+  "score": 1000,
+  "previousRank": 7,
+  "rankChange": "up",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
+```
+
+**Response (No Entry):**
+```json
+{
+  "rank": null,
+  "message": "User has no entry in this leaderboard"
+}
+```
+
+**Requirements:** 5.1
+
+---
+
+## Error Responses
+
+All endpoints return consistent error responses:
+
+```json
+{
+  "error": "Error message description"
+}
+```
+
+**Common Status Codes:**
+- `200` - Success
+- `400` - Bad Request (validation error)
+- `401` - Unauthorized (authentication required)
+- `403` - Forbidden (insufficient permissions)
+- `404` - Not Found
+- `500` - Internal Server Error
+
+---
+
+## Authentication
+
+All endpoints require authentication. Include the authentication token in the request headers:
+
+```
+Authorization: Bearer <token>
+```
+
+Or use cookie-based authentication for browser requests.
+
+---
+
+## Database Schema
+
+### presence_tracking
+```sql
+CREATE TABLE presence_tracking (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('online', 'away', 'busy', 'offline')),
+  location_type VARCHAR(20) CHECK (location_type IN ('page', 'event')),
+  location_id VARCHAR(255),
+  last_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+```
+
+### activity_feed
+```sql
+CREATE TABLE activity_feed (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('challenge_solved', 'event_joined', 'badge_earned', 'team_registered')),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  metadata JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+```
+
+### leaderboard_scores
+```sql
+CREATE TABLE leaderboard_scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  score INTEGER NOT NULL DEFAULT 0,
+  rank INTEGER,
+  previous_rank INTEGER,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE(event_id, user_id)
+);
+```
+
+---
+
+## Testing
+
+Unit tests are located in:
+- `backend/app/api/leaderboard/__tests__/endpoints.test.ts`
+
+Run tests with:
+```bash
+npm test
+```
+
+---
+
+## Implementation Status
+
+✅ **Task 8.1: Presence API endpoints** - Complete
+- POST /api/presence/update
+- POST /api/presence/heartbeat
+- GET /api/presence/online
+
+✅ **Task 8.2: Activity API endpoints** - Complete
+- POST /api/activity/create
+- GET /api/activity/feed
+- GET /api/activity/:id
+
+✅ **Task 8.3: Leaderboard API endpoints** - Complete
+- POST /api/leaderboard/update
+- GET /api/leaderboard/:eventId
+- GET /api/leaderboard/:eventId/rank/:userId
+
+All endpoints include:
+- ✅ Proper error handling
+- ✅ Input validation
+- ✅ Authentication checks
+- ✅ Database integration
+- ✅ Unit tests

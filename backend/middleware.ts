@@ -1,19 +1,16 @@
+import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * CORS Middleware for TechAssassin Backend API
+ * Combined Clerk and CORS Middleware for TechAssassin Backend API
  * 
- * This middleware handles Cross-Origin Resource Sharing (CORS) for all API routes.
- * It allows requests from specified origins and handles preflight OPTIONS requests.
- * 
- * Configuration:
- * - Update allowedOrigins array with your production and development domains
- * - Adjust allowed methods and headers as needed
- * - Configure in next.config.mjs if additional customization needed
+ * This middleware:
+ * 1. Enables Clerk authentication detection
+ * 2. Handles Cross-Origin Resource Sharing (CORS) for all API routes
  */
 
-export function middleware(request: NextRequest) {
+export default clerkMiddleware((auth, request) => {
   // Get origin from request headers
   const origin = request.headers.get('origin')
   const isDev = process.env.NODE_ENV === 'development'
@@ -65,14 +62,16 @@ export function middleware(request: NextRequest) {
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
   
   return response
-}
+})
 
 /**
  * Configure which routes use this middleware
- * 
- * This configuration applies the middleware to all API routes.
- * Adjust the matcher pattern if you need different behavior for specific routes.
  */
 export const config = {
-  matcher: '/:path*',
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
 }

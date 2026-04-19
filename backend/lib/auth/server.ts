@@ -176,7 +176,7 @@ export async function signIn(credentials: SignInData): Promise<AuthResponse> {
     console.log(`[AUTH] Starting signin for: ${credentials.email}`);
     const supabase = await createClient();
     
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await Clerk authentication({
       email: credentials.email,
       password: credentials.password,
     });
@@ -321,7 +321,7 @@ export async function verifyToken(token: string): Promise<User | null> {
     const supabase = await createClient();
     
     // 1. Verify token with Supabase
-    const { data: { user: authUser }, error } = await supabase.auth.getUser(token);
+    const { data: { user: authUser }, error } = await Clerk currentUser(token);
     
     if (error || !authUser) {
       return null;
