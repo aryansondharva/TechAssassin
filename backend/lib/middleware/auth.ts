@@ -29,29 +29,42 @@ export class AuthorizationError extends Error {
  * Result of authentication including user and authenticated client
  */
 export interface AuthResult {
-  user: any
+  user: {
+    id: string
+    clerkId: string
+    email?: string
+  }
   supabase: SupabaseClient
 }
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
 /**
- * Verify user session via Clerk and return authenticated user with Supabase client
- * Throws AuthenticationError (401) if not authenticated
+ * Verify user session via Clerk and return authenticated user with Supabase client.
+ * This handles the Clerk -> Supabase connection by passing the Clerk JWT token.
  */
 export async function requireAuthWithClient(): Promise<AuthResult> {
-  const { userId } = await auth()
+  const { userId, getToken } = await auth()
   
   if (!userId) {
     throw new AuthenticationError('Authentication required')
   }
   
-  // Create a Supabase client with the service role key for admin operations
+  // Get the Clerk JWT for Supabase (using the 'supabase' template)
+  const token = await getToken({ template: 'supabase' })
+
+  if (!token) {
+    throw new AuthenticationError('Failed to retrieve Clerk JWT for Supabase. Ensure you have created the "supabase" JWT template in the Clerk Dashboard.')
+  }
+
+  // Initialize Supabase client with the Clerk JWT token
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
     {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
       auth: {
         persistSession: false
       }
@@ -60,41 +73,11 @@ export async function requireAuthWithClient(): Promise<AuthResult> {
 
   const clerkUser = await currentUser()
   const primaryEmail = clerkUser?.primaryEmailAddress?.emailAddress?.toLowerCase()
-
-  let resolvedUserId = userId
-
-  // Clerk user IDs are non-UUID strings (for example: "user_xxx"), while this
-  // codebase stores Supabase profile IDs as UUIDs for relational joins.
-  // For Clerk-authenticated requests, resolve the internal Supabase profile ID
-  // by the Clerk user's primary email.
-  if (!UUID_REGEX.test(userId)) {
-    if (!primaryEmail) {
-      throw new AuthenticationError('Unable to resolve user email from Clerk session')
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', primaryEmail)
-      .single()
-
-    // PGRST116 = no rows returned for .single()
-    if (profileError && profileError.code !== 'PGRST116') {
-      console.error('Failed to resolve Supabase profile for Clerk user:', profileError)
-      throw new AuthenticationError('Unable to resolve user profile')
-    }
-
-    if (profile?.id) {
-      resolvedUserId = profile.id
-    } else {
-      throw new AuthenticationError('User profile not found. Ensure Clerk webhook sync is configured.')
-    }
-  }
   
   return {
     user: {
-      id: resolvedUserId,
-      clerk_id: userId,
+      id: userId,
+      clerkId: userId,
       email: primaryEmail,
     },
     supabase,
@@ -102,7 +85,7 @@ export async function requireAuthWithClient(): Promise<AuthResult> {
 }
 
 /**
- * Verify user session and return authenticated user
+ * Verify user session and return authenticated user object
  * Throws AuthenticationError (401) if not authenticated
  */
 export async function requireAuth(): Promise<any> {
@@ -111,11 +94,11 @@ export async function requireAuth(): Promise<any> {
 }
 
 /**
- * Verify user has admin privileges
+ * Verify user has admin privileges in Supabase
  * Throws AuthorizationError (403) if user is not an admin
  */
 export async function requireAdmin(userId: string): Promise<void> {
-  // Use service role to check admin status
+  // Use service role to check admin status (requires bypassing RLS)
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -129,6 +112,7 @@ export async function requireAdmin(userId: string): Promise<void> {
     .single()
   
   if (error || !profile) {
+    console.error('Admin verification failed:', error)
     throw new AuthorizationError('Unable to verify admin status')
   }
   
