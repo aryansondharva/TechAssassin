@@ -1,4 +1,4 @@
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 
 // Notification types based on the schema
 type NotificationType = 
@@ -21,7 +21,7 @@ interface CreateNotificationInput {
 }
 
 export async function createNotification(input: CreateNotificationInput) {
-  const supabase = createServiceRoleClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('notifications')
@@ -43,7 +43,7 @@ export async function createNotification(input: CreateNotificationInput) {
 }
 
 export async function markAllRead(userId: string) {
-  const supabase = createServiceRoleClient()
+  const supabase = await createClient()
   const { error } = await supabase
     .from('notifications')
     .update({ is_read: true }) // using 'is_read' instead of 'read' to match our schema
