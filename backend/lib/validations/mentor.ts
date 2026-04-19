@@ -19,7 +19,7 @@ export const mentorProfileUpdateSchema = z.object({
 })
 
 export const mentorHelpRequestCreateSchema = z.object({
-  mentor_id: z.string().uuid(),
+  mentor_id: z.string(),
   topic: z.string().min(3).max(120),
   goal: z.string().min(10).max(1000),
   urgency: z.enum(['low', 'medium', 'high']),
@@ -40,12 +40,12 @@ export const mentorFeedbackCreateSchema = z.object({
 })
 
 export const mentorReportCreateSchema = z.object({
-  reported_user_id: z.string().uuid(),
+  reported_user_id: z.string(),
   request_id: z.string().uuid().optional(),
   reason: z.string().min(5).max(120),
   details: z.string().max(2000).optional().or(z.literal(''))
 })
 
 export const mentorBlockCreateSchema = z.object({
-  blocked_user_id: z.string().uuid()
+  blocked_user_id: z.string()
 })

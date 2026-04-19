@@ -10,8 +10,7 @@ export const leaderboardUpdateSchema = z.object({
     .string()
     .uuid('Event ID must be a valid UUID'),
   user_id: z
-    .string()
-    .uuid('User ID must be a valid UUID'),
+    .string(),
   score: z
     .number()
     .int('Score must be an integer')
