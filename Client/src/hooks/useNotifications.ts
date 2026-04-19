@@ -34,36 +34,40 @@ export function useNotifications() {
     setLoading(true);
     api.get<{ data: Notification[] }>('/notifications')
       .then(res => {
-        setNotifications(res.data)
-        setUnreadCount(res.data.filter(n => !n.is_read).length)
+        const dataArr = res?.data || [];
+        setNotifications(dataArr)
+        setUnreadCount(dataArr.filter(n => !n.is_read).length)
       })
       .catch(err => console.error("Error fetching notifications:", err))
       .finally(() => setLoading(false))
   }, [userId])
 
-  // Realtime subscription — prepends new notifications as they arrive
   useEffect(() => {
-    if (!userId || !supabase) return
+    if (!userId || !supabase || typeof supabase.channel !== 'function') return
 
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: any) => {
-          const incoming = payload.new as Notification
-          setNotifications(prev => [incoming, ...prev])
-          setUnreadCount(prev => prev + 1)
-        }
-      )
-      .subscribe()
+    try {
+      const channel = supabase
+        .channel(`notifications:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload: any) => {
+            const incoming = payload.new as Notification
+            setNotifications(prev => [incoming, ...prev])
+            setUnreadCount(prev => prev + 1)
+          }
+        )
+        .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+      return () => { supabase.removeChannel(channel) }
+    } catch (err) {
+      console.error("Failed to hook realtime notifications", err);
+    }
   }, [userId])
 
   const markAllRead = useCallback(async () => {
