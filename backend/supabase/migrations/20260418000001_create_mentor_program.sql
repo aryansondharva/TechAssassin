@@ -21,8 +21,8 @@ CREATE INDEX IF NOT EXISTS idx_profiles_mentor_timezone ON public.profiles(mento
 -- Mentor help requests
 CREATE TABLE IF NOT EXISTS public.mentor_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  beginner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  mentor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  beginner_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  mentor_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   topic TEXT NOT NULL,
   goal TEXT NOT NULL,
   urgency TEXT NOT NULL CHECK (urgency IN ('low', 'medium', 'high')),
@@ -44,8 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_mentor_requests_created_at ON public.mentor_reque
 CREATE TABLE IF NOT EXISTS public.mentor_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   request_id UUID NOT NULL UNIQUE REFERENCES public.mentor_requests(id) ON DELETE CASCADE,
-  mentor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  beginner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  mentor_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  beginner_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   scheduled_for TIMESTAMPTZ,
   mentor_notes TEXT,
   beginner_notes TEXT,
@@ -64,8 +64,8 @@ CREATE INDEX IF NOT EXISTS idx_mentor_sessions_completed_at ON public.mentor_ses
 CREATE TABLE IF NOT EXISTS public.mentor_feedback (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES public.mentor_sessions(id) ON DELETE CASCADE,
-  rater_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  rated_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rater_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rated_user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
   review TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -78,13 +78,13 @@ CREATE INDEX IF NOT EXISTS idx_mentor_feedback_session_id ON public.mentor_feedb
 -- Abuse reporting
 CREATE TABLE IF NOT EXISTS public.mentor_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  reported_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  reporter_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  reported_user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   request_id UUID REFERENCES public.mentor_requests(id) ON DELETE SET NULL,
   reason TEXT NOT NULL,
   details TEXT,
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'dismissed')),
-  resolved_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  resolved_by TEXT REFERENCES public.profiles(id) ON DELETE SET NULL,
   resolved_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -95,8 +95,8 @@ CREATE INDEX IF NOT EXISTS idx_mentor_reports_reported_user_id ON public.mentor_
 -- Block list
 CREATE TABLE IF NOT EXISTS public.mentor_blocks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  blocker_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  blocked_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  blocker_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  blocked_user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE(blocker_id, blocked_user_id)
 );
@@ -136,29 +136,29 @@ ALTER TABLE public.mentor_blocks ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can create mentor requests for themselves" ON public.mentor_requests;
 CREATE POLICY "Users can create mentor requests for themselves" ON public.mentor_requests
   FOR INSERT
-  WITH CHECK (auth.uid() = beginner_id);
+  WITH CHECK (auth.uid()::text = beginner_id);
 
 DROP POLICY IF EXISTS "Participants can view mentor requests" ON public.mentor_requests;
 CREATE POLICY "Participants can view mentor requests" ON public.mentor_requests
   FOR SELECT
   USING (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 DROP POLICY IF EXISTS "Participants can update mentor requests" ON public.mentor_requests;
 CREATE POLICY "Participants can update mentor requests" ON public.mentor_requests
   FOR UPDATE
   USING (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   )
   WITH CHECK (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 -- Mentor sessions policies
@@ -166,32 +166,32 @@ DROP POLICY IF EXISTS "Participants can view mentor sessions" ON public.mentor_s
 CREATE POLICY "Participants can view mentor sessions" ON public.mentor_sessions
   FOR SELECT
   USING (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 DROP POLICY IF EXISTS "Participants can create mentor sessions" ON public.mentor_sessions;
 CREATE POLICY "Participants can create mentor sessions" ON public.mentor_sessions
   FOR INSERT
   WITH CHECK (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 DROP POLICY IF EXISTS "Participants can update mentor sessions" ON public.mentor_sessions;
 CREATE POLICY "Participants can update mentor sessions" ON public.mentor_sessions
   FOR UPDATE
   USING (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   )
   WITH CHECK (
-    auth.uid() = beginner_id
-    OR auth.uid() = mentor_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = beginner_id
+    OR auth.uid()::text = mentor_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 -- Mentor feedback policies
@@ -199,49 +199,49 @@ DROP POLICY IF EXISTS "Participants can view mentor feedback" ON public.mentor_f
 CREATE POLICY "Participants can view mentor feedback" ON public.mentor_feedback
   FOR SELECT
   USING (
-    auth.uid() = rater_id
-    OR auth.uid() = rated_user_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = rater_id
+    OR auth.uid()::text = rated_user_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 DROP POLICY IF EXISTS "Users can create mentor feedback for themselves" ON public.mentor_feedback;
 CREATE POLICY "Users can create mentor feedback for themselves" ON public.mentor_feedback
   FOR INSERT
-  WITH CHECK (auth.uid() = rater_id);
+  WITH CHECK (auth.uid()::text = rater_id);
 
 DROP POLICY IF EXISTS "Users can update their own mentor feedback" ON public.mentor_feedback;
 CREATE POLICY "Users can update their own mentor feedback" ON public.mentor_feedback
   FOR UPDATE
-  USING (auth.uid() = rater_id)
-  WITH CHECK (auth.uid() = rater_id);
+  USING (auth.uid()::text = rater_id)
+  WITH CHECK (auth.uid()::text = rater_id);
 
 -- Mentor reports policies
 DROP POLICY IF EXISTS "Users can create their own mentor reports" ON public.mentor_reports;
 CREATE POLICY "Users can create their own mentor reports" ON public.mentor_reports
   FOR INSERT
-  WITH CHECK (auth.uid() = reporter_id);
+  WITH CHECK (auth.uid()::text = reporter_id);
 
 DROP POLICY IF EXISTS "Reporters and admins can view mentor reports" ON public.mentor_reports;
 CREATE POLICY "Reporters and admins can view mentor reports" ON public.mentor_reports
   FOR SELECT
   USING (
-    auth.uid() = reporter_id
-    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    auth.uid()::text = reporter_id
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 DROP POLICY IF EXISTS "Admins can update mentor reports" ON public.mentor_reports;
 CREATE POLICY "Admins can update mentor reports" ON public.mentor_reports
   FOR UPDATE
   USING (
-    EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   )
   WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.is_admin = TRUE)
+    EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid()::text AND p.is_admin = TRUE)
   );
 
 -- Block policies
 DROP POLICY IF EXISTS "Users can manage their own blocks" ON public.mentor_blocks;
 CREATE POLICY "Users can manage their own blocks" ON public.mentor_blocks
   FOR ALL
-  USING (auth.uid() = blocker_id)
-  WITH CHECK (auth.uid() = blocker_id);
+  USING (auth.uid()::text = blocker_id)
+  WITH CHECK (auth.uid()::text = blocker_id);
