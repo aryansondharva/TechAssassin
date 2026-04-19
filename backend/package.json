@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@vitest/ui": "^4.0.18",
+    "dotenv": "^17.4.2",
     "fast-check": "^4.5.3",
     "vitest": "^4.0.18"
   }
