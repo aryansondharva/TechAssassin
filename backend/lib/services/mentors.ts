@@ -20,139 +20,138 @@ interface MentorRequestActionInput {
 }
 
 export async function getMentorDirectory(filters: MentorDirectoryFilters = {}, viewerId?: string) {
-  const supabase = await createClient()
+  const client = await pool.connect()
+  try {
+    let query = `
+      SELECT 
+        id, username, full_name, avatar_url, bio, skills, 
+        mentor_experience_level, mentor_languages, mentor_timezone, 
+        mentor_focus_areas, mentor_availability, mentor_visibility, 
+        mentor_total_sessions, mentor_rating, mentor_rating_count, 
+        is_mentor_verified
+      FROM public.profiles
+      WHERE is_mentor_available = true 
+        AND is_mentor_verified = true 
+        AND mentor_visibility != 'private'
+    `
+    const values: any[] = []
+    let valIdx = 1
 
-  let query = supabase
-    .from('profiles')
-    .select(`
-      id,
-      username,
-      full_name,
-      avatar_url,
-      bio,
-      skills,
-      mentor_experience_level,
-      mentor_languages,
-      mentor_timezone,
-      mentor_focus_areas,
-      mentor_availability,
-      mentor_visibility,
-      mentor_total_sessions,
-      mentor_rating,
-      mentor_rating_count,
-      is_mentor_verified
-    `)
-    .eq('is_mentor_available', true)
-    .eq('is_mentor_verified', true)
-    .neq('mentor_visibility', 'private')
-    .order('mentor_rating', { ascending: false, nullsFirst: false })
-    .order('mentor_total_sessions', { ascending: false })
-    .limit(100)
+    if (filters.skill) {
+      query += ` AND $${valIdx} = ANY(skills)`
+      values.push(filters.skill)
+      valIdx++
+    }
+    if (filters.experienceLevel) {
+      query += ` AND mentor_experience_level = $${valIdx}`
+      values.push(filters.experienceLevel)
+      valIdx++
+    }
+    if (filters.language) {
+      query += ` AND $${valIdx} = ANY(mentor_languages)`
+      values.push(filters.language)
+      valIdx++
+    }
+    if (filters.timezone) {
+      query += ` AND mentor_timezone = $${valIdx}`
+      values.push(filters.timezone)
+      valIdx++
+    }
+    if (filters.availability) {
+      query += ` AND mentor_availability ILIKE $${valIdx}`
+      values.push(`%${filters.availability}%`)
+      valIdx++
+    }
 
-  if (filters.skill) {
-    query = query.contains('skills', [filters.skill])
+    query += ` ORDER BY mentor_rating DESC NULLS LAST, mentor_total_sessions DESC LIMIT 100`
+
+    const { rows: mentors } = await client.query(query, values)
+
+    if (!viewerId || !mentors || mentors.length === 0) {
+      return mentors || []
+    }
+
+    const mentorIds = mentors.map((m) => m.id)
+    const { rows: blocks } = await client.query(
+      `SELECT blocker_id, blocked_user_id FROM public.mentor_blocks 
+       WHERE (blocker_id = $1 AND blocked_user_id = ANY($2))
+       OR (blocked_user_id = $1 AND blocker_id = ANY($2))`,
+      [viewerId, mentorIds]
+    )
+
+    const blockedIds = new Set<string>()
+    blocks.forEach((item: any) => {
+      if (item.blocker_id === viewerId) blockedIds.add(item.blocked_user_id)
+      if (item.blocked_user_id === viewerId) blockedIds.add(item.blocker_id)
+    })
+
+    return mentors.filter((mentor) => !blockedIds.has(mentor.id))
+  } finally {
+    client.release()
   }
-  if (filters.experienceLevel) {
-    query = query.eq('mentor_experience_level', filters.experienceLevel)
-  }
-  if (filters.language) {
-    query = query.contains('mentor_languages', [filters.language])
-  }
-  if (filters.timezone) {
-    query = query.eq('mentor_timezone', filters.timezone)
-  }
-  if (filters.availability) {
-    query = query.ilike('mentor_availability', `%${filters.availability}%`)
-  }
-
-  const { data: mentors, error } = await query
-  if (error) throw error
-
-  if (!viewerId || !mentors || mentors.length === 0) {
-    return mentors || []
-  }
-
-  const mentorIds = mentors.map((mentor) => mentor.id)
-  const [blocksByViewer, blocksAgainstViewer] = await Promise.all([
-    supabase
-      .from('mentor_blocks')
-      .select('blocker_id, blocked_user_id')
-      .eq('blocker_id', viewerId)
-      .in('blocked_user_id', mentorIds),
-    supabase
-      .from('mentor_blocks')
-      .select('blocker_id, blocked_user_id')
-      .eq('blocked_user_id', viewerId)
-      .in('blocker_id', mentorIds)
-  ])
-
-  if (blocksByViewer.error) throw blocksByViewer.error
-  if (blocksAgainstViewer.error) throw blocksAgainstViewer.error
-
-  const blockedLinks = [
-    ...(blocksByViewer.data || []),
-    ...(blocksAgainstViewer.data || [])
-  ]
-
-  const blockedIds = new Set<string>()
-  ;(blockedLinks || []).forEach((item) => {
-    if (item.blocker_id === viewerId) blockedIds.add(item.blocked_user_id)
-    if (item.blocked_user_id === viewerId) blockedIds.add(item.blocker_id)
-  })
-
-  return mentors.filter((mentor) => !blockedIds.has(mentor.id))
 }
 
-export async function updateMyMentorProfile(userId: string, input: Record<string, unknown>) {
-  const supabase = await createClient()
+import { Pool } from 'pg'
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(input)
-    .eq('id', userId)
-    .select(`
-      id,
-      username,
-      is_mentor_available,
-      mentor_experience_level,
-      mentor_languages,
-      mentor_timezone,
-      mentor_focus_areas,
-      mentor_availability,
-      mentor_visibility,
-      is_mentor_verified
-    `)
-    .single()
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
+  ssl: { rejectUnauthorized: false }
+})
 
-  if (error) throw error
-  return data
+export async function updateMyMentorProfile(userId: string, input: Record<string, any>) {
+  const client = await pool.connect()
+  try {
+    const allowedFields = [
+      'is_mentor_available', 'bio', 'is_mentor_verified',
+      'mentor_experience_level', 'mentor_languages', 'mentor_timezone',
+      'mentor_focus_areas', 'mentor_availability', 'mentor_visibility'
+    ]
+
+    const entries = Object.entries(input)
+      .filter(([key]) => allowedFields.includes(key))
+    
+    if (entries.length === 0) return null
+
+    const setClauses = entries.map(([key], i) => `${key} = $${i + 2}`).join(', ')
+    const values = entries.map(([, value]) => value)
+
+    const { rows } = await client.query(
+      `UPDATE public.profiles SET ${setClauses}, updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [userId, ...values]
+    )
+
+    if (rows.length === 0) {
+      throw new NotFoundError('Profile not found for mentor update')
+    }
+    return rows[0]
+  } finally {
+    client.release()
+  }
 }
 
 export async function getMyMentorProfile(userId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      username,
-      skills,
-      is_mentor_available,
-      mentor_experience_level,
-      mentor_languages,
-      mentor_timezone,
-      mentor_focus_areas,
-      mentor_availability,
-      mentor_visibility,
-      mentor_total_sessions,
-      mentor_rating,
-      mentor_rating_count,
-      is_mentor_verified
-    `)
-    .eq('id', userId)
-    .single()
-
-  if (error) throw error
-  return data
+  const client = await pool.connect()
+  try {
+    const { rows } = await client.query(
+      `SELECT 
+        id, username, skills, is_mentor_available, mentor_experience_level, 
+        mentor_languages, mentor_timezone, mentor_focus_areas, mentor_availability, 
+        mentor_visibility, mentor_total_sessions, mentor_rating, 
+        mentor_rating_count, is_mentor_verified 
+      FROM public.profiles WHERE id = $1`,
+      [userId]
+    )
+    
+    if (rows.length === 0) {
+      throw new NotFoundError('Mentor profile not found')
+    }
+    return rows[0]
+  } finally {
+    client.release()
+  }
 }
 
 export async function createMentorRequest(beginnerId: string, input: {
@@ -569,29 +568,36 @@ export async function createMentorBlock(userId: string, blockedUserId: string) {
 }
 
 export async function getMentorStats() {
-  const supabase = await createClient()
+  const client = await pool.connect()
+  try {
+    const [
+      { rows: [{ count: activeMentors }] },
+      { rows: [{ count: openHelpRequests }] },
+      { rows: [{ count: successfulMatches }] },
+      { rows: topMentors }
+    ] = await Promise.all([
+      client.query("SELECT COUNT(*)::int as count FROM public.profiles WHERE is_mentor_available = true"),
+      client.query("SELECT COUNT(*)::int as count FROM public.mentor_requests WHERE status = 'pending'"),
+      client.query(
+        "SELECT COUNT(*)::int as count FROM public.mentor_requests WHERE status = 'completed' AND updated_at >= $1", 
+        [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()]
+      ),
+      client.query(`
+        SELECT id, username, full_name, avatar_url, mentor_rating, mentor_total_sessions 
+        FROM public.profiles 
+        WHERE is_mentor_available = true AND is_mentor_verified = true 
+        ORDER BY mentor_rating DESC NULLS LAST, mentor_total_sessions DESC 
+        LIMIT 5
+      `)
+    ])
 
-  const [activeMentorsResult, openRequestsResult, successfulMatchesResult, topMentorsResult] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_mentor_available', true),
-    supabase.from('mentor_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase
-      .from('mentor_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'completed')
-      .gte('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-    supabase
-      .from('profiles')
-      .select('id, username, full_name, avatar_url, mentor_rating, mentor_total_sessions')
-      .eq('is_mentor_available', true)
-      .order('mentor_rating', { ascending: false, nullsFirst: false })
-      .order('mentor_total_sessions', { ascending: false })
-      .limit(5)
-  ])
-
-  return {
-    activeMentors: activeMentorsResult.count || 0,
-    openHelpRequests: openRequestsResult.count || 0,
-    successfulMatchesThisWeek: successfulMatchesResult.count || 0,
-    topMentors: topMentorsResult.data || []
+    return {
+      activeMentors: activeMentors || 0,
+      openHelpRequests: openHelpRequests || 0,
+      successfulMatchesThisWeek: successfulMatches || 0,
+      topMentors: topMentors || []
+    }
+  } finally {
+    client.release()
   }
 }

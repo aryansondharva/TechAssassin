@@ -31,7 +31,8 @@ export const profileService = {
    * Get a user's profile by Username
    */
   getByUsername: async (username: string): Promise<Profile> => {
-    return api.get<Profile>(`/profile/user/${username}`);
+    const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
+    return api.get<Profile>(`/profile/user/${cleanUsername}`);
   },
 
   /**

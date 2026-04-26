@@ -10,6 +10,8 @@ export const mentorDirectoryFilterSchema = z.object({
 
 export const mentorProfileUpdateSchema = z.object({
   is_mentor_available: z.boolean(),
+  bio: z.string().max(500).optional(),
+  is_mentor_verified: z.boolean().optional(),
   mentor_experience_level: z.enum(['junior', 'mid', 'senior', 'expert']).nullable().optional(),
   mentor_languages: z.array(z.string().min(1).max(40)).max(10).optional(),
   mentor_timezone: z.string().max(80).nullable().optional(),

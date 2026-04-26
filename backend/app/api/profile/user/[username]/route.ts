@@ -14,7 +14,10 @@ export async function GET(
   { params }: { params: { username: string } }
 ) {
   try {
-    const { username } = params
+    let { username } = params
+    if (username.startsWith('@')) {
+      username = username.slice(1)
+    }
     
     // Get Supabase client
     const supabase = await createClient()
