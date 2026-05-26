@@ -141,13 +141,15 @@ const CommunitySection = () => {
               <Github className="w-5 h-5" />
               Contribute on GitHub
             </a>
-            <Link
-              to="/community"
+            <a
+              href="https://discord.gg/S6V3KNUu"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 border border-border bg-background px-6 py-3 rounded-lg font-semibold hover:bg-accent transition-colors"
             >
               <Users className="w-5 h-5" />
               Join Community
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -400,12 +402,14 @@ const CommunitySection = () => {
                 </div>
 
                 <div className="text-center pt-4">
-                  <Link
-                    to="/community/achievements"
+                  <a
+                    href="https://github.com/aryansondharva/TechAssassin"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-primary hover:text-primary/80 font-semibold"
                   >
                     View all achievements →
-                  </Link>
+                  </a>
                 </div>
               </div>
             )}
@@ -430,13 +434,15 @@ const CommunitySection = () => {
               <MessageSquare className="w-5 h-5" />
               Find an Issue to Solve
             </a>
-            <Link
-              to="/community/guidelines"
+            <a
+              href="https://github.com/aryansondharva/TechAssassin/blob/main/CONTRIBUTING.md"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 border border-border bg-background px-6 py-3 rounded-lg font-semibold hover:bg-accent transition-colors"
             >
               <Heart className="w-5 h-5" />
               Contribution Guidelines
-            </Link>
+            </a>
           </div>
           <div className="mt-4">
             <Link

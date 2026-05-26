@@ -14,13 +14,10 @@ import Profile from "./pages/profile/view/Profile";
 import EditProfile from "./pages/profile/edit/EditProfile";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
-import Community from "./pages/Community";
-import AssassinFeed from "./pages/AssassinFeed";
 import Mentorship from "./pages/Mentorship";
 import Missions from "./pages/Missions";
 import Projects from "./pages/Projects";
 import Aura from "./pages/Aura";
-import CommunityGuidelines from "./pages/CommunityGuidelines";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,9 +40,6 @@ const App = () => (
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetails />} />
-          <Route path="/feed" element={<AssassinFeed />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/guidelines" element={<CommunityGuidelines />} />
           <Route path="/mentorship" element={<Mentorship />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/projects" element={<Projects />} />

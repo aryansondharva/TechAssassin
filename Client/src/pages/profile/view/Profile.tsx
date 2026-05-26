@@ -171,7 +171,7 @@ export default function Profile() {
       console.error("Failed to load profile", error);
       if (!isOwnProfile) {
         toast({ title: "Not Found", description: "Operative dossier not found.", variant: "destructive" });
-        navigate('/community');
+        navigate('/');
       }
     } finally {
       setIsLoading(false);
