@@ -1,8 +1,23 @@
 import { Resend } from 'resend'
-import { Event } from '@/types/database'
 
-// Initialize Resend client with API key
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resend: Resend | null = null
+let hasWarnedMissingApiKey = false
+
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY
+
+  if (!apiKey) {
+    if (!hasWarnedMissingApiKey) {
+      console.warn('RESEND_API_KEY is missing. Email sending is disabled.')
+      hasWarnedMissingApiKey = true
+    }
+
+    return null
+  }
+
+  resend ??= new Resend(apiKey)
+  return resend
+}
 
 /**
  * Event details for registration confirmation email
@@ -30,7 +45,10 @@ export async function sendRegistrationConfirmation(
   eventDetails: EventDetails
 ): Promise<void> {
   try {
-    await resend.emails.send({
+    const resendClient = getResendClient()
+    if (!resendClient) return
+
+    await resendClient.emails.send({
       from: 'TechAssassin <noreply@techassassin.com>',
       to,
       subject: `Registration ${eventDetails.status === 'confirmed' ? 'Confirmed' : 'Received'}: ${eventTitle}`,
@@ -54,7 +72,10 @@ export async function sendWelcomeEmail(
   username: string
 ): Promise<void> {
   try {
-    await resend.emails.send({
+    const resendClient = getResendClient()
+    if (!resendClient) return
+
+    await resendClient.emails.send({
       from: 'TechAssassin <noreply@techassassin.com>',
       to,
       subject: 'Welcome to TechAssassin!',

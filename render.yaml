@@ -6,10 +6,24 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install && npm run build
-    startCommand: npm run dev
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://tech-assassin.vercel.app
+      - key: CORS_ORIGINS
+        value: https://tech-assassin.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_WEBHOOK_SECRET
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
