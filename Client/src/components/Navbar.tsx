@@ -90,9 +90,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`container mx-auto pointer-events-auto transition-all duration-500 ${
-          scrolled ? "max-w-5xl" : "max-w-7xl"
-        }`}
+        className="container mx-auto max-w-7xl pointer-events-auto"
       >
         <div className={`
           relative flex items-center justify-between h-16 px-6 md:px-8 rounded-full 
