@@ -85,14 +85,13 @@ const Footer = () => {
                 {[
                   "Launch a Mission",
                   "Global Missions",
-                  "Projects",
                   "Rules of Engagement",
                   "Brand Assets",
                   "Documentation",
                 ].map((link) => (
                   <li key={link}>
                     <a
-                      href={link === "Projects" ? "/projects" : "#"}
+                      href="#"
                       className="text-sm text-hero-muted hover:text-primary transition-colors duration-200"
                     >
                       {link}

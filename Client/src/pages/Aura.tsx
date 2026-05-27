@@ -18,11 +18,11 @@ const Aura = () => {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20">
         <div className="container mx-auto px-6 relative z-10">
-          <Link 
-            to="/projects" 
+          <Link
+            to="/"
             className="inline-flex items-center gap-2 text-slate-400 hover:text-red-600 transition-colors uppercase font-black text-[10px] tracking-[0.3em] mb-12 group"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Armory
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
           </Link>
           
           <div className="grid lg:grid-cols-2 gap-16 items-center">

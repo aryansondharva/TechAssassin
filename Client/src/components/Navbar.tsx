@@ -1,6 +1,6 @@
 import { 
   Menu, X, Shield, ChevronRight, Zap, User, Settings, 
-  Target, Briefcase, Sparkles, Layout, QrCode, LogOut, 
+  Target, Sparkles, Layout, QrCode, LogOut,
   PenSquare, Compass, Gift, BarChart
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -100,7 +100,6 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
                     <UserButton.Link href={`/@${user?.username}`} label="My Assassin" labelIcon={<Shield className="w-4 h-4" />} />
                     <UserButton.Link href="/edit-profile" label="Edit Profile" labelIcon={<PenSquare className="w-4 h-4" />} />
                     <UserButton.Link href="/missions" label="My Missions" labelIcon={<Target className="w-4 h-4" />} />
-                    <UserButton.Link href="/projects" label="My Projects" labelIcon={<Briefcase className="w-4 h-4" />} />
                     <UserButton.Action label="Show QR Code" labelIcon={<QrCode className="w-4 h-4" />} onClick={() => window.location.href = '/qr'} />
                   </UserButton.MenuItems>
                 </UserButton>
