@@ -12,13 +12,13 @@ export const sponsorCreateSchema = z.object({
     .max(100, 'Name must not exceed 100 characters'),
   logo_url: z
     .string()
-    .url('Logo URL must be a valid URL'),
+    .regex(/^https?:\/\/.+/i, 'Logo URL must be a valid URL'),
   website_url: z
     .string()
-    .url('Website URL must be a valid URL'),
+    .regex(/^https?:\/\/.+/i, 'Website URL must be a valid URL'),
   tier: z
     .enum(['gold', 'silver', 'bronze'], {
-      message: 'Tier must be gold, silver, or bronze'
+      message: 'Expected one of: gold, silver, bronze'
     }),
   description: z
     .string()

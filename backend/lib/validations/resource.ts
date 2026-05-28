@@ -16,7 +16,7 @@ export const resourceCreateSchema = z.object({
     .max(1000, 'Description must not exceed 1000 characters'),
   content_url: z
     .string()
-    .url('Content URL must be a valid URL'),
+    .regex(/^https?:\/\/.+/i, 'Content URL must be a valid URL'),
   category: z
     .string()
     .min(1, 'Category is required')

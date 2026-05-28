@@ -15,7 +15,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
-    public data?: any
+    public data?: unknown
   ) {
     super(message);
     this.name = 'ApiError';
@@ -33,9 +33,10 @@ interface RequestOptions extends RequestInit {
  * Get authentication token from Clerk session
  */
 async function getAuthToken(): Promise<string | null> {
-  if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.session) {
+  const clerk = typeof window !== 'undefined' ? (window as Window & { Clerk?: { session?: { getToken?: () => Promise<string> } } }).Clerk : undefined
+  if (clerk?.session?.getToken) {
     try {
-      return await (window as any).Clerk.session.getToken();
+      return await clerk.session.getToken();
     } catch (e) {
       console.warn("Failed to get Clerk token", e);
       return null;
@@ -157,7 +158,7 @@ export const api = {
   /**
    * POST request
    */
-  post: <T>(endpoint: string, data?: any) =>
+  post: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
@@ -166,7 +167,7 @@ export const api = {
   /**
    * PATCH request
    */
-  patch: <T>(endpoint: string, data?: any) =>
+  patch: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
@@ -175,7 +176,7 @@ export const api = {
   /**
    * PUT request
    */
-  put: <T>(endpoint: string, data?: any) =>
+  put: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,

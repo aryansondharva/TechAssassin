@@ -22,22 +22,22 @@ export const profileUpdateSchema = z.object({
     .or(z.literal('')),
   github_url: z
     .string()
-    .url('GitHub URL must be a valid URL')
+    .regex(/^https?:\/\/.+/i, 'GitHub URL must be a valid URL')
     .optional()
     .or(z.literal('')),
   linkedin_url: z
     .string()
-    .url('LinkedIn URL must be a valid URL')
+    .regex(/^https?:\/\/.+/i, 'LinkedIn URL must be a valid URL')
     .optional()
     .or(z.literal('')),
   portfolio_url: z
     .string()
-    .url('Portfolio URL must be a valid URL')
+    .regex(/^https?:\/\/.+/i, 'Portfolio URL must be a valid URL')
     .optional()
     .or(z.literal('')),
   skills: z
     .array(z.string())
-    .max(15, 'Cannot have more than 15 skills')
+    .max(10, 'Cannot have more than 10 skills')
     .optional(),
   university: z.string().max(100).optional().or(z.literal('')),
   education: z.string().max(100).optional().or(z.literal('')),
@@ -45,7 +45,7 @@ export const profileUpdateSchema = z.object({
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(200).optional().or(z.literal('')),
   avatar_url: z.string().url().optional().or(z.literal('')),
-  banner_url: z.string().url().optional().or(z.literal('')),
+  banner_url: z.string().regex(/^https?:\/\/.+/i, 'Banner URL must be a valid URL').optional().or(z.literal('')),
   interests: z.array(z.string()).max(10, 'Cannot have more than 10 interests').optional(),
   first_name: z.string().max(50).optional().or(z.literal('')),
   last_name: z.string().max(50).optional().or(z.literal('')),
@@ -60,7 +60,7 @@ export const profileUpdateSchema = z.object({
   roles: z.array(z.string()).optional(),
   resume_url: z.string().url().optional().or(z.literal('')),
   has_experience: z.boolean().optional(),
-  twitter_url: z.string().url().optional().or(z.literal('')),
+  twitter_url: z.string().regex(/^https?:\/\/.+/i, 'Twitter URL must be a valid URL').optional().or(z.literal('')),
   emergency_contact_name: z.string().max(100).optional().or(z.literal('')),
   emergency_contact_phone: z.string().max(20).optional().or(z.literal('')),
   is_email_public: z.boolean().optional(),

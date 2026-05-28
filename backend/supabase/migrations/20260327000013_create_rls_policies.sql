@@ -20,6 +20,7 @@ ALTER TABLE activity_cooldowns ENABLE ROW LEVEL SECURITY;
 -- =============================================================================
 
 -- Users can view their own XP transactions
+-- Clerk user ID = user_id
 CREATE POLICY "Users can view own XP transactions"
 ON xp_transactions FOR SELECT
 USING (auth.uid() = user_id);
@@ -52,6 +53,7 @@ WITH CHECK (
 -- =============================================================================
 
 -- Anyone can view active badges
+-- All users can view active badges
 CREATE POLICY "Anyone can view active badges"
 ON badges FOR SELECT
 USING (is_active = true);
@@ -101,6 +103,7 @@ USING (
 -- =============================================================================
 
 -- Users can view their own badges
+-- Clerk user ID = user_id
 CREATE POLICY "Users can view own badges"
 ON user_badges FOR SELECT
 USING (auth.uid() = user_id);
