@@ -149,9 +149,11 @@ const Footer = () => {
 
         {/* Bottom bar: Brand + Copyright */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h3 className="text-xl font-heading font-extrabold text-primary tracking-tight">
-            Tech<span className="text-hero-foreground"> Assassin</span>
-          </h3>
+          <img
+            src="/tech_assassin_logo.png"
+            alt="Tech Assassin"
+            className="h-7 w-auto object-contain"
+          />
           <p className="text-hero-muted text-xs flex items-center gap-1">
             © 2026, Tech Assassin Community.
           </p>

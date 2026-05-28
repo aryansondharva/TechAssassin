@@ -146,10 +146,12 @@ const Aura = () => {
       {/* Footer */}
       <footer className="py-20 text-center border-t border-slate-200">
         <div className="container mx-auto px-6">
-          <div className="mb-8">
-            <span className="font-black italic tracking-tighter text-2xl uppercase text-slate-900">
-              TECH<span className="text-red-600"> ASSASSIN</span>
-            </span>
+          <div className="mb-8 flex justify-center">
+            <img
+              src="/tech_assassin_logo.png"
+              alt="Tech Assassin"
+              className="h-8 w-auto object-contain"
+            />
           </div>
           <p className="text-slate-400 text-xs uppercase tracking-[0.5em] font-black">
              Engineered with 💖 for the Future of Learning

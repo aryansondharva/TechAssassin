@@ -137,7 +137,11 @@ export default function ForgotPassword() {
         <Card className="bg-card/80 backdrop-blur-lg border-border shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
-              <img src="/favicon.ico" alt="TechAssassin" className="w-16 h-16 mx-auto" />
+              <img
+                src="/tech_assassin_logo.png"
+                alt="Tech Assassin"
+                className="mx-auto h-10 w-auto object-contain"
+              />
             </div>
             <CardTitle className="text-2xl font-bold text-card-foreground">
               {step === 'email' && 'Forgot Password'}

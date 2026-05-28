@@ -153,9 +153,9 @@ export default function SignIn() {
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto mb-4">
               <img 
-                src="/favicon.ico" 
-                alt="TechAssassin" 
-                className="w-16 h-16 mx-auto mb-2"
+                src="/tech_assassin_logo.png"
+                alt="Tech Assassin"
+                className="mx-auto mb-2 h-10 w-auto object-contain"
               />
             </div>
             <CardTitle className="text-3xl font-bold text-card-foreground">Sign In</CardTitle>

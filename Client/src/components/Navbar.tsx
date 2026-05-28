@@ -86,9 +86,11 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
         `}>
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <span className="font-black italic tracking-tighter text-base md:text-lg uppercase text-slate-950 transition-colors">
-              TECH<span className="text-red-600"> ASSASSIN</span>
-            </span>
+            <img
+              src="/tech_assassin_logo.png"
+              alt="Tech Assassin"
+              className="h-7 w-auto object-contain md:h-8"
+            />
           </Link>
 
           {/* Desktop Navigation - Centered */}
