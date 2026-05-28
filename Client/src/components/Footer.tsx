@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import logoImg from '@/assets/logo.png';
 
 const socialLinks = [
   {
@@ -150,7 +151,7 @@ const Footer = () => {
         {/* Bottom bar: Brand + Copyright */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <img
-            src="/logo.png"
+            src={logoImg}
             alt="Tech Assassin"
             className="h-7 w-auto object-contain"
           />

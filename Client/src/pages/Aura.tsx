@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
+import logoImg from '@/assets/logo.png';
 
 const Aura = () => {
   return (
@@ -148,7 +149,7 @@ const Aura = () => {
         <div className="container mx-auto px-6">
           <div className="mb-8 flex justify-center">
             <img
-              src="/logo.png"
+              src={logoImg}
               alt="Tech Assassin"
               className="h-8 w-auto object-contain"
             />

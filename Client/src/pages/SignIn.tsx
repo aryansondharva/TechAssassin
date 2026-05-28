@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, Eye, EyeOff, Shield, Zap, Trophy, Users, ArrowRight } from 'lucide-react';
+import logoImg from '@/assets/logo.png';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -153,7 +154,7 @@ export default function SignIn() {
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto mb-4">
               <img 
-                src="/logo.png"
+                src={logoImg}
                 alt="Tech Assassin"
                 className="mx-auto mb-2 h-10 w-auto object-contain"
               />

@@ -1,3 +1,5 @@
+import founderImg from '@/assets/founder.png';
+import manthanImg from '@/assets/manthan.png';
 import type { Member } from "./types";
 
 export const teamMembers: Member[] = [
@@ -5,7 +7,7 @@ export const teamMembers: Member[] = [
     name: "Manthan Rajpurohit",
     role: "Co-Founder",
     accent: "bg-blue-600",
-    image: "/manthan.png",
+    image: manthanImg,
   },
   {
     name: "Berlin",
@@ -31,7 +33,7 @@ export const founderMember: Member = {
   name: "Aryan Sondharva",
   role: "Founder",
   accent: "bg-red-600",
-  image: "/founder.png",
+  image: founderImg,
   links: {
     portfolio: "https://aryan-sondharva.vercel.app/",
     discord: "https://discord.gg/S6V3KNUu",

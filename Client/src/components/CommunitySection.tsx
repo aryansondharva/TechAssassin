@@ -1,3 +1,6 @@
+import founderImg from '@/assets/founder.png';
+import manthanImg from '@/assets/manthan.png';
+import flagImg from '@/assets/flag.webp';
 import {
   ArrowRight,
   BookOpen,
@@ -72,14 +75,14 @@ const testimonials = [
       "Tech Assassin makes unfinished ideas feel finishable. The best part is the mix of accountability, feedback, and people who actually want to build.",
     name: "Aryan Sondharva",
     role: "Founder",
-    image: "/founder.png",
+    image: {founderImg},
   },
   {
     quote:
       "The community is practical. You do not just talk about projects, you ship them, get reviewed, and learn what to improve next.",
     name: "Manthan Rajpurohit",
     role: "Co-Founder",
-    image: "/manthan.png",
+    image: {manthanImg},
   },
 ];
 
@@ -104,7 +107,7 @@ const ImpactSection = () => (
         <div className="relative">
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_30px_70px_-45px_rgba(15,23,42,0.8)]">
             <img
-              src="/flag.webp"
+              src={flagImg}
               alt="Tech Assassin community"
               className="h-64 w-full object-cover sm:h-80 md:h-[23rem]"
               loading="lazy"
@@ -197,7 +200,7 @@ const QuoteSection = () => (
         <div className="relative justify-self-center">
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_26px_70px_-42px_rgba(15,23,42,0.9)]">
             <img
-              src="/founder.png"
+              src={founderImg}
               alt="Tech Assassin founder"
               className="h-72 w-full max-w-xs object-cover sm:h-80 sm:w-72"
               loading="lazy"
@@ -217,7 +220,7 @@ const IdentitySection = () => (
       <div className="mx-auto mb-10 flex h-40 max-w-xl items-center justify-center md:h-48">
         <div className="relative h-40 w-40">
           <img 
-            src="/flag.webp" 
+            src={flagImg} 
             alt="Tech Assassin Flag" 
             className="h-full w-full object-contain" 
           />

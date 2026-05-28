@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useUser, useClerk, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "./NotificationBell";
+import logoImg from '@/assets/logo.png';
 
 const navLinks = [
   { label: "About", href: "/about", isRoute: true },
@@ -87,7 +88,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
             <img
-              src="/logo.png"
+              src={logoImg}
               alt="Tech Assassin"
               className="h-5 w-auto object-contain min-[420px]:h-6 md:h-8"
             />
@@ -177,7 +178,7 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
               <div className="flex items-center justify-between">
                 <Link to="/" onClick={() => setMobileOpen(false)} className="shrink-0">
                   <img
-                    src="/logo.png"
+                    src={logoImg}
                     alt="Tech Assassin"
                     className="h-6 w-auto object-contain"
                   />
