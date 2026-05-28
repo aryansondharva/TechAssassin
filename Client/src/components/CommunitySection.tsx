@@ -216,10 +216,11 @@ const IdentitySection = () => (
     <div className="container relative mx-auto px-6 text-center">
       <div className="mx-auto mb-10 flex h-40 max-w-xl items-center justify-center md:h-48">
         <div className="relative h-40 w-40">
-          <div className="absolute left-1/2 top-0 h-36 w-px -translate-x-1/2 bg-slate-950" />
-          <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-b-full border-b-4 border-l-4 border-slate-950" />
-          <div className="absolute bottom-0 left-1/2 h-16 w-16 -translate-x-1/2 rounded-t-full bg-slate-950" />
-          <div className="absolute bottom-6 left-1/2 h-20 w-px -translate-x-1/2 bg-slate-950" />
+          <img 
+            src="/flag.webp" 
+            alt="Tech Assassin Flag" 
+            className="h-full w-full object-contain" 
+          />
         </div>
       </div>
       <h2 className="text-3xl font-black text-slate-950 md:text-5xl">
