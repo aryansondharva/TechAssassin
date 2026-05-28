@@ -1,4 +1,19 @@
 {
+  "name": "techassassin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:client": "npm run dev --prefix Client",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:client": "npm run build --prefix Client",
+    "build:backend": "npm run build --prefix backend",
+    "typecheck:client": "npm run typecheck --prefix Client",
+    "typecheck:backend": "npm run typecheck --prefix backend",
+    "typecheck": "npm run typecheck:client && npm run typecheck:backend",
+    "test:client": "npm test --prefix Client",
+    "test:backend": "npm test --prefix backend",
+    "test": "npm run test:client && npm run test:backend"
+  },
   "dependencies": {
     "dotenv": "^17.4.2"
   }

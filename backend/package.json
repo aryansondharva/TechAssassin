@@ -8,6 +8,7 @@
     "start": "node scripts/start-next.js",
     "start:local": "next start -p 3001",
     "lint": "next lint",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

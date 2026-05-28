@@ -1,278 +1,72 @@
 # TechAssassin Backend
 
-A serverless Next.js 14 backend application for the TechAssassin hackathon community platform.
+Next.js 14 backend for the TechAssassin platform. It provides API routes for profiles, events, registrations, announcements, resources, sponsors, community features, mentorship, notifications, missions, and leaderboards.
 
-## 🚧 Development Status
+## Stack
 
-**Current Phase:** Core Infrastructure Complete, API Development In Progress
+- Next.js 14 App Router
+- TypeScript
+- Supabase PostgreSQL
+- Clerk authentication
+- Zod validation
+- Resend email integration
+- Vitest smoke/unit tests
 
-### ✅ Completed
-- Project structure and dependencies
-- Complete database schema (core + forum/live rooms tables)
-- All database migrations & RLS policies
-- Supabase Storage & File Management
-- Mission (Event) Management API
-- Community Hub API (Stats, Activities, Contributors)
-- Global Leaderboard with Trend Tracking
-- Profile Management & Authentication
-- Email Service & Real-time Subscriptions
-- Comprehensive Test Suite (Vitest)
+## Structure
 
-## Tech Stack
-
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript (strict mode)
-- **Database**: Supabase PostgreSQL
-- **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage
-- **Email**: Resend API
-- **Testing**: Vitest + fast-check (property-based testing)
-- **Deployment**: Vercel
-
-## Project Structure
-
-```
+```text
 backend/
-├── app/
-│   ├── api/              # API routes
-│   │   ├── auth/         # Security management
-│   │   ├── community/    # Hub features (Stats, Activities)
-│   │   ├── events/       # Mission management
-│   │   ├── leaderboard/  # Competitive ranking
-│   │   ├── profile/      # Operative identity
-│   │   └── health/       # Health check ✅
-├── lib/                  # Business logic and utilities
-│   ├── email/           # Email service (planned)
-│   ├── errors/          # Error handling (planned)
-│   ├── middleware/      # Auth middleware (planned)
-│   ├── services/        # Business services (planned)
-│   ├── storage/         # File storage (planned)
-│   ├── supabase/        # Supabase clients (planned)
-│   ├── utils/           # Utilities ✅
-│   └── validations/     # Zod schemas (planned)
-├── supabase/
-│   └── migrations/      # Database migrations ✅ (33 files)
-├── types/
-│   └── database.ts      # TypeScript types ✅
-├── vitest.config.ts     # Test configuration ✅
-├── .env.local           # Environment variables (not committed)
-└── .env.example         # Environment variables template
+  app/api/                  API route handlers
+  lib/auth/                 Server auth helpers
+  lib/email/                Email provider integration
+  lib/errors/               Error classes and handlers
+  lib/middleware/           Auth middleware helpers
+  lib/services/             Backend business logic
+  lib/supabase/             Supabase clients
+  lib/utils/                Shared backend utilities
+  lib/validations/          Zod request schemas
+  scripts/                  Maintenance and startup scripts
+  supabase/migrations/      Database migrations
+  types/                    Database and shared types
 ```
 
-## Database Schema
+## Local Development
 
-Core tables:
-- ✅ **profiles** - Extended user information
-- ✅ **events** - Hackathon event details
-- ✅ **registrations** - User event registrations
-- ✅ **announcements** - Community announcements
-- ✅ **resources** - Educational content
-- ✅ **sponsors** - Sponsor information
-- ✅ **leaderboard** - Event scoring
-
-Community + realtime additions:
-- ✅ **forum_categories**, **threads**, **replies**, **tags**, **thread_tags**, **thread_reactions**, **thread_views**
-- ✅ **channels**, **channel_members**, **presence_tracking**
-
-All tables have:
-- ✅ Proper indexes for performance
-- ✅ Foreign key constraints
-- ✅ Row Level Security policies
-- ✅ Validation constraints
-
-## Project Structure
-
-```
-backend/
-├── app/
-│   ├── api/          # API routes
-│   └── ...           # Next.js app files
-├── lib/              # Business logic and utilities
-├── types/            # TypeScript type definitions
-├── .env.local        # Environment variables (not committed)
-└── .env.example      # Environment variables template
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- Resend account
-
-### Installation
-
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
-
-Then edit `.env.local` with your actual credentials:
-- Supabase URL and keys from your Supabase project settings
-- Resend API key from your Resend dashboard
-
-### Development
-
-Run the development server:
-```bash
+copy .env.example .env.local
 npm run dev
 ```
 
-The API will be available at `http://localhost:3000/api`
+The API runs at `http://localhost:3001/api`.
 
-### Testing
+## Required Environment Variables
 
-Run tests:
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key for server-only operations |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| `CLERK_SECRET_KEY` | Clerk secret key |
+| `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret |
+| `RESEND_API_KEY` | Resend API key |
+| `NEXT_PUBLIC_APP_URL` | Public frontend URL |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins |
+
+## Commands
+
 ```bash
-npm test              # Run all tests once
-npm run test:watch    # Run tests in watch mode
-npm run test:ui       # Run tests with UI
-npm run test:coverage # Run tests with coverage report
-```
-
-**Current Test Status:**
-- ✅ Database schema validation tests (passing)
-- ✅ Database schema structure tests (passing)
-- 🔄 Property-based tests (in development)
-- 🔄 API endpoint tests (in development)
-
-### Database Setup
-
-The database migrations are located in `supabase/migrations/`. To set up:
-
-1. Create a Supabase project
-2. Go to SQL Editor in your Supabase dashboard
-3. Run each migration file in order (they're numbered)
-
-**Migration Files (All Complete ✅):**
-- Tables: profiles, events, registrations, announcements, resources, sponsors, leaderboard
-- Triggers: Automatic profile creation on user signup
-- RLS Policies: Security policies for all tables
-- Storage: Buckets and policies for file uploads
-
-See [migrations/README.md](./supabase/migrations/README.md) for detailed documentation.
-
-### Building
-
-Build for production:
-```bash
+npm run dev
+npm run typecheck
+npm test
 npm run build
+npm start
 ```
 
-## Environment Variables
+`npm start` uses `scripts/start-next.js` so hosted platforms can provide `PORT`.
 
-See `.env.example` for required environment variables:
+## Database
 
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (server-side only)
-- `RESEND_API_KEY`: Your Resend API key for sending emails
-
-## API Documentation
-
-API routes are located in `app/api/` and follow RESTful conventions.
-
-### Current Endpoints
-
-- ✅ **Authentication**: `/api/auth/*`
-- ✅ **Community Hub**: `/api/community/*` (activities, contributors, stats)
-- ✅ **Profiles**: `/api/profile/*`
-- ✅ **Missions (Events)**: `/api/events/*`
-- ✅ **Registrations**: `/api/registrations/*`
-- ✅ **Announcements**: `/api/announcements/*`
-- ✅ **Resources**: `/api/resources/*`
-- ✅ **Sponsors**: `/api/sponsors/*`
-- ✅ **Leaderboard**: `/api/leaderboard/*`
-- ✅ **Health Check**: `/api/health`
-
-Full API documentation will be available in `API.md` once implementation is complete.
-
-## Development Workflow
-
-1. **Database First**: All database changes go through migrations
-2. **Type Safety**: TypeScript types are defined in `types/database.ts`
-3. **Validation**: Input validation using Zod schemas
-4. **Testing**: Both unit tests and property-based tests
-5. **Security**: Row Level Security enforced at database level
-
-## Deployment
-
-### Quick Deployment to Vercel
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login
-vercel login
-
-# Deploy
-cd backend
-vercel --prod
-```
-
-See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for quick start guide.
-
-### Comprehensive Deployment Guide
-
-For detailed production deployment instructions including:
-- Supabase production setup
-- Resend configuration
-- Environment variables
-- Database migrations
-- CORS configuration
-- Post-deployment verification
-- Monitoring and maintenance
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-### Database Migrations
-
-To run database migrations on your Supabase instance:
-
-```bash
-# Using Supabase CLI (recommended)
-supabase link --project-ref your-project-ref
-supabase db push
-
-# Or manually via SQL Editor
-# See DATABASE_MIGRATION_GUIDE.md for detailed instructions
-```
-
-See [DATABASE_MIGRATION_GUIDE.md](./DATABASE_MIGRATION_GUIDE.md) for complete migration guide.
-
-### Production Checklist
-
-Before deploying to production, complete the [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) to ensure:
-- All environment variables configured
-- Database migrations applied
-- Security policies enabled
-- Monitoring configured
-- Backup procedures in place
-
-## Documentation
-
-- [Setup Guide](./SETUP.md) - Detailed setup instructions for local development
-- [API Documentation](./API.md) - Complete API reference
-- [Deployment Guide](./DEPLOYMENT.md) - Comprehensive production deployment guide
-- [Vercel Quick Start](./VERCEL_DEPLOYMENT.md) - Quick reference for Vercel deployment
-- [Database Migration Guide](./DATABASE_MIGRATION_GUIDE.md) - Database migration procedures
-- [Production Checklist](./PRODUCTION_CHECKLIST.md) - Pre-deployment verification checklist
-- [Database Migrations](./supabase/migrations/README.md) - Migration file documentation
-- [RLS Policies](./supabase/migrations/RLS_POLICIES.md) - Security policy details
-- [Database Tests](./lib/utils/DATABASE_TESTS_README.md) - Test documentation
-
-## API Documentation
-
-API routes are located in `app/api/` and follow RESTful conventions.
-
-## License
-
-MIT
+Apply migrations from `backend/supabase/migrations` in filename order. The migration folder includes core tables, RLS policies, storage setup, realtime presence, mentorship, notifications, and gamification tables.

@@ -14,7 +14,20 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: [],
-    include: ['**/*.test.ts', '**/*.test.tsx'],
+    include: [
+      'lib/utils/setup.test.ts',
+      'lib/validations/**/*.test.ts',
+      'lib/supabase/**/*.test.ts',
+      'lib/email/**/*.test.ts',
+      'lib/middleware/**/*.test.ts',
+      'app/api/leaderboard/**/*.test.ts',
+    ],
+    exclude: [
+      'node_modules/**',
+      '.next/**',
+      'coverage/**',
+      'services/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

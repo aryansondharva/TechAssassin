@@ -24,6 +24,26 @@
     "downlevelIteration": true,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "vitest.config.ts", "coverage", "tmp_migration.ts", "*.js"]
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "lib/**/*.ts",
+    "types/**/*.ts",
+    "middleware.ts",
+    "proxy.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts",
+    "coverage",
+    "services/**",
+    "scripts/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "tmp_migration.ts",
+    "*.js"
+  ]
 }

@@ -8,6 +8,7 @@
 !README.md
 !code_of_conduct.md
 !CONTRIBUTING.md
+!PROJECT_HANDOFF.md
 
 # Allow specific important documentation if needed
 # !CONTRIBUTING.md
@@ -53,6 +54,7 @@ Client/.env.local
 node_modules/
 backend/node_modules/
 Client/node_modules/
+Client/.vite/
 
 # =============================================================================
 # BUILD OUTPUTS
