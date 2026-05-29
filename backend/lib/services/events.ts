@@ -78,21 +78,26 @@ export async function listEvents(filters: {
   
   // Get participant counts for all events in a single query (optimize N+1)
   const eventIds = events.map((e: Event) => e.id)
-  const { data: registrationCounts, error: countError } = await supabase
-    .from('registrations')
-    .select('event_id')
-    .in('event_id', eventIds)
-    .eq('status', 'confirmed')
-  
-  if (countError) {
-    throw new Error(`Failed to get participant counts: ${countError.message}`)
-  }
   
   // Create a map of event_id to participant count
   const participantCountMap = new Map<string, number>()
-  registrationCounts?.forEach((reg: { event_id: string }) => {
-    participantCountMap.set(reg.event_id, (participantCountMap.get(reg.event_id) || 0) + 1)
-  })
+  
+  // Only query registrations if we have events (Supabase .in() fails with empty array)
+  if (eventIds.length > 0) {
+    const { data: registrationCounts, error: countError } = await supabase
+      .from('registrations')
+      .select('event_id')
+      .in('event_id', eventIds)
+      .eq('status', 'confirmed')
+    
+    if (countError) {
+      throw new Error(`Failed to get participant counts: ${countError.message}`)
+    }
+    
+    registrationCounts?.forEach((reg: { event_id: string }) => {
+      participantCountMap.set(reg.event_id, (participantCountMap.get(reg.event_id) || 0) + 1)
+    })
+  }
   
   // Calculate status for each event and add participant count
   let eventsWithStatus: EventWithParticipants[] = events.map((event: Event) => {

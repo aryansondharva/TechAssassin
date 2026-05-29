@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { eventsService } from '@/services';
 import { ApiError } from '@/lib/api-client';
@@ -12,46 +12,61 @@ import Navbar from '@/components/Navbar';
 import { Input } from '@/components/ui/input';
 
 export default function Events() {
-  const [events, setEvents] = useState<EventWithParticipants[]>([]);
+  const [allEvents, setAllEvents] = useState<EventWithParticipants[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming' | 'past'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchEvents();
   }, [filter]);
 
-  // Mock Luma event for consistency
-  const lumaEvent: EventWithParticipants = {
-    id: 'luma-code4cause-2025',
-    title: 'Code4Cause: Social Impact Hackathon',
-    description: 'Ready to Ignite Change? Step up and code for a cause! The Social Impact Hackathon isn\'t just an event; it\'s a movement.',
-    start_date: '2025-02-21T09:00:00+05:30',
-    end_date: '2025-02-21T16:15:00+05:30',
-    location: 'Computer Seminar Hall | GIDC Degree Engineering College',
-    max_participants: 200,
-    participant_count: 45,
-    status: 'live',
-    image_urls: ['/og-image.png'],
-    registration_open: true,
-    prizes: { '1st': '5K INR', '2nd': '3K INR' },
-    themes: ['Social Impact'],
-    created_at: '2025-02-15T00:00:00+05:30'
-  };
-
   const fetchEvents = async () => {
     setIsLoading(true);
     try {
-      const allEvents = [lumaEvent];
-      const filteredEvents = filter === 'all' 
-        ? allEvents 
-        : allEvents.filter(event => event.status === filter);
-      setEvents(filteredEvents);
+      const response = await eventsService.list({
+        status: filter === 'all' ? undefined : (filter as 'live' | 'upcoming' | 'past'),
+      });
+      setAllEvents(response.data);
     } catch (error) {
-      toast({ title: 'Sync Error', description: 'Failed to synchronize mission logs.', variant: 'destructive' });
+      let errorMessage = 'Failed to synchronize mission logs.';
+      if (error instanceof ApiError) {
+        errorMessage = error.message;
+      }
+      toast({ 
+        title: 'Sync Error', 
+        description: errorMessage, 
+        variant: 'destructive' 
+      });
+      setAllEvents([]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Filter events by search query (client-side for real-time search)
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allEvents;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return allEvents.filter(event => 
+      event.title.toLowerCase().includes(query) ||
+      event.description.toLowerCase().includes(query) ||
+      event.location.toLowerCase().includes(query)
+    );
+  }, [allEvents, searchQuery]);
+
+  // Get event counts by status for display
+  const eventCounts = useMemo(() => {
+    return {
+      all: allEvents.length,
+      live: allEvents.filter(e => e.status === 'live').length,
+      upcoming: allEvents.filter(e => e.status === 'upcoming').length,
+      past: allEvents.filter(e => e.status === 'past').length,
+    };
+  }, [allEvents]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -73,6 +88,8 @@ export default function Events() {
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-red-600 transition-colors" />
              <Input 
                 placeholder="Search missions..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-12 pl-12 rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-red-600/10"
              />
           </div>
@@ -80,10 +97,10 @@ export default function Events() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-12">
-          <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="All Missions" count={1} />
-          <FilterButton active={filter === 'live'} onClick={() => setFilter('live')} label="Live" count={1} />
-          <FilterButton active={filter === 'upcoming'} onClick={() => setFilter('upcoming')} label="Upcoming" />
-          <FilterButton active={filter === 'past'} onClick={() => setFilter('past')} label="Archive" />
+          <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="All Missions" count={eventCounts.all} />
+          <FilterButton active={filter === 'live'} onClick={() => setFilter('live')} label="Live" count={eventCounts.live} />
+          <FilterButton active={filter === 'upcoming'} onClick={() => setFilter('upcoming')} label="Upcoming" count={eventCounts.upcoming} />
+          <FilterButton active={filter === 'past'} onClick={() => setFilter('past')} label="Archive" count={eventCounts.past} />
         </div>
 
         {/* Events Grid */}
@@ -91,14 +108,14 @@ export default function Events() {
           <div className="flex justify-center py-32">
             <Loader2 className="h-10 w-10 animate-spin text-red-600" />
           </div>
-        ) : events.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div className="py-32 text-center bg-white rounded-[2.5rem] border border-dashed border-slate-200">
              <Clock className="w-16 h-16 text-slate-200 mx-auto mb-6" />
              <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest italic">No missions detected in this sector.</h3>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <MissionCard key={event.id} event={event} />
             ))}
           </div>
@@ -132,59 +149,63 @@ function FilterButton({ active, onClick, label, count }: any) {
 
 function MissionCard({ event }: { event: EventWithParticipants }) {
   return (
-    <Card className="border-none shadow-sm rounded-[2.5rem] bg-white overflow-hidden group hover:shadow-xl transition-all duration-500">
-      <div className="h-56 overflow-hidden relative">
-        <img
-          src={event.image_urls?.[0] || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800'}
-          alt={event.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-        />
-        <div className="absolute top-6 left-6">
-           <Badge className="bg-red-600 text-white border-none rounded-lg text-[10px] font-black uppercase py-1.5 px-3 tracking-widest shadow-lg">
-             {event.status}
-           </Badge>
+    <Link to={`/events/${event.id}`} className="group">
+      <Card className="border-none shadow-sm rounded-[2.5rem] bg-white overflow-hidden group-hover:shadow-xl transition-all duration-500 h-full">
+        <div className="h-56 overflow-hidden relative">
+          <img
+            src={event.image_urls?.[0] || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800'}
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute top-6 left-6">
+             <Badge className="bg-red-600 text-white border-none rounded-lg text-[10px] font-black uppercase py-1.5 px-3 tracking-widest shadow-lg">
+               {event.status}
+             </Badge>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-      </div>
 
-      <CardHeader className="p-8 pb-4">
-        <CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-red-600 transition-colors line-clamp-1 uppercase italic">
-          {event.title}
-        </CardTitle>
-        <CardDescription className="text-slate-500 font-medium line-clamp-2 mt-2">
-          {event.description}
-        </CardDescription>
-      </CardHeader>
+        <CardHeader className="p-8 pb-4">
+          <CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-red-600 transition-colors line-clamp-1 uppercase italic">
+            {event.title}
+          </CardTitle>
+          <CardDescription className="text-slate-500 font-medium line-clamp-2 mt-2">
+            {event.description}
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent className="p-8 pt-0 space-y-4">
-        <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
-          <Calendar className="w-4 h-4 text-red-600" />
-          <span>{new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
-          <MapPin className="w-4 h-4 text-red-600" />
-          <span className="truncate">{event.location}</span>
-        </div>
-        
-        <div className="pt-4 flex items-center justify-between border-t border-slate-50">
-           <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-slate-300" />
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{event.participant_count}/{event.max_participants} Units</span>
-           </div>
-           {event.prizes && (
-              <div className="flex items-center gap-2 text-red-600">
-                 <Trophy className="w-4 h-4" />
-                 <span className="text-xs font-black uppercase tracking-widest italic">{event.prizes['1st']} Bounty</span>
-              </div>
-           )}
-        </div>
-      </CardContent>
+        <CardContent className="p-8 pt-0 space-y-4">
+          <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
+            <Calendar className="w-4 h-4 text-red-600" />
+            <span>{new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
+            <MapPin className="w-4 h-4 text-red-600" />
+            <span className="truncate">{event.location}</span>
+          </div>
+          
+          <div className="pt-4 flex items-center justify-between border-t border-slate-50">
+             <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-slate-300" />
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{event.participant_count}/{event.max_participants} Units</span>
+             </div>
+             {event.prizes && (
+                <div className="flex items-center gap-2 text-red-600">
+                   <Trophy className="w-4 h-4" />
+                   <span className="text-xs font-black uppercase tracking-widest italic">{event.prizes['1st']} Bounty</span>
+                </div>
+             )}
+          </div>
+        </CardContent>
 
-      <CardFooter className="p-8 pt-0">
-          <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all group-hover:scale-[1.02] active:scale-[0.98]">
-             Mission Briefing <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
-      </CardFooter>
-    </Card>
+        <CardFooter className="p-8 pt-0">
+            <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all group-hover:scale-[1.02] active:scale-[0.98]" asChild>
+               <span>
+                  Mission Briefing <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+               </span>
+            </Button>
+        </CardFooter>
+      </Card>
+    </Link>
   );
 }
