@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { Pool } from 'pg'
 import { ensureEditProfileColumns } from '@/lib/profile-schema'
+import { getAvailableClerkUsername, getClerkPrimaryEmail } from '@/lib/clerk-profile'
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
@@ -102,14 +103,11 @@ async function handleUserUpsert(userData: any, client: any) {
     await ensureEditProfileColumns(client)
 
     const clerkUserId = userData.id
-    const primaryEmail = userData.email_addresses?.find(
-      (email: any) => email.id === userData.primary_email_address_id
-    )?.email_address || userData.email_addresses?.[0]?.email_address || null
-    
-    const username = `user_${String(clerkUserId).slice(-8).replace(/[^a-zA-Z0-9_]/g, '')}`
+    const primaryEmail = getClerkPrimaryEmail(userData)
+    const username = await getAvailableClerkUsername(client, userData, clerkUserId)
 
-    // Keep editable profile fields blank on signup.
-    // username is only a technical placeholder because the DB requires it.
+    // Keep editable profile fields blank on signup, but use Clerk login data
+    // for the required username so users get a real handle immediately.
     await client.query(`
       INSERT INTO public.profiles (
         id, username, email, first_name, last_name, full_name, avatar_url, updated_at
@@ -117,6 +115,13 @@ async function handleUserUpsert(userData: any, client: any) {
         $1, $2, $3, '', '', '', NULL, NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
+        username = CASE
+          WHEN public.profiles.username IS NULL
+            OR public.profiles.username = ''
+            OR public.profiles.username ~* '^user_[a-z0-9_]{4,}$'
+          THEN EXCLUDED.username
+          ELSE public.profiles.username
+        END,
         email = EXCLUDED.email,
         updated_at = NOW()
         -- Do not overwrite editable profile fields from Clerk.

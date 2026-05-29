@@ -150,11 +150,12 @@ const Navbar = ({ dark = true }: { dark?: boolean }) => {
           </div>
             
             {/* Mobile Actions Container */}
-            <div className="flex items-center gap-3 md:hidden">
-              {isSignedIn && <NotificationBell dark={false} />}
+            <div className="flex shrink-0 items-center gap-2 min-[380px]:gap-3 md:hidden">
+              {isSignedIn && !mobileOpen && <NotificationBell dark={false} />}
               
               {/* Mobile Menu Button */}
               <button
+                type="button"
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-950 transition-colors hover:bg-slate-100"
                 aria-label={mobileOpen ? "Close menu" : "Open menu"}
                 onClick={() => setMobileOpen(!mobileOpen)}

@@ -45,6 +45,19 @@ const getFullName = (firstName?: string, lastName?: string, fallback?: string | 
 
 const isGeneratedUsername = (username?: string | null) => /^user_[a-zA-Z0-9_]{4,}$/i.test(username || '');
 
+const normalizeClerkUsername = (value?: string | null) => {
+  const normalized = (value || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 30);
+
+  return normalized.length >= 3 ? normalized : '';
+};
+
 const normalizeHandle = (value?: string | null) => (value || '').trim().replace(/^@+/, '').replace(/^\/+/, '');
 
 const normalizeUrl = (value?: string | null) => {
@@ -78,10 +91,11 @@ const normalizeProfilePayload = (data: ProfileUpdateRequest): ProfileUpdateReque
 
 const getClerkProfileFallback = (clerkUser: any, userId?: string | null): Partial<Profile> => {
   const email = clerkUser?.primaryEmailAddress?.emailAddress || '';
+  const username = normalizeClerkUsername(clerkUser?.username) || normalizeClerkUsername(email.split('@')[0]);
 
   return {
     id: userId || clerkUser?.id || '',
-    username: '',
+    username,
     email,
     first_name: '',
     last_name: '',
@@ -97,7 +111,7 @@ const mergeProfileWithFallback = (data: Partial<Profile>, fallback: Partial<Prof
   return {
     ...fallback,
     ...data,
-    username: isGeneratedUsername(data.username) ? '' : data.username || fallback.username || '',
+    username: isGeneratedUsername(data.username) ? fallback.username || '' : data.username || fallback.username || '',
     email: data.email || fallback.email || '',
     first_name: data.first_name || fallback.first_name || '',
     last_name: data.last_name || fallback.last_name || '',

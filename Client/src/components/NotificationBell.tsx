@@ -34,17 +34,21 @@ export default function NotificationBell({ dark = true }: { dark?: boolean }) {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative shrink-0" ref={dropdownRef}>
       {/* Bell Button */}
       <button
+        type="button"
+        aria-label="Open notifications"
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-full transition-all duration-300 ${
-          dark ? "hover:bg-white/10 text-white" : "hover:bg-slate-100 text-slate-900"
+        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-300 md:h-10 md:w-10 ${
+          dark
+            ? "border-white/10 bg-white/5 text-white hover:bg-white/10"
+            : "border-slate-200 bg-slate-50 text-slate-900 hover:bg-slate-100"
         }`}
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-inherit rounded-full"></span>
+          <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500"></span>
         )}
       </button>
 
@@ -56,7 +60,7 @@ export default function NotificationBell({ dark = true }: { dark?: boolean }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className={`absolute right-0 mt-3 w-80 lg:w-96 rounded-2xl shadow-2xl border overflow-hidden z-50 ${
+            className={`fixed left-3 right-3 top-[4.25rem] z-[120] max-h-[calc(100svh-5.5rem)] w-auto overflow-hidden rounded-2xl border shadow-2xl md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:max-h-none md:w-80 lg:w-96 ${
               dark ? "bg-black/90 border-white/10 backdrop-blur-xl" : "bg-white border-slate-100"
             }`}
           >
@@ -78,7 +82,7 @@ export default function NotificationBell({ dark = true }: { dark?: boolean }) {
             </div>
 
             {/* List */}
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="custom-scrollbar max-h-[calc(100svh-11rem)] overflow-y-auto md:max-h-[400px]">
               {notifications.length === 0 ? (
                 <div className={`p-8 text-center text-sm font-medium ${dark ? "text-slate-500" : "text-slate-400"}`}>
                   No notifications yet.
@@ -96,12 +100,12 @@ export default function NotificationBell({ dark = true }: { dark?: boolean }) {
                         <div className={`shrink-0 mt-1 flex items-center justify-center w-8 h-8 rounded-full ${dark ? "bg-white/10" : "bg-slate-100"}`}>
                            {getIconForType(notification.type)}
                         </div>
-                        <div className="flex-1">
-                          <p className={`text-sm font-bold ${dark ? "text-slate-200" : "text-slate-900"}`}>
+                        <div className="min-w-0 flex-1">
+                          <p className={`break-words text-sm font-bold ${dark ? "text-slate-200" : "text-slate-900"}`}>
                             {notification.title}
                           </p>
                           {notification.content && (
-                            <p className={`text-xs mt-1 leading-relaxed ${dark ? "text-slate-400" : "text-slate-500"}`}>
+                            <p className={`mt-1 break-words text-xs leading-relaxed ${dark ? "text-slate-400" : "text-slate-500"}`}>
                               {notification.content}
                             </p>
                           )}

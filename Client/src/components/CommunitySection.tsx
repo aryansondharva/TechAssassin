@@ -332,14 +332,26 @@ const QuoteSection = () => (
     <div className="container mx-auto px-6">
       <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-[1fr_0.9fr] md:gap-14">
         <div>
-          <p className="text-[2rem] font-black leading-[1.08] text-red-600 sm:text-[2.35rem] md:text-[2.65rem] lg:text-[3rem]">
-            The mission is simple: give every student a real shot at building
-            something meaningful before motivation fades.
-          </p>
+          <h2 className="text-[2rem] font-black leading-[1.08] text-red-600 sm:text-[2.35rem] md:text-[2.65rem] lg:text-[3rem]">
+            Built by a student,
+            <br />
+            for students who are ready to build.
+          </h2>
           <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-            Tech Assassin exists for unfinished ideas, late-night commits, and
-            the students who need the right room to keep going.
+            Tech Assassin exists for students with unfinished ideas, late-night
+            commits, and the hunger to create something real. Our goal is to
+            give every student a space to learn, collaborate, ship projects,
+            and grow with a builder mindset.
           </p>
+          <div className="mt-8 max-w-2xl border-l-4 border-slate-950 pl-5">
+            <p className="text-xl font-black leading-8 text-slate-950">
+              "We are not creating just a community. We are creating a
+              launchpad for student builders."
+            </p>
+            <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-red-600">
+              Aryan Sondharva, Founder
+            </p>
+          </div>
         </div>
         <div className="relative justify-self-center">
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_34px_90px_-48px_rgba(15,23,42,0.9)]">
@@ -350,8 +362,8 @@ const QuoteSection = () => (
               loading="lazy"
             />
           </div>
-          <FloatingChip className="-left-4 top-4 sm:-left-7 sm:top-5" color="bg-yellow-300" text="fx" />
-          <FloatingChip className="-bottom-4 right-5 sm:-bottom-6 sm:right-6" color="bg-blue-500" text="Py" light />
+          <FloatingChip className="-left-4 top-4 sm:-left-7 sm:top-5" color="bg-yellow-300" text="23" />
+          <FloatingChip className="-bottom-4 right-5 sm:-bottom-6 sm:right-6" color="bg-blue-500" text="01" light />
         </div>
       </div>
     </div>
@@ -370,12 +382,10 @@ const IdentitySection = () => (
           />
         </div>
       </div>
-      <h2 className="text-[2.3rem] font-black leading-tight text-slate-950 sm:text-[2.85rem] md:text-[3.45rem] lg:text-[3.85rem]">
-        Tech Assassin is{" "}
-        <span className="relative inline-block">
-          your build runway
-          <span className="absolute -bottom-2 left-0 right-0 h-2 bg-blue-500" />
-        </span>
+      <h2 className="mx-auto flex max-w-5xl items-end justify-center gap-3 text-[2.65rem] font-black leading-none text-slate-800 sm:text-[3.75rem] md:text-[4.7rem] lg:text-[5.35rem]">
+        <span>Tech Assassin is</span>
+        <span className="mb-2 h-2 flex-1 bg-blue-500 sm:mb-3 md:mb-4" aria-hidden="true" />
+        <span>.</span>
       </h2>
     </div>
   </section>

@@ -90,7 +90,7 @@ const DecorativeMarks = () => (
       border="border-blue-500"
     />
     <FloatingBadge
-      className="right-[24%] bottom-[-2%] hidden md:flex"
+      className="right-[8%] bottom-[-6%] hidden xl:flex"
       rotate="-rotate-12"
       bg="bg-red-600"
       border="border-red-700"

@@ -5,6 +5,7 @@ import { profileUpdateSchema } from '@/lib/validations/profile'
 import { handleApiError, NotFoundError, ConflictError, AuthorizationError, AuthenticationError } from '@/lib/errors'
 import { deleteAvatar } from '@/lib/storage/cleanup'
 import { ensureEditProfileColumns } from '@/lib/profile-schema'
+import { getAvailableClerkUsername, getClerkPrimaryEmail, isGeneratedUsername } from '@/lib/clerk-profile'
 
 // Use pg pool directly — avoids PostgREST schema cache issues entirely
 const pool = new Pool({
@@ -90,12 +91,8 @@ export async function GET() {
         try {
           const clerk = await clerkClient()
           const user = await clerk.users.getUser(userId)
-          
-          const primaryEmail = user.emailAddresses.find(
-            (email) => email.id === user.primaryEmailAddressId
-          )?.emailAddress || user.emailAddresses[0]?.emailAddress || ''
-          
-          const username = `user_${String(userId).slice(-8).replace(/[^a-zA-Z0-9_]/g, '')}`
+          const primaryEmail = getClerkPrimaryEmail(user) || ''
+          const username = await getAvailableClerkUsername(client, user, userId)
 
           const { rows: newRows } = await client.query(`
             INSERT INTO public.profiles (
@@ -112,7 +109,27 @@ export async function GET() {
         }
       }
 
-      return NextResponse.json(rows[0])
+      let profile = rows[0]
+      if (!profile.username || isGeneratedUsername(profile.username)) {
+        try {
+          const clerk = await clerkClient()
+          const user = await clerk.users.getUser(userId)
+          const username = await getAvailableClerkUsername(client, user, userId)
+          const primaryEmail = getClerkPrimaryEmail(user) || profile.email
+
+          if (username && username !== profile.username) {
+            const { rows: updatedRows } = await client.query(
+              'UPDATE public.profiles SET username = $2, email = $3, updated_at = NOW() WHERE id = $1 RETURNING *',
+              [userId, username, primaryEmail]
+            )
+            profile = updatedRows[0] || profile
+          }
+        } catch (syncError) {
+          console.warn('Failed to refresh generated username from Clerk:', syncError)
+        }
+      }
+
+      return NextResponse.json(profile)
     } finally {
       client.release()
     }
