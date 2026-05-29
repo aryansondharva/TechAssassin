@@ -14,7 +14,6 @@ import {
   MapPin,
   Rocket,
   Star,
-  Trophy,
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -78,18 +77,27 @@ const missions = [
     date: "June 12",
     location: "Online",
     tag: "Hackathon",
+    marker: "bg-red-600",
+    chip: "bg-red-600 text-white",
+    block: "bg-emerald-400",
   },
   {
     title: "Open-Source Lab",
     date: "June 18",
     location: "Discord",
     tag: "Mission",
+    marker: "bg-blue-500",
+    chip: "bg-blue-50 text-blue-600",
+    block: "bg-yellow-300",
   },
   {
     title: "AI Builder Week",
     date: "June 24",
     location: "Global",
     tag: "Workshop",
+    marker: "bg-emerald-400",
+    chip: "bg-emerald-50 text-emerald-700",
+    block: "bg-red-100",
   },
 ];
 
@@ -253,34 +261,65 @@ const ImpactImageSwap = () => {
 };
 
 const HappeningNowSection = () => (
-  <section className="bg-white py-14 md:py-[4.5rem]">
-    <div className="container mx-auto px-6">
-      <h2 className="mb-8 text-center text-2xl font-black text-slate-950 md:text-[2rem]">
-        Happening now
-      </h2>
-      <div className="mx-auto grid max-w-5xl gap-5 md:grid-cols-3">
-        {missions.map((mission) => (
-          <article key={mission.title} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="rounded bg-red-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-red-600">
+  <section className="relative overflow-hidden bg-white py-16 md:py-24">
+    <div className="absolute inset-x-0 top-0 h-px bg-slate-100" aria-hidden="true" />
+    <div className="container relative mx-auto px-6">
+      <div className="mx-auto mb-11 max-w-4xl text-center">
+        <p className="mb-4 text-sm font-black uppercase tracking-[0.24em] text-red-600">
+          Live missions
+        </p>
+        <h2 className="text-[2.25rem] font-black leading-tight text-slate-950 sm:text-[2.75rem] md:text-[3.15rem]">
+          Happening{" "}
+          <span className="relative inline-block">
+            now
+            <span className="absolute -bottom-1.5 left-0 right-0 h-2 bg-red-500" />
+          </span>
+        </h2>
+      </div>
+      <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+        {missions.map((mission, index) => (
+          <article
+            key={mission.title}
+            className="group relative min-h-[21rem] overflow-hidden rounded-lg border border-slate-200 bg-white p-7 shadow-[0_28px_80px_-50px_rgba(15,23,42,0.9)] transition-all hover:-translate-y-1 hover:border-slate-950 hover:shadow-[0_34px_90px_-52px_rgba(15,23,42,0.95)] sm:p-8"
+          >
+            <span className={`absolute inset-x-0 top-0 h-2 ${mission.marker}`} aria-hidden="true" />
+            <span
+              className={`absolute -right-8 -top-8 h-24 w-24 rotate-12 rounded-lg opacity-90 transition-transform group-hover:rotate-6 ${mission.block}`}
+              aria-hidden="true"
+            />
+            <div className="relative mb-7 flex items-center justify-between gap-4">
+              <span className={`rounded px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${mission.chip}`}>
                 {mission.tag}
               </span>
-              <Trophy className="h-4 w-4 text-yellow-500" />
+              {/* <span className={`flex h-9 w-9 items-center justify-center rounded-lg shadow-sm ${mission.icon}`}>
+                <Rocket className="h-4 w-4" />
+              </span> */}
             </div>
-            <h3 className="text-xl font-black leading-snug text-slate-950">{mission.title}</h3>
-            <div className="mt-4 space-y-2 text-[0.95rem] font-medium text-slate-500">
-              <p className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-red-600" />
+            <div className="relative mb-5 flex items-center gap-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-black text-white">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className={`h-3.5 w-20 rounded-full ${mission.marker}`} />
+            </div>
+            <h3 className="relative text-[1.55rem] font-black leading-snug text-slate-950 sm:text-[1.65rem]">
+              {mission.title}
+            </h3>
+            <div className="relative mt-6 space-y-3 text-[1.05rem] font-semibold text-slate-600">
+              <p className="flex items-center gap-3">
+                <CalendarDays className="h-5 w-5 text-red-600" />
                 {mission.date}
               </p>
-              <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-red-600" />
+              <p className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-red-600" />
                 {mission.location}
               </p>
             </div>
-            <a href="#community" className="mt-5 inline-flex items-center gap-2 text-[0.95rem] font-black text-red-600">
-              View mission <ArrowRight className="h-4 w-4" />
-            </a>
+            <Link
+              to="/events?status=live"
+              className="relative mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 text-[1.05rem] font-black text-white transition-colors hover:bg-red-600"
+            >
+              View events <ArrowRight className="h-5 w-5" />
+            </Link>
           </article>
         ))}
       </div>
@@ -289,25 +328,25 @@ const HappeningNowSection = () => (
 );
 
 const QuoteSection = () => (
-  <section className="bg-white py-14 md:py-20">
+  <section className="bg-white py-16 md:py-24">
     <div className="container mx-auto px-6">
-      <div className="mx-auto grid max-w-5xl items-center gap-8 md:grid-cols-[0.95fr_1.05fr] md:gap-10">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-[1fr_0.9fr] md:gap-14">
         <div>
-          <p className="text-[1.65rem] font-black leading-tight text-red-600 md:text-[2rem]">
+          <p className="text-[2rem] font-black leading-[1.08] text-red-600 sm:text-[2.35rem] md:text-[2.65rem] lg:text-[3rem]">
             The mission is simple: give every student a real shot at building
             something meaningful before motivation fades.
           </p>
-          <p className="mt-5 text-base font-semibold leading-7 text-slate-600">
+          <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
             Tech Assassin exists for unfinished ideas, late-night commits, and
             the students who need the right room to keep going.
           </p>
         </div>
         <div className="relative justify-self-center">
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_26px_70px_-42px_rgba(15,23,42,0.9)]">
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_34px_90px_-48px_rgba(15,23,42,0.9)]">
             <img
               src={founderImg}
               alt="Tech Assassin founder"
-              className="h-72 w-full max-w-xs object-cover sm:h-80 sm:w-72"
+              className="h-[21rem] w-full max-w-sm object-cover sm:h-[27rem] sm:w-[22rem] md:h-[30rem] md:w-[24rem] lg:h-[32rem] lg:w-[25rem]"
               loading="lazy"
             />
           </div>
@@ -320,22 +359,22 @@ const QuoteSection = () => (
 );
 
 const IdentitySection = () => (
-  <section className="relative bg-white py-16 md:py-20">
+  <section className="relative bg-white py-20 md:py-28">
     <div className="container relative mx-auto px-6 text-center">
-      <div className="mx-auto mb-10 flex h-56 max-w-xl items-center justify-center md:h-64">
-        <div className="relative h-56 w-56 md:h-64 md:w-64">
+      <div className="mx-auto mb-12 flex h-72 max-w-2xl items-center justify-center md:h-80 lg:h-96">
+        <div className="relative h-72 w-72 md:h-80 md:w-80 lg:h-96 lg:w-96">
           <img 
             src={flagImg} 
             alt="Tech Assassin Flag" 
-            className="h-full w-full object-contain scale-[1.3] md:scale-[1.5]" 
+            className="h-full w-full object-contain scale-[1.25] md:scale-[1.4]" 
           />
         </div>
       </div>
-      <h2 className="text-[1.9rem] font-black leading-tight text-slate-950 md:text-[2.75rem]">
+      <h2 className="text-[2.3rem] font-black leading-tight text-slate-950 sm:text-[2.85rem] md:text-[3.45rem] lg:text-[3.85rem]">
         Tech Assassin is{" "}
         <span className="relative inline-block">
           your build runway
-          <span className="absolute -bottom-2 left-0 right-0 h-1.5 bg-blue-500" />
+          <span className="absolute -bottom-2 left-0 right-0 h-2 bg-blue-500" />
         </span>
       </h2>
     </div>
@@ -343,8 +382,8 @@ const IdentitySection = () => (
 );
 
 const BuilderStorySection = () => (
-  <section className="bg-white py-16 md:py-20">
-    <div className="container mx-auto space-y-16 px-6 md:space-y-20">
+  <section className="bg-white py-20 md:py-28">
+    <div className="container mx-auto space-y-20 px-6 md:space-y-28">
       {storyBlocks.map((block, index) => {
         const Icon = block.icon;
         const flipped = index % 2 === 1;
@@ -352,27 +391,27 @@ const BuilderStorySection = () => (
         return (
           <div
             key={block.title}
-            className={`mx-auto grid max-w-5xl items-center gap-8 md:grid-cols-2 md:gap-12 ${flipped ? "md:[&>*:first-child]:order-2" : ""}`}
+            className={`mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-16 ${flipped ? "md:[&>*:first-child]:order-2" : ""}`}
           >
             <div>
-              <div className="mb-5 flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-sm font-black text-white">
+              <div className="mb-6 flex items-center gap-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-base font-black text-white">
                   {block.step}
                 </span>
-                <span className="h-4 w-16 rounded-full bg-emerald-400" />
-                <Icon className="h-5 w-5 text-blue-500" />
+                <span className="h-4 w-20 rounded-full bg-emerald-400" />
+                <Icon className="h-6 w-6 text-blue-500" />
               </div>
-              <h3 className="text-[1.45rem] font-black leading-tight text-slate-950 sm:text-[1.65rem]">
+              <h3 className="text-[1.85rem] font-black leading-tight text-slate-950 sm:text-[2.15rem] md:text-[2.45rem]">
                 {block.title}
               </h3>
-              <p className="mt-4 max-w-xl text-base font-medium leading-7 text-slate-600">
+              <p className="mt-5 max-w-2xl text-lg font-medium leading-8 text-slate-600">
                 {block.body}
               </p>
               <Link
                 to="/signup"
-                className="mt-6 inline-flex items-center gap-2 rounded bg-blue-50 px-4 py-2 text-[0.95rem] font-black text-blue-600 transition-colors hover:bg-blue-100"
+                className="mt-7 inline-flex h-12 items-center gap-2 rounded bg-blue-50 px-5 text-[1.05rem] font-black text-blue-600 transition-colors hover:bg-blue-100"
               >
-                {block.cta} <ArrowRight className="h-4 w-4" />
+                {block.cta} <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
             <ProductMockup type={block.mockup} />
@@ -384,38 +423,38 @@ const BuilderStorySection = () => (
 );
 
 const DeveloperVoicesSection = () => (
-  <section id="developers-say" className="bg-white py-16 md:py-20">
+  <section id="developers-say" className="bg-white py-20 md:py-28">
     <div className="container mx-auto px-6">
-      <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-[1.9rem] font-black leading-tight text-slate-950 sm:text-[2.25rem]">
+      <div className="mx-auto max-w-5xl text-center">
+        <h2 className="text-[2.25rem] font-black leading-tight text-slate-950 sm:text-[2.75rem] md:text-[3.15rem]">
           We speak, we listen, we discuss, we grow.
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base font-medium leading-7 text-slate-600 sm:text-[1.05rem]">
+        <p className="mx-auto mt-5 max-w-3xl text-lg font-medium leading-8 text-slate-600">
           Real progress comes from feedback loops. These are the voices we are
           building for.
         </p>
       </div>
-      <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-2">
+      <div className="mx-auto mt-14 grid max-w-6xl gap-6 md:grid-cols-2">
         {testimonials.map((item) => (
-          <article key={item.name} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center gap-1 text-yellow-400">
+          <article key={item.name} className="rounded-lg border border-slate-200 bg-white p-8 shadow-[0_24px_70px_-48px_rgba(15,23,42,0.8)]">
+            <div className="mb-7 flex items-center gap-1.5 text-yellow-400">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-4 w-4 fill-current" />
+                <Star key={star} className="h-5 w-5 fill-current" />
               ))}
             </div>
-            <p className="text-base font-bold leading-7 text-slate-800 sm:text-[1.05rem]">
+            <p className="text-lg font-bold leading-8 text-slate-800 sm:text-[1.2rem]">
               "{item.quote}"
             </p>
-            <div className="mt-8 flex items-center gap-4">
+            <div className="mt-9 flex items-center gap-5">
               <img
                 src={item.image}
                 alt={item.name}
-                className="h-12 w-12 rounded-full border border-slate-200 object-cover"
+                className="h-16 w-16 rounded-full border border-slate-200 object-cover"
                 loading="lazy"
               />
               <div>
-                <h3 className="font-black text-slate-950">{item.name}</h3>
-                <p className="text-sm font-medium text-slate-500">{item.role}</p>
+                <h3 className="text-lg font-black text-slate-950">{item.name}</h3>
+                <p className="text-base font-medium text-slate-500">{item.role}</p>
               </div>
             </div>
           </article>
@@ -426,35 +465,35 @@ const DeveloperVoicesSection = () => (
 );
 
 const CommunityCtaSection = () => (
-  <section className="bg-yellow-300 py-16 md:py-20">
+  <section className="bg-yellow-300 py-20 md:py-28">
     <div className="container mx-auto px-6 text-center">
-      <p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-slate-800">
+      <p className="mb-4 text-sm font-black uppercase tracking-[0.22em] text-slate-800">
         Tech Assassin for communities
       </p>
-      <h2 className="mx-auto max-w-3xl text-[1.9rem] font-black leading-tight text-slate-950 sm:text-[2.35rem] md:text-[2.75rem]">
+      <h2 className="mx-auto max-w-4xl text-[2.25rem] font-black leading-tight text-slate-950 sm:text-[2.8rem] md:text-[3.25rem] lg:text-[3.5rem]">
         Run missions, collect builders, and turn ideas into proof.
       </h2>
-      <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-7 text-slate-700 sm:text-[1.05rem]">
+      <p className="mx-auto mt-6 max-w-3xl text-lg font-semibold leading-8 text-slate-700">
         Student clubs, mentors, and organizers can bring their people together
         with missions, reviews, and showcases.
       </p>
-      <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <a
           href="https://discord.gg/S6V3KNUu"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-6 py-3 font-black text-white transition-colors hover:bg-red-600"
+          className="inline-flex h-14 items-center gap-2 rounded-lg bg-slate-950 px-7 text-lg font-black text-white transition-colors hover:bg-red-600"
         >
-          <Users className="h-5 w-5" />
+          <Users className="h-6 w-6" />
           Join Community
         </a>
         <a
           href="https://github.com/aryansondharva/TechAssassin"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-900/20 bg-white px-6 py-3 font-black text-slate-950 transition-colors hover:bg-slate-50"
+          className="inline-flex h-14 items-center gap-2 rounded-lg border border-slate-900/20 bg-white px-7 text-lg font-black text-slate-950 transition-colors hover:bg-slate-50"
         >
-          <Github className="h-5 w-5" />
+          <Github className="h-6 w-6" />
           Open Source
         </a>
       </div>
@@ -463,34 +502,34 @@ const CommunityCtaSection = () => (
 );
 
 const ProductMockup = ({ type }: { type: string }) => (
-  <div className="relative mx-auto w-full max-w-md">
-    <div className="absolute -bottom-4 -left-4 hidden h-20 w-20 bg-yellow-100 sm:block md:-bottom-6 md:-left-6 md:h-28 md:w-28" />
-    <div className="absolute -right-4 bottom-8 hidden h-20 w-20 bg-emerald-300 sm:block md:-right-6 md:h-24 md:w-24" />
-    <div className="relative rounded-lg border border-slate-200 bg-white p-5 shadow-[0_28px_80px_-52px_rgba(15,23,42,0.9)]">
-      <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
-        <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-        <span className="h-2.5 w-2.5 rounded-full bg-yellow-300" />
-        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+  <div className="relative mx-auto w-full max-w-lg">
+    <div className="absolute -bottom-4 -left-4 hidden h-24 w-24 bg-yellow-100 sm:block md:-bottom-7 md:-left-7 md:h-32 md:w-32" />
+    <div className="absolute -right-4 bottom-8 hidden h-24 w-24 bg-emerald-300 sm:block md:-right-7 md:h-28 md:w-28" />
+    <div className="relative rounded-lg border border-slate-200 bg-white p-7 shadow-[0_32px_90px_-54px_rgba(15,23,42,0.9)]">
+      <div className="mb-6 flex items-center gap-2.5 border-b border-slate-100 pb-5">
+        <span className="h-3 w-3 rounded-full bg-red-400" />
+        <span className="h-3 w-3 rounded-full bg-yellow-300" />
+        <span className="h-3 w-3 rounded-full bg-emerald-400" />
       </div>
-      <div className="space-y-4">
-        <div className="h-3 w-1/2 rounded bg-blue-500" />
-        <div className="grid grid-cols-[1fr_5rem] gap-4">
-          <div className="space-y-2">
-            <div className="h-3 rounded bg-slate-100" />
-            <div className="h-3 w-4/5 rounded bg-slate-100" />
-            <div className="h-3 w-3/5 rounded bg-slate-100" />
+      <div className="space-y-5">
+        <div className="h-4 w-1/2 rounded bg-blue-500" />
+        <div className="grid grid-cols-[1fr_6rem] gap-5">
+          <div className="space-y-3">
+            <div className="h-4 rounded bg-slate-100" />
+            <div className="h-4 w-4/5 rounded bg-slate-100" />
+            <div className="h-4 w-3/5 rounded bg-slate-100" />
           </div>
-          <div className="rounded bg-blue-50 p-3 text-center text-[10px] font-black uppercase text-blue-600">
+          <div className="rounded bg-blue-50 p-4 text-center text-xs font-black uppercase text-blue-600">
             {type}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="h-20 rounded bg-slate-100" />
-          <div className="h-20 rounded bg-blue-100" />
-          <div className="h-20 rounded bg-slate-100" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-28 rounded bg-slate-100" />
+          <div className="h-28 rounded bg-blue-100" />
+          <div className="h-28 rounded bg-slate-100" />
         </div>
       </div>
-      <div className="absolute left-3 top-16 rounded bg-blue-700 px-3 py-2 text-[10px] font-black text-white shadow-lg sm:-left-4">
+      <div className="absolute left-4 top-20 rounded bg-blue-700 px-4 py-2.5 text-xs font-black text-white shadow-lg sm:-left-5">
         {type === "profile" ? "Verified work" : type === "projects" ? "Review ready" : "Mission live"}
       </div>
     </div>

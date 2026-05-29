@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { eventsService } from '@/services';
 import { ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -11,15 +11,32 @@ import type { EventWithParticipants } from '@/types/api';
 import Navbar from '@/components/Navbar';
 import { Input } from '@/components/ui/input';
 
+type EventFilter = 'all' | 'live' | 'upcoming' | 'past';
+
+const getEventFilter = (status: string | null): EventFilter => {
+  return status === 'live' || status === 'upcoming' || status === 'past' ? status : 'all';
+};
+
 export default function Events() {
   const [allEvents, setAllEvents] = useState<EventWithParticipants[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming' | 'past'>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filter, setFilter] = useState<EventFilter>(() => getEventFilter(searchParams.get('status')));
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const nextFilter = getEventFilter(searchParams.get('status'));
+    setFilter((currentFilter) => (currentFilter === nextFilter ? currentFilter : nextFilter));
+  }, [searchParams]);
 
   useEffect(() => {
     fetchEvents();
   }, [filter]);
+
+  const updateFilter = (nextFilter: EventFilter) => {
+    setFilter(nextFilter);
+    setSearchParams(nextFilter === 'all' ? {} : { status: nextFilter });
+  };
 
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -97,10 +114,10 @@ export default function Events() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-12">
-          <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="All Missions" count={eventCounts.all} />
-          <FilterButton active={filter === 'live'} onClick={() => setFilter('live')} label="Live" count={eventCounts.live} />
-          <FilterButton active={filter === 'upcoming'} onClick={() => setFilter('upcoming')} label="Upcoming" count={eventCounts.upcoming} />
-          <FilterButton active={filter === 'past'} onClick={() => setFilter('past')} label="Archive" count={eventCounts.past} />
+          <FilterButton active={filter === 'all'} onClick={() => updateFilter('all')} label="All Missions" count={eventCounts.all} />
+          <FilterButton active={filter === 'live'} onClick={() => updateFilter('live')} label="Live" count={eventCounts.live} />
+          <FilterButton active={filter === 'upcoming'} onClick={() => updateFilter('upcoming')} label="Upcoming" count={eventCounts.upcoming} />
+          <FilterButton active={filter === 'past'} onClick={() => updateFilter('past')} label="Archive" count={eventCounts.past} />
         </div>
 
         {/* Events Grid */}
