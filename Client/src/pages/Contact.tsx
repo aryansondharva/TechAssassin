@@ -136,7 +136,7 @@ const Contact = () => {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Your name" name="name" placeholder="Aryan" />
+                  <Field label="Your name" name="name" placeholder="Aryan Sondharva" />
                   <Field label="Email" name="email" type="email" placeholder="name@example.com" />
                 </div>
 
@@ -186,14 +186,6 @@ const Contact = () => {
                 </div>
               </form>
             </div>
-          </div>
-        </section>
-
-        <section className="border-y border-slate-200 bg-slate-50 py-10">
-          <div className="container mx-auto grid gap-5 px-6 text-center sm:grid-cols-3">
-            <Metric icon={Users} value="Community" label="builders, mentors, organizers" />
-            <Metric icon={MessageSquare} value="Response" label="support and collaboration" />
-            <Metric icon={ArrowRight} value="Next step" label="move the mission forward" />
           </div>
         </section>
       </main>

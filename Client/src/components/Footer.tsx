@@ -192,14 +192,14 @@ const Footer = () => {
             alt="Tech Assassin"
             className="h-7 w-auto object-contain"
           />
-          <p className="flex items-center gap-2 text-sm text-hero-muted">
+          {/* <p className="flex items-center gap-2 text-sm text-hero-muted">
             <Eye className="h-4 w-4 text-primary" />
             <span>
               {visitorCount === null
                 ? visitorError ? "Visitors unavailable" : "Visitors loading"
                 : `${formatVisitorCount(visitorCount)} unique visitors`}
             </span>
-          </p>
+          </p> */}
           <p className="text-hero-muted text-sm flex items-center gap-1">
             © 2026, Tech Assassin Community.
           </p>
