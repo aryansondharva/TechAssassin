@@ -1,5 +1,8 @@
 import { z } from 'zod'
 
+const httpUrlSchema = (message: string) =>
+  z.string().regex(/^https?:\/\/.+/i, message)
+
 /**
  * Profile update validation schema
  * Validates username, full_name, bio, github_url, linkedin_url, portfolio_url, and skills
@@ -45,7 +48,6 @@ export const profileUpdateSchema = z.object({
   graduation_year: z.union([z.number().int().min(1900).max(2100), z.string(), z.null()]).optional(),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(200).optional().or(z.literal('')),
-  avatar_url: z.string().url().optional().or(z.literal('')),
   banner_url: z.string().regex(/^https?:\/\/.+/i, 'Banner URL must be a valid URL').optional().or(z.literal('')),
   interests: z.array(z.string()).max(10, 'Cannot have more than 10 interests').optional(),
   first_name: z.string().max(50).optional().or(z.literal('')),
@@ -59,7 +61,8 @@ export const profileUpdateSchema = z.object({
   degree_type: z.string().optional().or(z.literal('')),
   graduation_month: z.string().optional().or(z.literal('')),
   roles: z.array(z.string()).optional(),
-  resume_url: z.string().url().optional().or(z.literal('')),
+  avatar_url: httpUrlSchema('Avatar URL must be a valid URL').optional().or(z.literal('')),
+  resume_url: httpUrlSchema('Resume URL must be a valid URL').optional().or(z.literal('')),
   has_experience: z.boolean().optional(),
   twitter_url: z.string().regex(/^https?:\/\/.+/i, 'Twitter URL must be a valid URL').optional().or(z.literal('')),
   emergency_contact_name: z.string().max(100).optional().or(z.literal('')),
