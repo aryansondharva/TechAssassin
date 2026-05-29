@@ -119,10 +119,31 @@
     background-size: 200% auto;
     animation: gradient-x 3s linear infinite;
   }
+  .partner-marquee-track {
+    animation: partner-marquee 32s linear infinite;
+  }
+  .partner-marquee-track:hover {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes gradient-x {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes partner-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-marquee-track {
+    animation-duration: 90s;
+  }
 }

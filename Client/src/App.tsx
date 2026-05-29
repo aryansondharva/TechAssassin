@@ -21,6 +21,7 @@ const Mentorship = lazy(() => import("./pages/Mentorship"));
 const Missions = lazy(() => import("./pages/Missions"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const Collaborate = lazy(() => import("./pages/Collaborate"));
 const Aura = lazy(() => import("./pages/Aura"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/missions" element={withSuspense(<Missions />)} />
           <Route path="/about" element={withSuspense(<About />)} />
           <Route path="/contact" element={withSuspense(<Contact />)} />
+          <Route path="/collaborate" element={withSuspense(<Collaborate />)} />
           <Route path="/aura" element={withSuspense(<Aura />)} />
           <Route path="/projects" element={withSuspense(<NotFound />)} />
           <Route path="/profile" element={withSuspense(<Profile />)} />

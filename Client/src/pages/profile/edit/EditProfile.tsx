@@ -252,8 +252,12 @@ export default function EditProfile() {
       
       const timeString = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
       toast({ title: 'Profile Updated', description: `Successfully updated at ${timeString} (IST)` });
-    } catch (error) {
-       toast({ title: 'Sync Failed', description: 'Could not write to the central database.', variant: 'destructive' });
+    } catch (error: any) {
+       let errorMessage = error.message || 'Could not write to the central database.';
+       if (error.data?.details && Array.isArray(error.data.details)) {
+         errorMessage = error.data.details.map((d: any) => d.message).join(', ');
+       }
+       toast({ title: 'Sync Failed', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }

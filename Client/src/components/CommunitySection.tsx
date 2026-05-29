@@ -145,6 +145,21 @@ const testimonials = [
   },
 ];
 
+const collaboratorItems = [
+  "Workshops",
+  "Hackathons",
+  "Sponsorships",
+  "Hiring Talent",
+  "Product Feedback",
+  "Mentorship",
+  "Brand Presence",
+  "Campus Events",
+  "Internship Connect",
+  "Startup Collaboration",
+  "Community Growth",
+  "Student Innovation",
+];
+
 const CommunitySection = () => {
   return (
     <>
@@ -153,6 +168,7 @@ const CommunitySection = () => {
       <QuoteSection />
       <IdentitySection />
       <BuilderStorySection />
+      <CompaniesCollaboratorsSection />
       <DeveloperVoicesSection />
       <CommunityCtaSection />
     </>
@@ -468,6 +484,59 @@ const DeveloperVoicesSection = () => (
               </div>
             </div>
           </article>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const CompaniesCollaboratorsSection = () => (
+  <section id="collaborators" className="relative overflow-hidden bg-white py-20 md:py-28">
+    <div className="absolute inset-x-0 top-0 h-px bg-slate-100" aria-hidden="true" />
+    <div className="container mx-auto px-6">
+      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end lg:gap-14">
+        <div>
+          <p className="mb-4 text-sm font-black uppercase tracking-[0.24em] text-red-600">
+            For companies & collaborators
+          </p>
+          <h2 className="text-[2.25rem] font-black leading-tight text-slate-950 sm:text-[2.75rem] md:text-[3.15rem] lg:text-[3.45rem]">
+            Partner with the next generation of student builders.
+          </h2>
+        </div>
+        <div>
+          <p className="text-xl font-black leading-8 text-slate-950 md:text-[1.45rem] md:leading-9">
+            Collaborate with Tech Assassin to reach students who are ready to
+            learn, build, test, and ship real projects.
+          </p>
+          <p className="mt-5 text-lg font-medium leading-8 text-slate-600">
+            Tech Assassin connects companies and tech organizations with
+            passionate student developers through practical workshops,
+            hackathons, mentorship sessions, sponsorship opportunities, hiring
+            support, and real product feedback.
+          </p>
+          <Link
+            to="/collaborate"
+            className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-slate-950 px-7 text-lg font-black text-white transition-colors hover:bg-red-600"
+          >
+            Collaborate With Us <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+    </div>
+
+    <div className="relative mt-14 overflow-hidden border-y border-slate-100 bg-slate-50/70 py-5">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white via-white/90 to-transparent sm:w-40" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white via-white/90 to-transparent sm:w-40" />
+      <div className="partner-marquee-track flex w-max gap-3 px-3">
+        {[...collaboratorItems, ...collaboratorItems].map((item, index) => (
+          <span
+            key={`${item}-${index}`}
+            aria-hidden={index >= collaboratorItems.length}
+            className="flex h-12 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-black uppercase tracking-[0.12em] text-slate-950 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.8)]"
+          >
+            <span className="h-2 w-2 rounded-full bg-red-600" />
+            {item}
+          </span>
         ))}
       </div>
     </div>

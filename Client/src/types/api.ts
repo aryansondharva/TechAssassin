@@ -105,6 +105,52 @@ export interface Sponsor {
   created_at: string;
 }
 
+export type CollaborationOrganizationType =
+  | 'company'
+  | 'startup'
+  | 'sponsor'
+  | 'mentor'
+  | 'tech_organization'
+  | 'university'
+  | 'community'
+  | 'other';
+
+export type CollaborationInterest =
+  | 'workshops'
+  | 'hackathons'
+  | 'sponsorships'
+  | 'hiring_talent'
+  | 'product_feedback'
+  | 'mentorship'
+  | 'brand_presence'
+  | 'campus_events'
+  | 'internship_connect'
+  | 'startup_collaboration'
+  | 'community_growth'
+  | 'student_innovation';
+
+export interface CollaborationRequest {
+  id: string;
+  user_id: string | null;
+  organization_name: string;
+  organization_type: CollaborationOrganizationType;
+  contact_name: string;
+  role_title: string | null;
+  work_email: string;
+  phone: string | null;
+  website_url: string | null;
+  collaboration_interests: CollaborationInterest[];
+  budget_range: string | null;
+  timeline: string | null;
+  student_audience: string | null;
+  message: string;
+  status: 'new' | 'reviewing' | 'contacted' | 'accepted' | 'closed';
+  source_page: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface LeaderboardEntry {
   id: string;
   event_id: string;
@@ -185,6 +231,22 @@ export interface AuthResponse {
 
 export interface ResetPasswordRequest {
   email: string;
+}
+
+export interface CollaborationRequestCreateRequest {
+  organization_name: string;
+  organization_type: CollaborationOrganizationType;
+  contact_name: string;
+  role_title?: string;
+  work_email: string;
+  phone?: string;
+  website_url?: string;
+  collaboration_interests: CollaborationInterest[];
+  budget_range?: string;
+  timeline?: string;
+  student_audience?: string;
+  message: string;
+  source_page?: string;
 }
 
 // ============================================================================
