@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isIP } from 'node:net'
 
 const isValidHttpUrl = (value: string) => {
   try {
@@ -8,11 +9,7 @@ const isValidHttpUrl = (value: string) => {
     }
 
     const hostname = parsed.hostname.toLowerCase()
-    return (
-      hostname === 'localhost' ||
-      hostname.includes('.') ||
-      /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname)
-    )
+    return hostname === 'localhost' || hostname.includes('.') || isIP(hostname) > 0
   } catch {
     return false
   }
