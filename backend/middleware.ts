@@ -2,6 +2,17 @@ import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const PRODUCTION_FRONTEND_ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'https://tech-assassin.vercel.app'
+
+const parseOrigins = (value?: string) =>
+  value?.split(',').reduce<string[]>((origins, candidate) => {
+    const origin = candidate.trim()
+    if (origin) {
+      origins.push(origin)
+    }
+    return origins
+  }, []) ?? []
+
 /**
  * Combined Clerk and CORS Middleware for TechAssassin Backend API
  * 
@@ -23,9 +34,6 @@ const applyCorsHeaders = (
     response.headers.set('Access-Control-Allow-Origin', allowOriginHeader)
   }
 
-  const varyHeader = response.headers.get('Vary')
-  response.headers.set('Vary', varyHeader ? `${varyHeader}, Origin` : 'Origin')
-
   if (isAllowedOrigin) {
     response.headers.set('Access-Control-Allow-Credentials', 'true')
   }
@@ -33,17 +41,19 @@ const applyCorsHeaders = (
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
 
+  const varyHeader = response.headers.get('Vary')
+  response.headers.set('Vary', varyHeader ? `${varyHeader}, Origin` : 'Origin')
+
   return response
 }
 
 const getAllowedOrigins = () => {
-  const envOrigins =
-   process.env.CORS_ORIGINS?.split(',').map((value) => value.trim()).filter(Boolean) ?? []
+  const envOrigins = parseOrigins(process.env.CORS_ORIGINS)
 
   return Array.from(
    new Set(
      [
-       'https://tech-assassin.vercel.app',
+       PRODUCTION_FRONTEND_ORIGIN,
        process.env.NEXT_PUBLIC_APP_URL,
        ...envOrigins,
      ].filter((originValue): originValue is string => Boolean(originValue))
