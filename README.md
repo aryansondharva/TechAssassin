@@ -149,10 +149,8 @@ JWT_SECRET=minimum_32_character_security_key
 ```
 
 ### Database Deployment
-Initialize the database layer by executing the following scripts in order:
-1. SQL/20260326000001_create_realtime_presence_activity.sql
-2. SQL/create_leaderboard_materialized_view.sql
-3. SQL/optimize_badge_criteria_indexes.sql
+Initialize the database layer by executing the consolidated schema:
+1. database/final/techassassin_complete_schema.sql
 
 ---
 
@@ -187,7 +185,7 @@ npm test
 ---
 
 ## Deployment Strategy
-Web and API components are optimized for deployment on Vercel. Database migrations should be applied to production using the SQL scripts located in the /SQL directory. Mobile builds are managed via Expo Application Services (EAS).
+Web and API components are optimized for deployment on Vercel. Database schema deployment should use the consolidated SQL file in database/final. Mobile builds are managed via Expo Application Services (EAS).
 
 ---
 

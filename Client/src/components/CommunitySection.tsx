@@ -19,24 +19,24 @@ import {
 import { Link } from "react-router-dom";
 
 const stats = [
-  // {
-  //   value: "950,000+",
-  //   label: "builders",
-  //   color: "bg-[#5ccdbc]",
-  //   className: "max-w-[25rem] lg:-ml-28 lg:w-[32rem] lg:max-w-none",
-  // },
-  // {
-  //   value: "80,000+",
-  //   label: "projects",
-  //   color: "bg-[#03df79]",
-  //   className: "max-w-[22rem] lg:-ml-28 lg:w-[28rem] lg:max-w-none",
-  // },
-  // {
-  //   value: "1,500+",
-  //   label: "hackathons",
-  //   color: "bg-[#81a2ed]",
-  //   className: "max-w-[20rem] lg:-ml-28 lg:w-[26rem] lg:max-w-none",
-  // },
+  {
+    value: "950,000+",
+    label: "builders",
+    color: "bg-[#5ccdbc]",
+    className: "max-w-[25rem] lg:-ml-28 lg:w-[32rem] lg:max-w-none",
+  },
+  {
+    value: "80,000+",
+    label: "projects",
+    color: "bg-[#03df79]",
+    className: "max-w-[22rem] lg:-ml-28 lg:w-[28rem] lg:max-w-none",
+  },
+  {
+    value: "1,500+",
+    label: "hackathons",
+    color: "bg-[#81a2ed]",
+    className: "max-w-[20rem] lg:-ml-28 lg:w-[26rem] lg:max-w-none",
+  },
 ];
 
 const impactSlides = [

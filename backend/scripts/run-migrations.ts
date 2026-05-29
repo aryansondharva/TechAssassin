@@ -5,7 +5,7 @@ import pool from '../lib/db/postgres';
 async function runMigrations() {
   console.log('🚀 Starting database migrations...\n');
 
-  const migrationsDir = join(__dirname, '../supabase/migrations');
+  const migrationsDir = join(__dirname, '../../database/final');
   const migrationFiles = readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort(); // Run in order

@@ -17,7 +17,7 @@ async function runMigrations() {
   console.log('🚀 Starting database migrations...\n');
   console.log('Connection URL:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@'));
 
-  const migrationsDir = join(__dirname, '../../SQL');
+  const migrationsDir = join(__dirname, '../../database/final');
   const migrationFiles = readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort(); // Run in order

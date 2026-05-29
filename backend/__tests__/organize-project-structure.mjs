@@ -426,11 +426,6 @@ function moveFilesToStructure() {
     { from: 'UUID_FIX_COMPLETE.md', to: 'docs/database/UUID_FIX_COMPLETE.md' },
     { from: 'BACKEND_ERRORS_FIXED.md', to: 'docs/troubleshooting/BACKEND_ERRORS_FIXED.md' },
     { from: 'CLERK_LOGIN_GUIDE.md', to: 'docs/guides/CLERK_LOGIN_GUIDE.md' },
-    
-    // SQL files
-    { from: '../SQL/20260418000001_master_database_schema_v2.sql', to: 'database/schemas/20260418000001_master_database_schema_v2.sql' },
-    { from: '../SQL/20260418000002_safe_schema_migration.sql', to: 'database/migrations/20260418000002_safe_schema_migration.sql' },
-    { from: '../SQL/DATABASE_DOCUMENTATION.md', to: 'database/docs/DATABASE_DOCUMENTATION.md' },
   ];
   
   fileMappings.forEach(mapping => {

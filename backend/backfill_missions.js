@@ -1,29 +1,28 @@
 const { Client } = require('pg');
-const fs = require('fs');
+require('dotenv').config({ path: '.env.local' });
 
 async function run() {
-  const client = new Client({
-    connectionString: 'postgresql://postgres.qlurztwklaysbhdjcpam:1046402103As@aws-1-ap-south-1.pooler.supabase.com:5432/postgres'
-  });
-  await client.connect();
-  
-  const sql = fs.readFileSync('../SQL/auto_assign_missions_on_signup.sql', 'utf8');
-  await client.query(sql);
-  console.log('Trigger installed!');
-
-  // Backfill missions for ALL existing users
-  const profiles = await client.query('SELECT id FROM public.profiles');
-  for (const row of profiles.rows) {
-    await client.query(`
-      INSERT INTO public.user_missions (user_id, mission_id, status, progress, last_reset_at)
-      SELECT $1, m.id, 'in_progress', '{}', NOW()
-      FROM public.missions m
-      WHERE m.is_active = TRUE
-      ON CONFLICT (user_id, mission_id) DO NOTHING
-    `, [row.id]);
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required in .env.local');
   }
 
-  console.log('Backfilled missions for ' + profiles.rows.length + ' existing users!');
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
+  await client.connect();
+
+  const result = await client.query(`
+    INSERT INTO public.user_missions (user_id, mission_id, status, progress, last_reset_at)
+    SELECT p.id, m.id, 'in_progress', '{}', NOW()
+    FROM public.profiles p
+    CROSS JOIN public.missions m
+    WHERE m.is_active = TRUE
+    ON CONFLICT (user_id, mission_id) DO NOTHING
+  `);
+
+  console.log('Backfilled ' + result.rowCount + ' mission assignments.');
   await client.end();
 }
 

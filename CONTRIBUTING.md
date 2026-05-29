@@ -58,7 +58,7 @@ TechAssassin/
 ├── Client/     # React web app
 ├── Mobile/      # Expo mobile app
 ├── backend/     # Next.js API
-├── SQL/         # Database schemas
+├── database/    # Final consolidated database schema
 └── Docs/        # Documentation
 ```
 
