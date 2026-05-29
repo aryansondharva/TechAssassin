@@ -87,10 +87,10 @@ export default function Profile() {
         fetchProfile();
       }
     };
-    window.addEventListener('userUpdated', handleUserUpdate);
+    window.addEventListener('profile-updated', handleUserUpdate);
     
     return () => {
-      window.removeEventListener('userUpdated', handleUserUpdate);
+      window.removeEventListener('profile-updated', handleUserUpdate);
     };
   }, [navigate, username, isOwnProfile, isLoaded, userId]);
 

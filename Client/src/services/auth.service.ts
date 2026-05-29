@@ -24,7 +24,37 @@ type AppUser = {
   username?: string | null
 }
 
+type ProfileUpdateEventDetail = {
+  first_name?: string
+  last_name?: string
+  full_name?: string
+  username?: string
+  avatar_url?: string
+  bio?: string
+  address?: string
+}
+
 const getClerk = () => (typeof window !== 'undefined' ? (window as Window & { Clerk?: { user?: ClerkUser; session?: { signOut?: () => Promise<void> }; signOut?: () => Promise<void> } }).Clerk : undefined)
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null
+}
+
+const getProfileUpdateEventDetail = (value: unknown): ProfileUpdateEventDetail | undefined => {
+  if (!isRecord(value)) {
+    return undefined
+  }
+
+  return {
+    first_name: typeof value.first_name === 'string' ? value.first_name : undefined,
+    last_name: typeof value.last_name === 'string' ? value.last_name : undefined,
+    full_name: typeof value.full_name === 'string' ? value.full_name : undefined,
+    username: typeof value.username === 'string' ? value.username : undefined,
+    avatar_url: typeof value.avatar_url === 'string' ? value.avatar_url : undefined,
+    bio: typeof value.bio === 'string' ? value.bio : undefined,
+    address: typeof value.address === 'string' ? value.address : undefined,
+  }
+}
 
 export const authService = {
   signUp: async (_data: unknown): Promise<AuthResponse> => {
@@ -63,8 +93,9 @@ export const authService = {
   },
 
   updateUser: (_userData: unknown): void => {
-    // Left empty. Profile modifications should happen via Clerk Dashboard or Clerk UI Components
-    console.warn('Profile modifications should be done via Clerk');
+    if (typeof window === 'undefined') return;
+    const detail = getProfileUpdateEventDetail(_userData)
+    window.dispatchEvent(new CustomEvent('profile-updated', { detail }));
   },
 
   forgotPassword: async (_data: unknown): Promise<void> => {},
