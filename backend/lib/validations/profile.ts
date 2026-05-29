@@ -1,4 +1,26 @@
 import { z } from 'zod'
+import { isIP } from 'node:net'
+
+/**
+ * Validates public profile links.
+ * Accepts http/https URLs with a real hostname, localhost, or a valid IP address.
+ */
+const isValidHttpUrl = (value: string) => {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false
+    }
+
+    const hostname = parsed.hostname.toLowerCase()
+    return hostname === 'localhost' || isIP(hostname) > 0 || /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(hostname)
+  } catch {
+    return false
+  }
+}
+
+const httpUrlSchema = (message: string) =>
+  z.string().trim().refine(isValidHttpUrl, message)
 
 /**
  * Profile update validation schema
@@ -21,21 +43,9 @@ export const profileUpdateSchema = z.object({
     .max(500, 'Bio must not exceed 500 characters')
     .optional()
     .or(z.literal('')),
-  github_url: z
-    .string()
-    .regex(/^https?:\/\/.+/i, 'GitHub URL must be a valid URL')
-    .optional()
-    .or(z.literal('')),
-  linkedin_url: z
-    .string()
-    .regex(/^https?:\/\/.+/i, 'LinkedIn URL must be a valid URL')
-    .optional()
-    .or(z.literal('')),
-  portfolio_url: z
-    .string()
-    .regex(/^https?:\/\/.+/i, 'Portfolio URL must be a valid URL')
-    .optional()
-    .or(z.literal('')),
+  github_url: httpUrlSchema('GitHub URL must be a valid URL').optional().or(z.literal('')),
+  linkedin_url: httpUrlSchema('LinkedIn URL must be a valid URL').optional().or(z.literal('')),
+  portfolio_url: httpUrlSchema('Portfolio URL must be a valid URL').optional().or(z.literal('')),
   skills: z
     .array(z.string())
     .max(10, 'Cannot have more than 10 skills')
@@ -45,8 +55,7 @@ export const profileUpdateSchema = z.object({
   graduation_year: z.union([z.number().int().min(1900).max(2100), z.string(), z.null()]).optional(),
   phone: z.string().max(20).optional().or(z.literal('')),
   address: z.string().max(200).optional().or(z.literal('')),
-  avatar_url: z.string().url().optional().or(z.literal('')),
-  banner_url: z.string().regex(/^https?:\/\/.+/i, 'Banner URL must be a valid URL').optional().or(z.literal('')),
+  banner_url: httpUrlSchema('Banner URL must be a valid URL').optional().or(z.literal('')),
   interests: z.array(z.string()).max(10, 'Cannot have more than 10 interests').optional(),
   first_name: z.string().max(50).optional().or(z.literal('')),
   last_name: z.string().max(50).optional().or(z.literal('')),
@@ -59,9 +68,10 @@ export const profileUpdateSchema = z.object({
   degree_type: z.string().optional().or(z.literal('')),
   graduation_month: z.string().optional().or(z.literal('')),
   roles: z.array(z.string()).optional(),
-  resume_url: z.string().url().optional().or(z.literal('')),
+  avatar_url: httpUrlSchema('Avatar URL must be a valid URL').optional().or(z.literal('')),
+  resume_url: httpUrlSchema('Resume URL must be a valid URL').optional().or(z.literal('')),
   has_experience: z.boolean().optional(),
-  twitter_url: z.string().regex(/^https?:\/\/.+/i, 'Twitter URL must be a valid URL').optional().or(z.literal('')),
+  twitter_url: httpUrlSchema('Twitter URL must be a valid URL').optional().or(z.literal('')),
   emergency_contact_name: z.string().max(100).optional().or(z.literal('')),
   emergency_contact_phone: z.string().max(20).optional().or(z.literal('')),
   is_email_public: z.boolean().optional(),
