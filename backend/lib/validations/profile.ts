@@ -1,7 +1,25 @@
 import { z } from 'zod'
 
+const isValidHttpUrl = (value: string) => {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false
+    }
+
+    const hostname = parsed.hostname.toLowerCase()
+    return (
+      hostname === 'localhost' ||
+      hostname.includes('.') ||
+      /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname)
+    )
+  } catch {
+    return false
+  }
+}
+
 const httpUrlSchema = (message: string) =>
-  z.string().regex(/^https?:\/\/[^\s]+$/i, message)
+  z.string().trim().refine(isValidHttpUrl, message)
 
 /**
  * Profile update validation schema
