@@ -23,6 +23,9 @@ const applyCorsHeaders = (
     response.headers.set('Access-Control-Allow-Origin', allowOriginHeader)
   }
 
+  const varyHeader = response.headers.get('Vary')
+  response.headers.set('Vary', varyHeader ? `${varyHeader}, Origin` : 'Origin')
+
   if (isAllowedOrigin) {
     response.headers.set('Access-Control-Allow-Credentials', 'true')
   }
@@ -33,31 +36,41 @@ const applyCorsHeaders = (
   return response
 }
 
+const getAllowedOrigins = () => {
+  const envOrigins =
+   process.env.CORS_ORIGINS?.split(',').map((value) => value.trim()).filter(Boolean) ?? []
+
+  return Array.from(
+   new Set(
+     [
+       'https://tech-assassin.vercel.app',
+       process.env.NEXT_PUBLIC_APP_URL,
+       ...envOrigins,
+     ].filter((originValue): originValue is string => Boolean(originValue))
+   )
+  )
+}
+
 export default clerkMiddleware((auth, request: NextRequest) => {
   // Get origin from request headers
   const origin = request.headers.get('origin')
   const isDev = process.env.NODE_ENV === 'development'
-  
-  // Define allowed origins from environment
-  const envOrigins =
-    process.env.CORS_ORIGINS?.split(',').map((value) => value.trim()).filter(Boolean) ?? []
 
-  const allowedOrigins = Array.from(
-   new Set(
-     [process.env.NEXT_PUBLIC_APP_URL, ...envOrigins].filter((originValue): originValue is string =>
-       Boolean(originValue)
-     )
-   )
-  )
+  const allowedOrigins = getAllowedOrigins()
 
   // Handle preflight OPTIONS requests
   if (request.method === 'OPTIONS') {
-   return applyCorsHeaders(new NextResponse(null, {
-     status: 200,
-     headers: {
-       'Access-Control-Max-Age': '86400', // 24 hours
-     },
-   }), origin, isDev, allowedOrigins)
+   return applyCorsHeaders(
+     new NextResponse(null, {
+       status: 200,
+       headers: {
+         'Access-Control-Max-Age': '86400', // 24 hours
+       },
+     }),
+     origin,
+     isDev,
+     allowedOrigins
+   )
   }
   
   // Handle actual requests
