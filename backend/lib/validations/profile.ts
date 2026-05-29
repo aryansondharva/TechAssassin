@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { isIP } from 'node:net'
 
+/**
+ * Validates public profile links.
+ * Accepts http/https URLs with a real hostname, localhost, or a valid IP address.
+ */
 const isValidHttpUrl = (value: string) => {
   try {
     const parsed = new URL(value)
@@ -9,7 +13,7 @@ const isValidHttpUrl = (value: string) => {
     }
 
     const hostname = parsed.hostname.toLowerCase()
-    return hostname === 'localhost' || hostname.includes('.') || isIP(hostname) > 0
+    return hostname === 'localhost' || isIP(hostname) > 0 || /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(hostname)
   } catch {
     return false
   }
