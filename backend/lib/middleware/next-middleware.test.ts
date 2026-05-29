@@ -1,7 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-import { middleware } from './middleware'
+vi.mock('@clerk/nextjs/server', () => ({
+  clerkMiddleware: (handler: any) => (request: any) => handler(() => ({}), request),
+}))
+
+import middleware from '../../middleware'
 
 const originalEnv = { ...process.env }
 

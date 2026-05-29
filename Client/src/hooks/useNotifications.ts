@@ -1,8 +1,14 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@clerk/react'
 import { api } from '@/lib/api-client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import type { Profile } from '@/types/api' // Keeping to minimal dependencies
+
+const generateChannelName = (userId: string) => {
+  const channelSuffix = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `notifications:${userId}:${channelSuffix}`
+}
 
 export interface Notification {
   id: string
@@ -21,6 +27,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   // Initial fetch via your backend API
   useEffect(() => {
@@ -43,11 +50,27 @@ export function useNotifications() {
   }, [userId])
 
   useEffect(() => {
-    if (!userId || !supabase || typeof supabase.channel !== 'function') return
+    if (!userId) {
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+      setNotifications([])
+      setUnreadCount(0)
+      setLoading(false)
+      return
+    }
+
+    if (!supabase || typeof supabase.channel !== 'function') return
 
     try {
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+
       const channel = supabase
-        .channel(`notifications:${userId}`)
+        .channel(generateChannelName(userId))
         .on(
           'postgres_changes',
           {
@@ -64,7 +87,14 @@ export function useNotifications() {
         )
         .subscribe()
 
-      return () => { supabase.removeChannel(channel) }
+      channelRef.current = channel
+
+      return () => {
+        if (channelRef.current === channel) {
+          channelRef.current = null
+        }
+        void supabase.removeChannel(channel)
+      }
     } catch (err) {
       console.error("Failed to hook realtime notifications", err);
     }

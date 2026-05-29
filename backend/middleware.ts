@@ -1,3 +1,4 @@
+import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -32,7 +33,7 @@ const applyCorsHeaders = (
   return response
 }
 
-export function middleware(request: NextRequest) {
+export default clerkMiddleware((auth, request: NextRequest) => {
   // Get origin from request headers
   const origin = request.headers.get('origin')
   const isDev = process.env.NODE_ENV === 'development'
@@ -61,7 +62,7 @@ export function middleware(request: NextRequest) {
   
   // Handle actual requests
   return applyCorsHeaders(NextResponse.next(), origin, isDev, allowedOrigins)
-}
+})
 
 /**
  * Configure which routes use this middleware
@@ -74,5 +75,3 @@ export const config = {
     '/(api|trpc)(.*)',
   ],
 }
-
-export default middleware
