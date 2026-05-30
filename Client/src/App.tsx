@@ -11,6 +11,7 @@ import ScrollToTop from "./components/ScrollToTop";
 const Index = lazy(() => import("./pages/Index"));
 const Profile = lazy(() => import("./pages/profile/view/Profile"));
 const EditProfile = lazy(() => import("./pages/profile/edit/EditProfile"));
+const QrCodePage = lazy(() => import("./pages/profile/qr/QrCodePage"));
 const Events = lazy(() => import("./pages/Events"));
 const EventDetails = lazy(() => import("./pages/EventDetails"));
 const Mentorship = lazy(() => import("./pages/Mentorship"));
@@ -57,6 +58,7 @@ const App = () => (
           <Route path="/projects" element={withSuspense(<NotFound />)} />
           <Route path="/profile" element={withSuspense(<Profile />)} />
           <Route path="/dashboard" element={withSuspense(<Profile />)} />
+          <Route path="/qr" element={withSuspense(<QrCodePage />)} />
           <Route path="/@:username" element={withSuspense(<Profile />)} />
           <Route path="/:username" element={withSuspense(<Profile />)} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
