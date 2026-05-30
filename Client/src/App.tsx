@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import { Suspense, lazy, type ReactNode } from "react";
 import { SignUp, SignIn } from "@clerk/react";
 import ScrollToTop from "./components/ScrollToTop";
@@ -66,6 +67,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
       <SpeedInsights />
+      <Analytics />
     </TooltipProvider>
   </QueryClientProvider>
 );
