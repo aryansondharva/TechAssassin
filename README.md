@@ -1,193 +1,27 @@
 # Tech Assassin - Community Platform
 
-<div align="center">
+> A high-performance, gamified developer community infrastructure wrapping an elite software collaboration workspace.
 
-<img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="80" height="80" />
+<p align="center">
+  <img src="./Client/public/favicon.ico" alt="TechAssassin Logo" width="80" height="80" />
+</p>
 
-**Dismantling Monoliths • Mastering Frameworks • Claiming the Digital Throne**
+<p align="center">
+  <strong>Dismantling Monoliths • Mastering Frameworks • Claiming the Digital Throne</strong>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-F1C40F?style=flat-square&logo=gitbook&logoColor=white)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Tech Stack](#tech-stack) • [Contributing](#contributing)
-
-</div>
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-F1C40F?style=flat-square" alt="License: MIT" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+  <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" /></a>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-14.2-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
+  <a href="https://supabase.com/"><img src="https://img.shields.io/badge/Supabase-Latest-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" /></a>
+  <a href="https://clerk.com/"><img src="https://img.shields.io/badge/Clerk-Auth-6C47FF?style=flat-square&logo=clerk&logoColor=white" alt="Clerk" /></a>
+  <a href="https://capacitorjs.com/"><img src="https://img.shields.io/badge/Capacitor-Android-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" /></a>
+</p>
 
 ---
 
 ## Welcome to the Command Center
+Tech Assassin is a high-performance developer community infrastructure. It merges real-time event telemetry, cooperative coding sprints, dynamic gamification (XP progression, streaks, and ranks), and deep social integrations into a unified dashboard and Capacitor-powered native Android shell.
 
-Tech Assassin is a high-performance community infrastructure designed for elite developers, security researchers, and system architects. It serves as a unified ecosystem where field operatives synchronize on mission-critical sprints, track professional progression via an advanced gamification engine, and collaborate on dismantling technical monoliths.
-
-The platform provides a seamless experience across web and mobile, ensuring operatives stay connected to the network through real-time notifications, presence tracking, and tactical dashboards.
-
----
-
-## System Overview
-
-### Core Architecture
-The platform is built on a distributed architecture leveraging high-concurrency technologies:
-- Frontend (Web): A high-fidelity interface built with React 18.3 and Vite 5.4, utilizing Framer Motion 12.3 for cinematic animations.
-- Mobile (Android): A native-performing application built with Expo 52, featuring hardware-accelerated animations via Reanimated 3.
-- Backend (API): A robust Next.js 14.2 server architecture providing a unified RESTful interface with integrated Zod validation.
-- Data Layer: PostgreSQL 15 with Supabase-managed authentication and real-time database synchronization.
-
-### Technical Depth
-- Materialized Views: Utilizing PostgreSQL materialized views for high-performance ranking calculations and trend analysis.
-- Real-time Synchronization: Advanced presence tracking and activity monitoring via dedicated SQL-level activity streams.
-- Security Infrastructure: Integrated Row-Level Security (RLS) and JWT-based session management for mission-critical data protection.
-
----
-
-## Features
-
-### Tacticial Hub & Command Center
-- Unified Dashboard: Real-time network status, mission milestones, and operative telemetry.
-- Mission Board: Discovery and deployment into upcoming tactical hackathons and sprints.
-- Real-time Comms: Encrypted intelligence feeds and tactical broadcasts.
-
-### Advanced Gamification Engine
-- Experience (XP) Tracking: Dynamic XP allocation based on mission complexity and contribution quality.
-- Rank Progression: Hierarchical progression system from Junior Operative to Lead Architect.
-- Streaks & Consistency: Continuous deployment rewards and activity streaks to maintain operative focus.
-- Honor Badges: Cryptographically verifiable badges for mastery in specific technical domains.
-
-### Global Intelligence & Rankings
-- Unified Leaderboard: High-performance ranking system with up/down trend indicators.
-- Operative Dossiers: Comprehensive profiles showcasing skill matrices, GitHub telemetry, and mission history.
-- Architect Facepiles: Interactive visualization of mission lead contributors and field architects.
-
----
-
-## Tech Stack
-
-### Frontend (Web)
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 18.3 | Core UI library |
-| TypeScript | 5.8 | Type-safe development |
-| Vite | 5.4 | High-performance build tool |
-| Framer Motion | 12.3 | Cinematic 60fps animations |
-| Tailwind CSS | 3.4 | Utility-first styling |
-| TanStack Query | 5.8 | Server-state management |
-| Shadcn/UI | Latest | Standardized UI component system |
-
-### Mobile (Android)
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Expo | 52.0 | Mobile development framework |
-| Reanimated | 3.x | Fluid, hardware-accelerated animations |
-| Lucide Native | Latest | Technical iconography |
-| Expo Push | Latest | Real-time mission notifications |
-
-### Backend & Data
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Next.js | 14.2 | Server-side execution and API routing |
-| Supabase | Latest | Real-time database and identity management |
-| PostgreSQL | 15.0 | Relational data persistence |
-| Zod | 4.3 | Runtime schema validation |
-| Resend | Latest | Automated intelligence dispatch (Email) |
-
----
-
-## API Reference
-
-### Intelligence & Data
-- GET /api/leaderboard - Retrieve top-ranking operatives with performance trends.
-- GET /api/profile/[id] - Access detailed operative dossier and skill matrix.
-- GET /api/events - List active and upcoming tactical missions.
-
-### Gamification & Progression
-- GET /api/gamification/xp - Current experience points and leveling status.
-- GET /api/gamification/badges - Earned honors and professional credentials.
-- GET /api/gamification/streaks - Monitoring continuous operative activity.
-
-### Authentication & Secure Operations
-- POST /api/auth/signin - Credential verification and session initialization.
-- POST /api/auth/signup - New operative registration and dossier creation.
-- GET /api/health - Real-time system status and network connectivity.
-
----
-
-## Quick Start
-
-### Prerequisites
-- Node.js 18.x or 20.x (LTS recommended)
-- PostgreSQL 15+ (Local or Managed)
-- Git
-
-### Installation
-1. Clone the operative repository:
-```bash
-git clone https://github.com/aryansondharva/TechAssassin.git
-cd TechAssassin
-```
-
-2. Initialize backend infrastructure:
-```bash
-cd backend
-npm install
-```
-
-3. Initialize client interface:
-```bash
-cd ../Client
-npm install
-```
-
-### Configuration
-1. Setup environment variables in `backend/.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_api_link
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_public_anon_key
-DATABASE_URL=postgresql://user:pass@host:5432/techassassin
-JWT_SECRET=minimum_32_character_security_key
-```
-
-### Database Deployment
-Initialize the database layer by executing the consolidated schema:
-1. database/final/techassassin_complete_schema.sql
-
----
-
-## Development & Testing
-
-Run the environment using dedicated terminals:
-
-Backend Terminal:
-```bash
-cd backend
-npm run dev
-```
-
-Web Terminal:
-```bash
-cd Client
-npm run dev
-```
-
-Mobile Terminal:
-```bash
-cd Mobile
-npx expo start
-```
-
-Testing Suite (Vitest):
-```bash
-cd backend
-npm test
-```
-
----
-
-## Deployment Strategy
-Web and API components are optimized for deployment on Vercel. Database schema deployment should use the consolidated SQL file in database/final. Mobile builds are managed via Expo Application Services (EAS).
-
----
-
-## License
-Licensed under the MIT License. Copyright (c) 2026 TechAssassin.
