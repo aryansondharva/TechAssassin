@@ -106,13 +106,17 @@ async function handleUserUpsert(userData: any, client: any) {
     const primaryEmail = getClerkPrimaryEmail(userData)
     const username = await getAvailableClerkUsername(client, userData, clerkUserId)
 
-    // Keep editable profile fields blank on signup, but use Clerk login data
-    // for the required username so users get a real handle immediately.
+    const firstName = userData.first_name || '';
+    const lastName = userData.last_name || '';
+    const fullName = [firstName, lastName].filter(Boolean).join(' ') || '';
+    const imageUrl = userData.image_url || null;
+
+    // Save all available user data from Clerk directly to Supabase
     await client.query(`
       INSERT INTO public.profiles (
         id, username, email, first_name, last_name, full_name, avatar_url, updated_at
       ) VALUES (
-        $1, $2, $3, '', '', '', NULL, NOW()
+        $1, $2, $3, $4, $5, $6, $7, NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
         username = CASE
@@ -123,12 +127,19 @@ async function handleUserUpsert(userData: any, client: any) {
           ELSE public.profiles.username
         END,
         email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        full_name = EXCLUDED.full_name,
+        avatar_url = EXCLUDED.avatar_url,
         updated_at = NOW()
-        -- Do not overwrite editable profile fields from Clerk.
     `, [
       clerkUserId,
       username,
-      primaryEmail
+      primaryEmail,
+      firstName,
+      lastName,
+      fullName,
+      imageUrl
     ])
 
     console.log(`Profile synced for ${clerkUserId} (${username})`)

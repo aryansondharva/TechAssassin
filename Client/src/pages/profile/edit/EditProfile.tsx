@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/react';
+import { useAuth, useUser } from '@clerk/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,6 +42,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export default function EditProfile() {
   const navigate = useNavigate();
   const { isLoaded, userId } = useAuth();
+  const { user } = useUser();
   
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +74,7 @@ export default function EditProfile() {
         setProfile(data);
         reset({
           full_name: data.full_name || '',
-          username: data.username || '',
+          username: user?.username || data.username || '',
           bio: data.bio || '',
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
@@ -208,7 +209,8 @@ export default function EditProfile() {
 
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-slate-700 font-bold uppercase tracking-wider text-xs">Callsign (Username)</Label>
-                  <Input id="username" {...register('username')} className="bg-slate-50 border-slate-200" />
+                  <Input id="username" {...register('username')} className="bg-slate-100 border-slate-200 text-slate-500" readOnly />
+                  <p className="text-[10px] text-slate-400 mt-1">Username is synced from your Clerk account settings.</p>
                   {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
                 </div>
               </div>
