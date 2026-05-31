@@ -1,12 +1,13 @@
 import founderImg from '@/assets/founder.png';
 import manthanImg from '@/assets/manthan.png';
-import berlinImg from '@/assets/berlin.png';
 import rajImg from '@/assets/raj.png';
 import advisorBanner from '@/assets/advisor_banner.webp';
 import founderBanner from '@/assets/founder_banner.webp';
 import communityChiefBanner from '@/assets/community_chief_banner.webp';
 import missHackerImg from '@/assets/miss_hacker.png';
 import hackerBanner from '@/assets/hacker_banner.webp'
+import professorImg from '@/assets/professor.png';
+import marketingLeadBanner from '@/assets/marketing-lead-banner.webp';
 import type { Member } from "./types";
 
 export const teamMembers: Member[] = [
@@ -46,10 +47,11 @@ export const teamMembers: Member[] = [
     banner: hackerBanner,
   },
   {
-    name: "Tokyo",
-    role: "Design",
+    name: "Professor ",
+    role: "Marketing Lead",
     accent: "bg-amber-500",
-    image: "/tokyo.png",
+    image: professorImg,
+    banner: marketingLeadBanner,
   },
 ];
 
