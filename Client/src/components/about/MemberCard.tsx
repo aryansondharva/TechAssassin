@@ -10,7 +10,7 @@ type MemberCardProps = {
 const MemberCard = ({ member, compact = false, featured = false }: MemberCardProps) => {
   const socialLinks = [
     { label: "X", href: member.links?.twitter, icon: XIcon },
-    { label: "Discord", href: member.links?.discord, icon: DiscordIcon },
+   // { label: "Discord", href: member.links?.discord, icon: DiscordIcon },
     { label: "GitHub", href: member.links?.github, icon: Github },
     { label: "LinkedIn", href: member.links?.linkedin, icon: Linkedin },
   ];
@@ -56,18 +56,17 @@ const MemberCard = ({ member, compact = false, featured = false }: MemberCardPro
         aria-label={`${member.name} portfolio`}
         className={`relative z-10 block ${member.links?.portfolio ? "cursor-pointer" : "pointer-events-none"}`}
       >
-        {/* Avatar Container with spinning golden gradient ring for featured (founder) or standard ring */}
+        {/* Avatar Container with spinning gradient ring (gold for featured/founder, silver for standard members) */}
         <div className="relative h-32 w-32 flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
-          {featured && (
+          {featured ? (
             /* Rotating Golden Gradient Border */
             <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-200 to-amber-600 animate-[spin_8s_linear_infinite] shadow-[0_4px_15px_rgba(217,119,6,0.15)] group-hover:shadow-[0_8px_25px_rgba(217,119,6,0.35)]" />
+          ) : (
+            /* Rotating Silver Gradient Border */
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-slate-300 via-zinc-100 to-slate-400 animate-[spin_10s_linear_infinite] shadow-[0_4px_12px_rgba(148,163,184,0.15)] group-hover:shadow-[0_8px_20px_rgba(148,163,184,0.3)]" />
           )}
           
-          <div className={`relative rounded-full transition-all duration-500 ${
-            featured 
-              ? "h-[122px] w-[122px] bg-white p-[2px]" 
-              : "h-32 w-32 bg-slate-50 p-1 ring-1 ring-slate-100 group-hover:ring-2 group-hover:ring-slate-200/50"
-          }`}>
+          <div className="relative rounded-full transition-all duration-500 h-[122px] w-[122px] bg-white p-[2px]">
             <img
               src={member.image}
               alt={`${member.name} avatar`}

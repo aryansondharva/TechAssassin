@@ -1,28 +1,49 @@
 import founderImg from '@/assets/founder.png';
 import manthanImg from '@/assets/manthan.png';
+import berlinImg from '@/assets/berlin.png';
+import rajImg from '@/assets/raj.png';
+import advisorBanner from '@/assets/advisor_banner.webp';
 import founderBanner from '@/assets/founder_banner.webp';
-import coFounderBanner from '@/assets/co-founder_banner.webp';
+import communityChiefBanner from '@/assets/community_chief_banner.webp';
+import missHackerImg from '@/assets/miss_hacker.png';
+import hackerBanner from '@/assets/hacker_banner.webp'
 import type { Member } from "./types";
 
 export const teamMembers: Member[] = [
   {
+    name: "Raj Ribadiya",
+    role: "Advisor",
+    accent: "bg-emerald-600",
+    image: rajImg ,
+    banner: advisorBanner,
+    links: {
+    portfolio: "https://syncwithraj.vercel.app/",
+    discord: "https://discord.gg/S6V3KNUu",
+    github: "https://github.com/SyncWithRaj",
+    twitter: "https://x.com/ribadiya_rajj",
+    linkedin: "https://www.linkedin.com/in/raj-ribadiya/",
+  },
+  },
+  {
     name: "Manthan Rajpurohit",
-    role: "Co-Founder",
+    role: "Community chief",
     accent: "bg-blue-600",
     image: manthanImg,
-    banner: coFounderBanner,
+    banner: communityChiefBanner,
+    links: {
+    portfolio: "https://manthan.vercel.app/",
+    discord: "https://discord.gg/S6V3KNUu",
+    github: "https://github.com/manthansingh26",
+    twitter: "https://x.com/Manthansingh26",
+    linkedin: "https://www.linkedin.com/in/manthan-shravansingh-rajpurohit",
+  },
   },
   {
-    name: "Berlin",
+    name: "Miss Hacker",
     role: "Community",
     accent: "bg-emerald-600",
-    image: "/berlin.png",
-  },
-  {
-    name: "Rio",
-    role: "Engineering",
-    accent: "bg-violet-600",
-    image: "/rio.png",
+    image: missHackerImg,
+    banner: hackerBanner,
   },
   {
     name: "Tokyo",
