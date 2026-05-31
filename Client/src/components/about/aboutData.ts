@@ -47,7 +47,7 @@ export const teamMembers: Member[] = [
     banner: hackerBanner,
   },
   {
-    name: "Professor ",
+    name: "Shrey Kansara ",
     role: "Marketing Lead",
     accent: "bg-amber-500",
     image: professorImg,

@@ -39,10 +39,6 @@ export function Toaster() {
             <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${variant === "destructive" ? "bg-red-500" : isSuccess ? "bg-emerald-500" : "bg-slate-400"}`} />
             
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <div className="shrink-0 flex items-center justify-center">
-                <Icon className={`h-4.5 w-4.5 ${variant === "destructive" ? "text-red-500" : isSuccess ? "text-emerald-500" : "text-slate-500"}`} />
-              </div>
-              
               <div className="flex items-baseline gap-2 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
                 {title && (
                   <ToastTitle className={`${variant === "destructive" ? "text-red-600" : isSuccess ? "text-emerald-600" : "text-slate-800"} font-bold`}>
