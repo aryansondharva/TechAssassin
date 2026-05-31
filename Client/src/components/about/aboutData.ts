@@ -7,7 +7,9 @@ import communityChiefBanner from '@/assets/community_chief_banner.webp';
 import missHackerImg from '@/assets/miss_hacker.png';
 import hackerBanner from '@/assets/hacker_banner.webp'
 import professorImg from '@/assets/professor.png';
+import vishalImg from '@/assets/vishal.png';
 import marketingLeadBanner from '@/assets/marketing-lead-banner.webp';
+import mediaLeadBanner from '@/assets/media-lead-banner.webp';
 import type { Member } from "./types";
 
 export const teamMembers: Member[] = [
@@ -52,6 +54,13 @@ export const teamMembers: Member[] = [
     accent: "bg-amber-500",
     image: professorImg,
     banner: marketingLeadBanner,
+  },
+  {
+    name: "Vishal Mistry",
+    role: "Media Chief",
+    accent: "bg-violet-600",
+    image: vishalImg,
+    banner: mediaLeadBanner,
   },
 ];
 

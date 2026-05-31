@@ -69,7 +69,10 @@ export const profileUpdateSchema = z.object({
   graduation_month: z.string().optional().or(z.literal('')),
   roles: z.array(z.string()).optional(),
   avatar_url: httpUrlSchema('Avatar URL must be a valid URL').optional().or(z.literal('')),
-  resume_url: httpUrlSchema('Resume URL must be a valid URL').optional().or(z.literal('')),
+  resume_url: z.string().trim().refine(
+    (val) => isValidHttpUrl(val) || val.startsWith('data:'),
+    'Resume must be a valid HTTP URL or data URL'
+  ).optional().or(z.literal('')),
   has_experience: z.boolean().optional(),
   twitter_url: httpUrlSchema('Twitter URL must be a valid URL').optional().or(z.literal('')),
   emergency_contact_name: z.string().max(100).optional().or(z.literal('')),

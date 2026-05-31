@@ -18,7 +18,7 @@ import Footer from '@/components/Footer';
 import { ImageCropperModal } from '@/components/ui/ImageCropperModal';
 import { 
   Loader2, Save, Upload, User, MapPin, Link as LinkIcon, 
-  Github, Linkedin, Twitter, Briefcase, GraduationCap
+  Github, Linkedin, Twitter, Briefcase, GraduationCap, FileText, Edit3
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -50,6 +50,13 @@ export default function EditProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  // Skills and Resume state
+  const [skills, setSkills] = useState<string[]>(['', '', '', '', '']);
+  const [currentSkillStep, setCurrentSkillStep] = useState(0);
+  const [resumeUrl, setResumeUrl] = useState<string>('');
+  const [resumeFileName, setResumeFileName] = useState<string>('');
+  const [resumeError, setResumeError] = useState<string | null>(null);
 
   // Cropper State
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -110,6 +117,25 @@ export default function EditProfile() {
           is_email_public: data.is_email_public || false,
           is_address_public: data.is_address_public || false,
         });
+
+        // Load active skills and resume into local state
+        if (data.skills && data.skills.length > 0) {
+          setSkills([
+            data.skills[0] || '',
+            data.skills[1] || '',
+            data.skills[2] || '',
+            data.skills[3] || '',
+            data.skills[4] || ''
+          ]);
+        }
+        if (data.resume_url) {
+          setResumeUrl(data.resume_url);
+          if (data.resume_url.startsWith('data:')) {
+            setResumeFileName('dossier_resume.pdf');
+          } else {
+            setResumeFileName(data.resume_url.split('/').pop() || 'linked_resume');
+          }
+        }
       } catch (err: any) {
         console.error('Failed to fetch profile:', err);
         // Even if the backend fails, populate available data from Clerk
@@ -135,6 +161,8 @@ export default function EditProfile() {
       await profileService.update({
         ...data,
         graduation_year: (graduationYear && !isNaN(graduationYear)) ? graduationYear : undefined,
+        skills: skills.filter(Boolean),
+        resume_url: resumeUrl || undefined,
       });
       toast({ title: 'Success', description: 'Profile updated successfully' });
       navigate('/profile');
@@ -331,6 +359,187 @@ export default function EditProfile() {
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     <Input id="address" {...register('address')} className="pl-10 bg-slate-50 border-slate-200" />
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Top 5 Tactical Skills Matrix */}
+          <Card className="rounded-[2rem] border-slate-200/60 shadow-sm overflow-hidden bg-white">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-2">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-red-500" /> Top 5 Tactical Skills Matrix
+                </h3>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                  Question {currentSkillStep + 1} of 5
+                </span>
+              </div>
+
+              {/* Step-by-Step Questionnaire */}
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 relative overflow-hidden">
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-500 block mb-1">
+                      TACTICAL SLOT #{currentSkillStep + 1}
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-800">
+                      {[
+                        "What is your primary core programming language or absolute strongest skill? (e.g. React, Python)",
+                        "What is your main backend framework, platform or database technology? (e.g. Node.js, PostgreSQL)",
+                        "What is your preferred UI/UX framework, style tool, or library? (e.g. Tailwind, Figma)",
+                        "What key engineering practice or workflow methodology do you excel at? (e.g. CI/CD, Git)",
+                        "What secondary supporting tech or tool rounds out your arsenal? (e.g. Docker, AWS)"
+                      ][currentSkillStep]}
+                    </h4>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Input
+                      type="text"
+                      placeholder="Enter skill name..."
+                      value={skills[currentSkillStep]}
+                      onChange={(e) => {
+                        const newSkills = [...skills];
+                        newSkills[currentSkillStep] = e.target.value;
+                        setSkills(newSkills);
+                      }}
+                      className="bg-white border-slate-200 font-semibold"
+                    />
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={currentSkillStep === 0}
+                      onClick={() => setCurrentSkillStep(prev => prev - 1)}
+                      className="rounded-xl px-4 py-2 text-xs font-bold border-slate-200 uppercase tracking-widest"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (currentSkillStep < 4) {
+                          setCurrentSkillStep(prev => prev + 1);
+                        }
+                      }}
+                      disabled={currentSkillStep === 4}
+                      className="bg-slate-800 hover:bg-slate-900 text-white rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Indicator / Active Skills List */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Current Arsenal Overview</p>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {skills.map((skill, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setCurrentSkillStep(index)}
+                      className={`p-3 rounded-xl border text-center transition-all ${
+                        currentSkillStep === index
+                          ? 'border-red-500 bg-red-50/50 shadow-sm ring-1 ring-red-500'
+                          : 'border-slate-100 bg-slate-50/30 hover:border-slate-200'
+                      }`}
+                    >
+                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Slot {index + 1}</p>
+                      <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
+                        {skill || <span className="text-slate-300 italic">Empty</span>}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Resume Dossier Card */}
+          <Card className="rounded-[2rem] border-slate-200/60 shadow-sm overflow-hidden bg-white">
+            <CardContent className="p-8 space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 border-b border-slate-100 pb-4">
+                <FileText className="w-4 h-4 text-red-500" /> Resume / Credentials
+              </h3>
+
+              <div className="space-y-4">
+                {/* Upload File Area */}
+                <div className="border border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50/30 hover:bg-slate-50/50 transition-colors">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <Upload className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <p className="text-xs font-bold text-slate-700 mb-1">
+                      {resumeFileName ? `Active file: ${resumeFileName}` : 'Select your Resume File'}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mb-3">
+                      Accepts PDF or Word files. Size limit: <span className="font-bold text-red-500">0 MB to 1 MB</span>
+                    </p>
+                    
+                    <label className="cursor-pointer bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest shadow-sm transition-colors inline-flex items-center gap-1.5">
+                      Choose File
+                      <input 
+                        type="file" 
+                        accept=".pdf,.doc,.docx" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 1024 * 1024) {
+                              setResumeError('Resume file size must not exceed 1 MB.');
+                              toast({
+                                title: 'Validation Failed',
+                                description: 'Resume file size must be between 0 MB and 1 MB.',
+                                variant: 'destructive'
+                              });
+                              e.target.value = '';
+                              return;
+                            }
+                            setResumeError(null);
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setResumeUrl(reader.result as string);
+                              setResumeFileName(file.name);
+                              toast({
+                                title: 'Success',
+                                description: `Selected file "${file.name}" ready to upload.`,
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {resumeError && (
+                      <p className="text-xs text-red-500 mt-2 font-semibold">{resumeError}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Direct Link Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="resume_url" className="text-slate-700 font-bold uppercase tracking-wider text-xs">Direct Resume Link (Alternative)</Label>
+                  <Input
+                    id="resume_url"
+                    placeholder="https://drive.google.com/file/d/..."
+                    value={resumeUrl && !resumeUrl.startsWith('data:') ? resumeUrl : ''}
+                    onChange={(e) => {
+                      setResumeUrl(e.target.value);
+                      if (e.target.value) {
+                        setResumeFileName(e.target.value.split('/').pop() || 'linked_resume');
+                      } else {
+                        setResumeFileName('');
+                      }
+                    }}
+                    className="bg-slate-50 border-slate-200"
+                  />
+                  <p className="text-[10px] text-slate-400">If you prefer, you can paste a Google Drive, Dropbox, or custom hosted link here instead of uploading a file.</p>
                 </div>
               </div>
             </CardContent>

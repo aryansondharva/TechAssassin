@@ -100,6 +100,7 @@ export default function Profile() {
   const hasInterests = profile.interests && profile.interests.length > 0;
   const hasRoles = profile.roles && profile.roles.length > 0;
   const hasLinks = profile.github_url || profile.linkedin_url || profile.twitter_url || profile.portfolio_url;
+  const hasOtherLinks = !!(profile.linkedin_url || profile.twitter_url || profile.portfolio_url);
   const hasEducation = profile.university || profile.degree_type || profile.graduation_year;
 
   // Social icon buttons
@@ -268,192 +269,191 @@ export default function Profile() {
               {/* Skills, Roles & Interests grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Skills */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Technical Matrix</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {hasSkills ? (
-                      profile.skills!.map(skill => (
+                {hasSkills && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">Technical Matrix</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills!.map(skill => (
                         <span key={skill} className="px-3 py-1.5 bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200">
                           {skill}
                         </span>
-                      ))
-                    ) : isOwnProfile ? (
-                      <p className="text-slate-400 text-sm italic">
-                        No skills yet — <button onClick={() => navigate('/edit-profile')} className="text-red-500 hover:underline">add some</button>
-                      </p>
-                    ) : (
-                      <p className="text-slate-400 text-sm italic">No skills registered</p>
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Roles */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Roles</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {hasRoles ? (
-                      profile.roles!.map(role => (
+                {hasRoles && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4">Roles</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.roles!.map(role => (
                         <span key={role} className="px-3 py-1.5 bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wide rounded-lg border border-red-100">
                           {role}
                         </span>
-                      ))
-                    ) : isOwnProfile ? (
-                      <p className="text-slate-400 text-sm italic">
-                        No roles yet — <button onClick={() => navigate('/edit-profile')} className="text-red-500 hover:underline">set your roles</button>
-                      </p>
-                    ) : (
-                      <p className="text-slate-400 text-sm italic">No roles registered</p>
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Interests */}
-              {(hasInterests || isOwnProfile) && (
+              {hasInterests && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4 flex items-center gap-2">
                     <Heart className="w-3.5 h-3.5" /> Interests
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {hasInterests ? (
-                      profile.interests!.map(interest => (
-                        <span key={interest} className="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-lg border border-amber-100">
-                          {interest}
-                        </span>
-                      ))
-                    ) : isOwnProfile ? (
-                      <p className="text-slate-400 text-sm italic">
-                        No interests yet — <button onClick={() => navigate('/edit-profile')} className="text-red-500 hover:underline">add some</button>
-                      </p>
-                    ) : null}
+                    {profile.interests!.map(interest => (
+                      <span key={interest} className="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-lg border border-amber-100">
+                        {interest}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
 
               {/* Network Links card */}
-              {(hasLinks || isOwnProfile) && (
+              {hasOtherLinks && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4 flex items-center gap-2">
                     <Link2 className="w-3.5 h-3.5" /> Network Links
                   </h3>
-                  {hasLinks ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        { url: profile.github_url, icon: Github, label: 'GitHub', color: 'hover:border-slate-400' },
-                        { url: profile.linkedin_url, icon: Linkedin, label: 'LinkedIn', color: 'hover:border-blue-400' },
-                        { url: profile.twitter_url, icon: Twitter, label: 'X (Twitter)', color: 'hover:border-slate-400' },
-                        { url: profile.portfolio_url, icon: ExternalLink, label: 'Portfolio', color: 'hover:border-red-400' },
-                      ].filter(l => l.url).map(({ url, icon: Icon, label, color }) => (
-                        <a
-                          key={label}
-                          href={url!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-3 p-3 rounded-xl border border-slate-200 ${color} transition-colors group`}
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 group-hover:bg-slate-100 transition-colors">
-                            <Icon className="w-4 h-4 text-slate-500" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-700">{label}</p>
-                            <p className="text-[11px] text-slate-400 truncate">{url!.replace(/^https?:\/\/(www\.)?/, '')}</p>
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  ) : isOwnProfile ? (
-                    <div className="text-center py-4">
-                      <p className="text-slate-400 text-sm italic mb-3">No links connected yet</p>
-                      <Button onClick={() => navigate('/edit-profile')} variant="outline" size="sm" className="rounded-lg text-xs font-semibold">
-                        <Edit3 className="w-3 h-3 mr-1.5" /> Add links
-                      </Button>
-                    </div>
-                  ) : null}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { url: profile.linkedin_url, icon: Linkedin, label: 'LinkedIn', color: 'hover:border-blue-400' },
+                      { url: profile.twitter_url, icon: Twitter, label: 'X (Twitter)', color: 'hover:border-slate-400' },
+                      { url: profile.portfolio_url, icon: ExternalLink, label: 'Portfolio', color: 'hover:border-red-400' },
+                    ].filter(l => l.url).map(({ url, icon: Icon, label, color }) => (
+                      <a
+                        key={label}
+                        href={url!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-3 p-3 rounded-xl border border-slate-200 ${color} transition-colors group`}
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 group-hover:bg-slate-100 transition-colors">
+                          <Icon className="w-4 h-4 text-slate-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-700">{label}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{url!.replace(/^https?:\/\/(www\.)?/, '')}</p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </TabsContent>
 
           {/* ───────── ABOUT TAB ───────── */}
-          <TabsContent value="about" className="mt-0">
-            <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-
-              {/* Bio */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" /> About
-                </h3>
-                {profile.bio ? (
-                  <p className="text-slate-700 leading-relaxed text-base">{profile.bio}</p>
-                ) : isOwnProfile ? (
-                  <div className="text-center py-6">
-                    <p className="text-slate-400 italic mb-3">No bio yet</p>
-                    <Button onClick={() => navigate('/edit-profile')} variant="outline" size="sm" className="rounded-lg text-xs font-semibold">
-                      <Edit3 className="w-3 h-3 mr-1.5" /> Add bio
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-slate-400 italic">No biographical data available.</p>
-                )}
-              </div>
-
-              {/* Education & Background */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-5 flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4" /> Background
-                </h3>
-
-                <div className="space-y-5">
-                  {hasEducation && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                        <GraduationCap className="w-5 h-5 text-slate-400" />
+          <TabsContent value="about" className="mt-8 outline-none animate-fade-in-up">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column: Education/Background summary */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-5 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-red-500" /> Background Intel
+                  </h3>
+                  
+                  <div className="space-y-5">
+                    {hasEducation && (
+                      <div className="flex gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                          <GraduationCap className="w-4.5 h-4.5 text-slate-400" />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Institution</p>
+                          {profile.university && <p className="text-xs font-bold text-slate-800">{profile.university}</p>}
+                          {profile.degree_type && <p className="text-[10px] text-slate-500 font-semibold">{profile.degree_type}</p>}
+                          {profile.graduation_year && <p className="text-[9px] text-slate-400 font-bold mt-0.5">Class of {profile.graduation_year}</p>}
+                        </div>
                       </div>
-                      <div>
-                        {profile.university && <p className="font-semibold text-slate-900">{profile.university}</p>}
-                        {profile.degree_type && <p className="text-sm text-slate-500">{profile.degree_type}</p>}
-                        {profile.graduation_year && (
-                          <p className="text-xs text-slate-400 mt-0.5">Class of {profile.graduation_year}</p>
+                    )}
+
+                    {profile.address && profile.is_address_public && (
+                      <div className="flex gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                          <MapPin className="w-4.5 h-4.5 text-slate-400" />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location</p>
+                          <span className="text-xs font-bold text-slate-800">{profile.address}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {profile.email && profile.is_email_public && (
+                      <div className="flex gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                          <Mail className="w-4.5 h-4.5 text-slate-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Address</p>
+                          <a href={`mailto:${profile.email}`} className="text-xs font-bold text-slate-800 hover:text-red-600 transition-colors truncate block">{profile.email}</a>
+                        </div>
+                      </div>
+                    )}
+
+                    {!hasEducation && !(profile.address && profile.is_address_public) && !(profile.email && profile.is_email_public) && (
+                      <div className="text-center py-6 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
+                        <p className="text-slate-400 text-xs font-semibold mb-3">No background info added yet</p>
+                        {isOwnProfile && (
+                          <Button onClick={() => navigate('/edit-profile')} variant="outline" size="sm" className="rounded-xl text-[10px] font-black uppercase tracking-wider px-4 py-2 border-slate-200 hover:bg-slate-50 transition-colors">
+                            <Edit3 className="w-3 h-3 mr-1.5" /> Initialize Details
+                          </Button>
                         )}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {profile.address && profile.is_address_public && (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                        <MapPin className="w-5 h-5 text-slate-400" />
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                      <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                        <Calendar className="w-4.5 h-4.5 text-slate-400" />
                       </div>
-                      <span className="text-sm text-slate-700">{profile.address}</span>
-                    </div>
-                  )}
-
-                  {profile.email && profile.is_email_public && (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                        <Mail className="w-5 h-5 text-slate-400" />
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Registry Date</p>
+                        <span className="text-xs font-bold text-slate-800 text-center">
+                          Joined {new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
+                        </span>
                       </div>
-                      <a href={`mailto:${profile.email}`} className="text-sm text-slate-700 hover:text-red-600 transition-colors">{profile.email}</a>
                     </div>
-                  )}
 
-                  {!hasEducation && !(profile.address && profile.is_address_public) && !(profile.email && profile.is_email_public) && isOwnProfile && (
-                    <div className="text-center py-4">
-                      <p className="text-slate-400 text-sm italic mb-3">No background info added yet</p>
-                      <Button onClick={() => navigate('/edit-profile')} variant="outline" size="sm" className="rounded-lg text-xs font-semibold">
-                        <Edit3 className="w-3 h-3 mr-1.5" /> Add details
+                    {profile.resume_url && (
+                      <div className="pt-4 border-t border-slate-100">
+                        <a
+                          href={profile.resume_url}
+                          download={profile.resume_url.startsWith('data:') ? 'dossier_resume.pdf' : undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-sm"
+                        >
+                          <FileText className="w-4 h-4" /> View Dossier Resume
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Bio / Long Description */}
+              <div className="lg:col-span-8">
+                <div className="bg-white rounded-3xl border border-slate-200/60 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-4 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-red-500" /> Detailed Profile Dossier
+                  </h3>
+                  {profile.bio ? (
+                    <p className="text-slate-700 leading-relaxed text-sm font-body whitespace-pre-wrap">{profile.bio}</p>
+                  ) : isOwnProfile ? (
+                    <div className="text-center py-10 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
+                      <p className="text-slate-400 text-xs font-semibold mb-4">No bio added to your dossier yet.</p>
+                      <Button onClick={() => navigate('/edit-profile')} variant="outline" size="sm" className="rounded-xl text-xs font-black uppercase tracking-wider">
+                        <Edit3 className="w-3 h-3 mr-1.5" /> Initialize Bio
                       </Button>
                     </div>
+                  ) : (
+                    <p className="text-slate-400 italic text-xs font-medium">No biographical dossier details recorded.</p>
                   )}
-
-                  <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                      <Calendar className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                      Joined {new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
