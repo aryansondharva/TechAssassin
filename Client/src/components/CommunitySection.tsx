@@ -76,7 +76,7 @@ const impactSlides = [
 const missions = [
   {
     title: "CodeSprint 2026",
-    date: "June 12",
+    date: "Comming soon",
     location: "Online",
     tag: "Hackathon",
     marker: "bg-red-600",
@@ -85,7 +85,7 @@ const missions = [
   },
   {
     title: "Open-Source Lab",
-    date: "June 18",
+    date: "Comming soon",
     location: "Discord",
     tag: "Mission",
     marker: "bg-blue-500",
@@ -94,7 +94,7 @@ const missions = [
   },
   {
     title: "AI Builder Week",
-    date: "June 24",
+    date: "Comming soon",
     location: "Global",
     tag: "Workshop",
     marker: "bg-emerald-400",
